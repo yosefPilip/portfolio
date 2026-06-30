@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yosef Pilip</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #fafafa;
+      --gray: #6b6b6b;
+      --accent: #1a1a1a;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--white);
+      color: var(--black);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    a:hover { opacity: 0.6; }
+
+    /* ── LAYOUT ── */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid #e5e5e5;
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      background: var(--white);
+      z-index: 10;
+    }
+
+    header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wordmark {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    nav {
+      display: flex;
+      gap: 28px;
+    }
+
+    nav a {
+      font-size: 14px;
+      color: var(--gray);
+      font-weight: 500;
+    }
+
+    nav a:hover { color: var(--black); opacity: 1; }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 80px 0 64px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .hero-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 24px;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--gray);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .hero-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      transition: opacity 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--black);
+      border: 1px solid #d0d0d0;
+    }
+
+    .btn:hover { opacity: 0.75; }
+
+    /* ── SECTION ── */
+    section {
+      padding: 60px 0;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    section:last-of-type { border-bottom: none; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 36px;
+    }
+
+    /* ── WORK ── */
+    .work-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px 24px;
+      align-items: start;
+      padding: 24px 0;
+      border-top: 1px solid #ebebeb;
+    }
+
+    .work-item:first-of-type { border-top: none; padding-top: 0; }
+
+    .work-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .work-company {
+      font-size: 14px;
+      color: var(--gray);
+      margin-top: 2px;
+    }
+
+    .work-desc {
+      font-size: 14px;
+      color: var(--gray);
+      margin-top: 8px;
+      grid-column: 1 / -1;
+      line-height: 1.65;
+    }
+
+    .work-date {
+      font-size: 13px;
+      color: var(--gray);
+      white-space: nowrap;
+      margin-top: 3px;
+    }
+
+    /* ── PROJECTS ── */
+    .project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 540px) { .project-grid { grid-template-columns: 1fr; } }
+
+    .project-card {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .project-card:hover {
+      border-color: #aaa;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .project-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .project-desc {
+      font-size: 13px;
+      color: var(--gray);
+      line-height: 1.55;
+    }
+
+    .project-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      background: #f0f0f0;
+      padding: 3px 7px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+
+    /* ── SKILLS ── */
+    .skills-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .skill-chip {
+      font-size: 13px;
+      padding: 6px 12px;
+      background: #f0f0f0;
+      border-radius: 100px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* ── CONTACT ── */
+    .contact-line {
+      font-size: 15px;
+      color: var(--gray);
+      margin-bottom: 12px;
+    }
+
+    .contact-line a {
+      color: var(--black);
+      font-weight: 500;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .contact-line a:hover { opacity: 0.6; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 28px 0;
+      font-size: 13px;
+      color: #aaa;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <span class="wordmark">Yosef Pilip</span>
+      <nav>
+        <a href="#work">Work</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="container">
+        <p class="hero-eyebrow">Software Engineer &amp; Founder</p>
+        <h1>Building products<br>that scale.</h1>
+        <p>
+          I design and ship full-stack software — from cloud infrastructure
+          to user-facing products. Currently building at
+          <strong>Cloud Geometry</strong> and <strong>Apali Tech</strong>.
+        </p>
+        <div class="hero-links">
+          <a class="btn btn-primary" href="#contact">Get in touch</a>
+          <a class="btn btn-secondary" href="https://github.com/yosefPilip" target="_blank">
+            GitHub ↗
+          </a>
+          <a class="btn btn-secondary" href="https://www.linkedin.com/in/yosefpilip/" target="_blank">
+            LinkedIn ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORK -->
+    <section id="work">
+      <div class="container">
+        <p class="section-label">Experience</p>
+
+        <div class="work-item">
+          <div>
+            <div class="work-title">Founder &amp; CEO</div>
+            <div class="work-company">Cloud Geometry</div>
+            <p class="work-desc">
+              Cloud consulting and product development. Helping teams architect and deploy
+              scalable infrastructure on AWS, Azure, and GCP.
+            </p>
+          </div>
+          <div class="work-date">2023 — Present</div>
+        </div>
+
+        <div class="work-item">
+          <div>
+            <div class="work-title">Founder</div>
+            <div class="work-company">Apali Tech</div>
+            <p class="work-desc">
+              Building AI-powered media tools including Cloudcast 180 — a batch podcast
+              generator that combines Claude AI script generation with ElevenLabs voice synthesis.
+            </p>
+          </div>
+          <div class="work-date">2024 — Present</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects">
+      <div class="container">
+        <p class="section-label">Projects</p>
+        <div class="project-grid">
+
+          <div class="project-card">
+            <div class="project-name">Cloudcast 180</div>
+            <div class="project-desc">
+              Batch podcast generator. Claude AI writes scripts, ElevenLabs synthesizes voices,
+              and ffmpeg stitches city-specific intros and outros.
+            </div>
+            <span class="project-tag">Python · React · FastAPI</span>
+          </div>
+
+          <div class="project-card">
+            <div class="project-name">Apali Landing</div>
+            <div class="project-desc">
+              Marketing site for Apali Tech — designed for conversion with clean,
+              minimal branding and a SaaS-tier value proposition.
+            </div>
+            <span class="project-tag">HTML · CSS · JS</span>
+          </div>
+
+          <div class="project-card">
+            <div class="project-name">Cloud Infrastructure</div>
+            <div class="project-desc">
+              Multi-cloud architecture designs and deployment pipelines for
+              enterprise clients via Cloud Geometry.
+            </div>
+            <span class="project-tag">AWS · Azure · Terraform</span>
+          </div>
+
+          <div class="project-card">
+            <div class="project-name">AI Tooling</div>
+            <div class="project-desc">
+              Exploration of the Anthropic Claude API, MCP servers,
+              and agent-based automation workflows.
+            </div>
+            <span class="project-tag">Claude API · MCP · Agents</span>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section>
+      <div class="container">
+        <p class="section-label">Skills</p>
+        <div class="skills-list">
+          <span class="skill-chip">Python</span>
+          <span class="skill-chip">FastAPI</span>
+          <span class="skill-chip">React</span>
+          <span class="skill-chip">JavaScript</span>
+          <span class="skill-chip">Node.js</span>
+          <span class="skill-chip">AWS</span>
+          <span class="skill-chip">Azure</span>
+          <span class="skill-chip">GCP</span>
+          <span class="skill-chip">Terraform</span>
+          <span class="skill-chip">Docker</span>
+          <span class="skill-chip">PostgreSQL</span>
+          <span class="skill-chip">SQLite</span>
+          <span class="skill-chip">Claude API</span>
+          <span class="skill-chip">ElevenLabs</span>
+          <span class="skill-chip">ffmpeg</span>
+          <span class="skill-chip">Git</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+      <div class="container">
+        <p class="section-label">Contact</p>
+        <p class="contact-line">
+          Email — <a href="mailto:yosef@cloudgeometry.com">yosef@cloudgeometry.com</a>
+        </p>
+        <p class="contact-line">
+          LinkedIn — <a href="https://www.linkedin.com/in/yosefpilip/" target="_blank">linkedin.com/in/yosefpilip</a>
+        </p>
+        <p class="contact-line">
+          GitHub — <a href="https://github.com/yosefPilip" target="_blank">github.com/yosefPilip</a>
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">© 2026 Yosef Pilip</div>
+  </footer>
+
+</body>
+</html>
