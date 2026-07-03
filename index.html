@@ -11,7 +11,8 @@
       --black: #0a0a0a;
       --white: #fafafa;
       --gray: #6b6b6b;
-      --accent: #1a1a1a;
+      --light: #f0f0f0;
+      --border: #e5e5e5;
       --font: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
@@ -23,23 +24,19 @@
       font-family: var(--font);
       font-size: 16px;
       line-height: 1.6;
-      min-height: 100vh;
     }
 
     a { color: inherit; text-decoration: none; }
-    a:hover { opacity: 0.6; }
 
-    /* ── LAYOUT ── */
     .container {
-      max-width: 720px;
+      max-width: 740px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
-    /* ── HEADER ── */
     header {
-      border-bottom: 1px solid #e5e5e5;
-      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
       position: sticky;
       top: 0;
       background: var(--white);
@@ -52,155 +49,134 @@
       justify-content: space-between;
     }
 
-    .wordmark {
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: -0.3px;
-    }
+    .wordmark { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
 
-    nav {
-      display: flex;
-      gap: 28px;
-    }
+    nav { display: flex; gap: 28px; }
 
     nav a {
       font-size: 14px;
       color: var(--gray);
       font-weight: 500;
+      transition: color 0.1s;
     }
 
-    nav a:hover { color: var(--black); opacity: 1; }
+    nav a:hover { color: var(--black); }
 
-    /* ── HERO ── */
     .hero {
-      padding: 80px 0 64px;
-      border-bottom: 1px solid #e5e5e5;
+      padding: 80px 0 68px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .hero-eyebrow {
+    .eyebrow {
       font-size: 12px;
       font-weight: 600;
-      letter-spacing: 1.5px;
+      letter-spacing: 1.6px;
       text-transform: uppercase;
       color: var(--gray);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
-    .hero h1 {
-      font-size: clamp(36px, 6vw, 56px);
+    h1 {
+      font-size: clamp(38px, 6.5vw, 58px);
       font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -1.5px;
-      margin-bottom: 24px;
+      line-height: 1.08;
+      letter-spacing: -1.8px;
+      margin-bottom: 22px;
     }
 
-    .hero p {
-      font-size: 18px;
+    .hero-bio {
+      font-size: 17px;
       color: var(--gray);
-      max-width: 520px;
-      line-height: 1.7;
+      max-width: 540px;
+      line-height: 1.75;
       margin-bottom: 36px;
     }
 
-    .hero-links {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+    .hero-bio strong { color: var(--black); font-weight: 600; }
+
+    .hero-links { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 20px;
+      padding: 10px 18px;
       font-size: 14px;
       font-weight: 600;
       border-radius: 6px;
       transition: opacity 0.15s;
     }
 
-    .btn-primary {
-      background: var(--black);
-      color: var(--white);
-    }
+    .btn:hover { opacity: 0.7; }
+    .btn-primary { background: var(--black); color: var(--white); }
+    .btn-secondary { background: transparent; color: var(--black); border: 1px solid #d0d0d0; }
 
-    .btn-secondary {
-      background: transparent;
-      color: var(--black);
-      border: 1px solid #d0d0d0;
-    }
-
-    .btn:hover { opacity: 0.75; }
-
-    /* ── SECTION ── */
     section {
       padding: 60px 0;
-      border-bottom: 1px solid #e5e5e5;
+      border-bottom: 1px solid var(--border);
     }
-
-    section:last-of-type { border-bottom: none; }
 
     .section-label {
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1.8px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       color: var(--gray);
-      margin-bottom: 36px;
+      margin-bottom: 40px;
     }
 
-    /* ── WORK ── */
-    .work-item {
+    .exp-item {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 8px 24px;
-      align-items: start;
-      padding: 24px 0;
+      gap: 4px 24px;
+      padding: 28px 0;
       border-top: 1px solid #ebebeb;
     }
 
-    .work-item:first-of-type { border-top: none; padding-top: 0; }
+    .exp-item:first-of-type { border-top: none; padding-top: 0; }
 
-    .work-title {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: -0.2px;
-    }
+    .exp-role { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+    .exp-org  { font-size: 14px; color: var(--gray); margin-top: 2px; }
+    .exp-date { font-size: 13px; color: var(--gray); white-space: nowrap; padding-top: 2px; }
 
-    .work-company {
-      font-size: 14px;
-      color: var(--gray);
-      margin-top: 2px;
-    }
-
-    .work-desc {
-      font-size: 14px;
-      color: var(--gray);
-      margin-top: 8px;
+    .exp-desc {
       grid-column: 1 / -1;
-      line-height: 1.65;
-    }
-
-    .work-date {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--gray);
-      white-space: nowrap;
-      margin-top: 3px;
+      line-height: 1.7;
+      margin-top: 10px;
     }
 
-    /* ── PROJECTS ── */
+    .exp-stack {
+      grid-column: 1 / -1;
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: var(--gray);
+      background: var(--light);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
     .project-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
 
-    @media (max-width: 540px) { .project-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 520px) { .project-grid { grid-template-columns: 1fr; } }
 
     .project-card {
-      border: 1px solid #e5e5e5;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 20px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -208,70 +184,76 @@
     }
 
     .project-card:hover {
-      border-color: #aaa;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-color: #bbb;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
     }
 
-    .project-name {
-      font-size: 15px;
-      font-weight: 600;
+    .project-name { font-size: 15px; font-weight: 600; }
+    .project-desc { font-size: 13px; color: var(--gray); line-height: 1.6; flex: 1; }
+
+    .edu-item {
+      padding: 20px 0;
+      border-top: 1px solid #ebebeb;
     }
 
-    .project-desc {
-      font-size: 13px;
-      color: var(--gray);
-      line-height: 1.55;
-    }
+    .edu-item:first-of-type { border-top: none; padding-top: 0; }
 
-    .project-tag {
-      display: inline-block;
+    .edu-school { font-size: 15px; font-weight: 600; }
+    .edu-detail { font-size: 14px; color: var(--gray); margin-top: 3px; }
+
+    .skill-group { margin-bottom: 28px; }
+    .skill-group:last-child { margin-bottom: 0; }
+
+    .skill-group-label {
       font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
-      color: var(--gray);
-      background: #f0f0f0;
-      padding: 3px 7px;
-      border-radius: 4px;
-      margin-top: 4px;
+      color: #aaa;
+      margin-bottom: 10px;
     }
 
-    /* ── SKILLS ── */
-    .skills-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 
-    .skill-chip {
+    .chip {
       font-size: 13px;
-      padding: 6px 12px;
-      background: #f0f0f0;
+      padding: 6px 13px;
+      background: var(--light);
       border-radius: 100px;
-      color: var(--accent);
+      color: var(--black);
       font-weight: 500;
     }
 
-    /* ── CONTACT ── */
-    .contact-line {
+    .contact-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 14px;
       font-size: 15px;
-      color: var(--gray);
-      margin-bottom: 12px;
     }
 
-    .contact-line a {
+    .contact-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #aaa;
+      min-width: 80px;
+    }
+
+    .contact-row a {
       color: var(--black);
       font-weight: 500;
       border-bottom: 1px solid #ccc;
+      transition: opacity 0.15s;
     }
 
-    .contact-line a:hover { opacity: 0.6; }
+    .contact-row a:hover { opacity: 0.55; }
 
-    /* ── FOOTER ── */
     footer {
-      padding: 28px 0;
+      padding: 30px 0;
       font-size: 13px;
-      color: #aaa;
+      color: #bbb;
       text-align: center;
     }
   </style>
@@ -282,8 +264,9 @@
     <div class="container">
       <span class="wordmark">Yosef Pilip</span>
       <nav>
-        <a href="#work">Work</a>
+        <a href="#experience">Experience</a>
         <a href="#projects">Projects</a>
+        <a href="#education">Education</a>
         <a href="#contact">Contact</a>
       </nav>
     </div>
@@ -291,151 +274,263 @@
 
   <main>
 
-    <!-- HERO -->
     <div class="hero">
       <div class="container">
-        <p class="hero-eyebrow">Software Engineer &amp; Founder</p>
-        <h1>Building products<br>that scale.</h1>
-        <p>
-          I design and ship full-stack software — from cloud infrastructure
-          to user-facing products. Currently building at
-          <strong>Cloud Geometry</strong> and <strong>Apali Tech</strong>.
+        <p class="eyebrow">CS Student &amp; AI Developer &middot; San Diego, CA</p>
+        <h1>Building tools that<br>connect systems.</h1>
+        <p class="hero-bio">
+          I'm a Computer Science student at <strong>San Diego State University</strong>
+          interested in full-stack development, AI automation, and API integrations.
+          I like experimenting with AI agents and large language models to build tools
+          that make processes more efficient. Outside of tech, I'm into music, DJing,
+          guitar, and piano.
         </p>
         <div class="hero-links">
           <a class="btn btn-primary" href="#contact">Get in touch</a>
-          <a class="btn btn-secondary" href="https://github.com/yosefPilip" target="_blank">
-            GitHub ↗
-          </a>
-          <a class="btn btn-secondary" href="https://www.linkedin.com/in/yosefpilip/" target="_blank">
-            LinkedIn ↗
-          </a>
+          <a class="btn btn-secondary" href="https://github.com/yosefPilip" target="_blank">GitHub &nearr;</a>
+          <a class="btn btn-secondary" href="https://www.linkedin.com/in/yosefpilip/" target="_blank">LinkedIn &nearr;</a>
         </div>
       </div>
     </div>
 
-    <!-- WORK -->
-    <section id="work">
+    <section id="experience">
       <div class="container">
         <p class="section-label">Experience</p>
 
-        <div class="work-item">
+        <div class="exp-item">
           <div>
-            <div class="work-title">Founder &amp; CEO</div>
-            <div class="work-company">Cloud Geometry</div>
-            <p class="work-desc">
-              Cloud consulting and product development. Helping teams architect and deploy
-              scalable infrastructure on AWS, Azure, and GCP.
-            </p>
+            <div class="exp-role">AI Software Developer</div>
+            <div class="exp-org">CloudGeometry</div>
           </div>
-          <div class="work-date">2023 — Present</div>
+          <div class="exp-date">Jan 2026 &mdash; Present</div>
+          <p class="exp-desc">
+            Build internal AI-powered tools and automations for a ~100-person globally distributed
+            company on Google Workspace. Projects include a Slack HR bot using the Gemini API for
+            PTO and sick-day request flows, a role-based HR management system in AppSheet backed by
+            Google Sheets, and an IT security bot that automates weekly Workspace hygiene checks.
+            Also administer Google Workspace and Google Admin &mdash; tightening security configs,
+            resolving employee access issues, and organizing account and group structure.
+          </p>
+          <div class="exp-stack">
+            <span class="tag">Google Apps Script</span>
+            <span class="tag">Gemini API</span>
+            <span class="tag">AppSheet</span>
+            <span class="tag">Slack API</span>
+            <span class="tag">Google Workspace Admin SDK</span>
+          </div>
         </div>
 
-        <div class="work-item">
+        <div class="exp-item">
           <div>
-            <div class="work-title">Founder</div>
-            <div class="work-company">Apali Tech</div>
-            <p class="work-desc">
-              Building AI-powered media tools including Cloudcast 180 — a batch podcast
-              generator that combines Claude AI script generation with ElevenLabs voice synthesis.
-            </p>
+            <div class="exp-role">Software Developer</div>
+            <div class="exp-org">CloudGeometry</div>
           </div>
-          <div class="work-date">2024 — Present</div>
+          <div class="exp-date">May 2025 &mdash; Aug 2025</div>
+          <p class="exp-desc">
+            Software development internship at CloudGeometry, contributing to internal
+            tooling and automation projects.
+          </p>
+        </div>
+
+        <div class="exp-item">
+          <div>
+            <div class="exp-role">President &amp; Software Lead</div>
+            <div class="exp-org">Aztec Robotics at SDSU</div>
+          </div>
+          <div class="exp-date">Feb 2025 &mdash; Oct 2025</div>
+          <p class="exp-desc">
+            Served as Software Lead (Feb&ndash;May 2025) then President (May&ndash;Oct 2025).
+            Led the software team and guided the club's technical direction and operations.
+          </p>
+        </div>
+
+        <div class="exp-item">
+          <div>
+            <div class="exp-role">AI &amp; Web Development Lead</div>
+            <div class="exp-org">Hillel Business Initiative</div>
+          </div>
+          <div class="exp-date">Jul 2025 &mdash; Dec 2025</div>
+          <p class="exp-desc">
+            Oversaw the club's digital strategy &mdash; building, maintaining, and optimizing web
+            platforms while integrating AI tools to enhance operations, marketing, and member engagement.
+          </p>
+        </div>
+
+        <div class="exp-item">
+          <div>
+            <div class="exp-role">Events &amp; External Relations Manager</div>
+            <div class="exp-org">Alpha Epsilon Pi</div>
+          </div>
+          <div class="exp-date">May 2025 &mdash; Dec 2025</div>
+          <p class="exp-desc">
+            Led the planning, design, and execution of large-scale themed events for 300+
+            attendees. Directed a 50-person team across construction, logistics, and creative
+            roles, managing a multi-thousand-dollar budget. Maintained external relations with
+            campus organizations to support collaboration and event visibility.
+          </p>
         </div>
 
       </div>
     </section>
 
-    <!-- PROJECTS -->
     <section id="projects">
       <div class="container">
         <p class="section-label">Projects</p>
         <div class="project-grid">
 
           <div class="project-card">
-            <div class="project-name">Cloudcast 180</div>
-            <div class="project-desc">
-              Batch podcast generator. Claude AI writes scripts, ElevenLabs synthesizes voices,
-              and ffmpeg stitches city-specific intros and outros.
+            <div class="project-name">Slack HR Bot</div>
+            <p class="project-desc">
+              Natural-language HR assistant for CloudGeometry. Handles PTO and sick-day
+              requests via Slack using Gemini API for parsing and manager approval flows.
+            </p>
+            <div class="chips" style="margin-top:4px">
+              <span class="tag">Gemini API</span>
+              <span class="tag">Slack API</span>
+              <span class="tag">Apps Script</span>
             </div>
-            <span class="project-tag">Python · React · FastAPI</span>
           </div>
 
           <div class="project-card">
-            <div class="project-name">Apali Landing</div>
-            <div class="project-desc">
-              Marketing site for Apali Tech — designed for conversion with clean,
-              minimal branding and a SaaS-tier value proposition.
+            <div class="project-name">HR Management System</div>
+            <p class="project-desc">
+              Role-based HR app in AppSheet backed by Google Sheets. Streamlines
+              employee records and access control for a distributed org.
+            </p>
+            <div class="chips" style="margin-top:4px">
+              <span class="tag">AppSheet</span>
+              <span class="tag">Google Sheets</span>
+              <span class="tag">Apps Script</span>
             </div>
-            <span class="project-tag">HTML · CSS · JS</span>
           </div>
 
           <div class="project-card">
-            <div class="project-name">Cloud Infrastructure</div>
-            <div class="project-desc">
-              Multi-cloud architecture designs and deployment pipelines for
-              enterprise clients via Cloud Geometry.
+            <div class="project-name">IT Security Automation</div>
+            <p class="project-desc">
+              Automates weekly Google Workspace hygiene checks &mdash; flagging stale
+              accounts, misconfigured permissions, and security gaps across the org.
+            </p>
+            <div class="chips" style="margin-top:4px">
+              <span class="tag">Admin SDK</span>
+              <span class="tag">Apps Script</span>
+              <span class="tag">Google Workspace</span>
             </div>
-            <span class="project-tag">AWS · Azure · Terraform</span>
           </div>
 
           <div class="project-card">
-            <div class="project-name">AI Tooling</div>
-            <div class="project-desc">
-              Exploration of the Anthropic Claude API, MCP servers,
-              and agent-based automation workflows.
+            <div class="project-name">Portfolio Site</div>
+            <p class="project-desc">
+              This site &mdash; a static, single-file HTML portfolio deployed on Vercel.
+              Zero dependencies, no frameworks.
+            </p>
+            <div class="chips" style="margin-top:4px">
+              <span class="tag">HTML</span>
+              <span class="tag">CSS</span>
+              <span class="tag">Vercel</span>
             </div>
-            <span class="project-tag">Claude API · MCP · Agents</span>
           </div>
 
         </div>
       </div>
     </section>
 
-    <!-- SKILLS -->
+    <section id="education">
+      <div class="container">
+        <p class="section-label">Education</p>
+
+        <div class="edu-item">
+          <div class="edu-school">San Diego State University</div>
+          <div class="edu-detail">Computer Science &middot; Aug 2024 &mdash; Jun 2028</div>
+        </div>
+
+        <div class="edu-item">
+          <div class="edu-school">De Anza College</div>
+          <div class="edu-detail">Manufacturing Engineering &middot; Oct 2023 &mdash; Dec 2023</div>
+        </div>
+
+        <div class="edu-item">
+          <div class="edu-school">Homestead High School</div>
+          <div class="edu-detail">High School Diploma &middot; 2020 &mdash; 2024</div>
+        </div>
+
+      </div>
+    </section>
+
     <section>
       <div class="container">
-        <p class="section-label">Skills</p>
-        <div class="skills-list">
-          <span class="skill-chip">Python</span>
-          <span class="skill-chip">FastAPI</span>
-          <span class="skill-chip">React</span>
-          <span class="skill-chip">JavaScript</span>
-          <span class="skill-chip">Node.js</span>
-          <span class="skill-chip">AWS</span>
-          <span class="skill-chip">Azure</span>
-          <span class="skill-chip">GCP</span>
-          <span class="skill-chip">Terraform</span>
-          <span class="skill-chip">Docker</span>
-          <span class="skill-chip">PostgreSQL</span>
-          <span class="skill-chip">SQLite</span>
-          <span class="skill-chip">Claude API</span>
-          <span class="skill-chip">ElevenLabs</span>
-          <span class="skill-chip">ffmpeg</span>
-          <span class="skill-chip">Git</span>
+        <p class="section-label">Skills &amp; Languages</p>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Development</div>
+          <div class="chips">
+            <span class="chip">Google Apps Script</span>
+            <span class="chip">JavaScript</span>
+            <span class="chip">Python</span>
+            <span class="chip">HTML / CSS</span>
+            <span class="chip">React</span>
+          </div>
         </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Platforms &amp; APIs</div>
+          <div class="chips">
+            <span class="chip">Gemini API</span>
+            <span class="chip">AppSheet</span>
+            <span class="chip">Slack API</span>
+            <span class="chip">Google Workspace</span>
+            <span class="chip">Google Admin SDK</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Other</div>
+          <div class="chips">
+            <span class="chip">Project Management</span>
+            <span class="chip">Event Production</span>
+            <span class="chip">Financial Planning</span>
+            <span class="chip">Team Leadership</span>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-label">Languages</div>
+          <div class="chips">
+            <span class="chip">English &mdash; Native</span>
+            <span class="chip">Russian &mdash; Native</span>
+            <span class="chip">Hebrew &mdash; Working</span>
+            <span class="chip">Spanish &mdash; Elementary</span>
+          </div>
+        </div>
+
       </div>
     </section>
 
-    <!-- CONTACT -->
     <section id="contact">
       <div class="container">
         <p class="section-label">Contact</p>
-        <p class="contact-line">
-          Email — <a href="mailto:yosef@cloudgeometry.com">yosef@cloudgeometry.com</a>
-        </p>
-        <p class="contact-line">
-          LinkedIn — <a href="https://www.linkedin.com/in/yosefpilip/" target="_blank">linkedin.com/in/yosefpilip</a>
-        </p>
-        <p class="contact-line">
-          GitHub — <a href="https://github.com/yosefPilip" target="_blank">github.com/yosefPilip</a>
-        </p>
+
+        <div class="contact-row">
+          <span class="contact-label">Email</span>
+          <a href="mailto:yosefpilip@gmail.com">yosefpilip@gmail.com</a>
+        </div>
+
+        <div class="contact-row">
+          <span class="contact-label">LinkedIn</span>
+          <a href="https://www.linkedin.com/in/yosefpilip/" target="_blank">linkedin.com/in/yosefpilip</a>
+        </div>
+
+        <div class="contact-row">
+          <span class="contact-label">GitHub</span>
+          <a href="https://github.com/yosefPilip" target="_blank">github.com/yosefPilip</a>
+        </div>
+
       </div>
     </section>
 
   </main>
 
   <footer>
-    <div class="container">© 2026 Yosef Pilip</div>
+    <div class="container">&copy; 2026 Yosef Pilip</div>
   </footer>
 
 </body>
