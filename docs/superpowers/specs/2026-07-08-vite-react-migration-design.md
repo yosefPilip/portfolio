@@ -1,5 +1,7 @@
 # Vite + React Migration — Design
 
+> **Status: SUPERSEDED.** After writing this, we scoped down to a much smaller goal — a single flip-board intro animation, not a full site migration. Full conversion to React+Tailwind was overkill for that. See `2026-07-08-flip-board-intro-design.md` for the approach actually being built. Kept here for reference in case a full migration is revisited later.
+
 ## Context
 
 The portfolio is currently a single hand-written `index.html` (vanilla HTML/CSS/JS) with a dark "bio-terminal" theme (lime/amber accents, glass cards, Space Mono/Outfit fonts), deployed on Vercel with no build step.
