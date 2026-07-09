@@ -19,6 +19,7 @@ export function FlipCell({ targetChar, delayMs, highlight }: FlipCellProps) {
 
   useEffect(() => {
     setDisplayChar(BLANK);
+    setFlapKey((key) => key + 1);
     let stepsLeft = SCRAMBLE_STEPS;
     let stepTimer: number | undefined;
 
