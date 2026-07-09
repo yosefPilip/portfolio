@@ -1,9 +1,11 @@
 import { useMemo, type CSSProperties } from 'react';
 import { FlipCell } from './FlipCell';
 
-const STAGGER_COL_MS = 18;
-const STAGGER_ROW_MS = 70;
-const STAGGER_JITTER_MS = 100;
+// ── Tune these to change the cascade of the flip-in wave ─────────────────
+const STAGGER_COL_MS = 10; // extra delay per column (left → right wave speed)
+const STAGGER_ROW_MS = 40; // extra delay per row (top → bottom wave speed)
+const STAGGER_JITTER_MS = 60; // random per-cell jitter added on top, for a less mechanical feel
+// ───────────────────────────────────────────────────────────────────────────
 const BLANK = ' ';
 
 interface FlipBoardProps {

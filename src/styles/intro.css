@@ -7,7 +7,7 @@
   justify-content: center;
   background: var(--bg-lowest);
   opacity: 1;
-  transition: opacity 0.8s ease;
+  transition: opacity var(--intro-fade-ms, 500ms) ease;
 }
 
 .intro-overlay--fading {
@@ -91,4 +91,16 @@
 .flip-cell--active.flip-cell--amber {
   background: var(--amber);
   color: #3a1f00;
+}
+
+@media (max-width: 640px) {
+  .flip-board {
+    width: min(96vw, 420px);
+    gap: 4px;
+    padding: 14px;
+  }
+
+  .flip-cell__flap {
+    font-size: clamp(14px, 6vw, 22px);
+  }
 }

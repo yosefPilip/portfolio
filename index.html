@@ -166,8 +166,8 @@
 
     header .container { height: 100%; display: flex; align-items: center; justify-content: space-between; }
 
-    .wordmark { font-family: var(--font-mono); font-weight: 700; font-size: 14px; letter-spacing: 1px; color: var(--text); }
-    .wordmark span { color: var(--lime); }
+    .wordmark { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-weight: 700; font-size: 14px; letter-spacing: 1px; color: var(--text); }
+    .wordmark-chevron { color: var(--lime); }
 
     .nav-desktop { display: flex; gap: 32px; }
 
@@ -492,7 +492,7 @@
 
   <header>
     <div class="container">
-      <span class="wordmark"><span>&gt;</span> Yosef Pilip</span>
+      <span class="wordmark"><span class="wordmark-chevron">&gt;</span> <span id="name-flip-root"></span></span>
       <nav class="nav-desktop" id="navDesktop">
         <a href="#experience" data-nav>Experience</a>
         <a href="#projects" data-nav>Projects</a>

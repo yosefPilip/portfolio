@@ -1,14 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { FlipBoard } from './FlipBoard';
-import { BOARD_COLUMNS, BOARD_ROWS, INTRO_VARIANTS } from '../data/introMessages';
+import { getBoardConfig, INTRO_VARIANTS, wrapScreenLines } from '../data/introMessages';
 
-const SETTLE_BUFFER_MS = 1600;
-const SCREEN_HOLD_MS = 1800;
-const BLANK_HOLD_MS = 400;
-const FADE_DURATION_MS = 800;
+const MOBILE_BREAKPOINT_PX = 640;
+
+// ── Tune these to change the intro's pacing ───────────────────────────────
+// Must cover the slowest cell's flip-out + stagger + flip-in (see FlipBoard.tsx /
+// FlipCell.tsx, ~1.2s worst case), or the next screen starts before this one finishes.
+const SETTLE_BUFFER_MS = 1400;
+// Same idea, but for the final blank screen, which only flips OUT (nothing flips back in).
+// This is the main knob for "how long after the name flips away before the site appears" —
+// BLANK_HOLD_MS alone won't move much unless this is also small.
+const OUTRO_SETTLE_MS = 500;
+const SCREEN_HOLD_MS = 1500; // how long a settled message stays on screen before flipping away
+const BLANK_HOLD_MS = 100; // how long the board stays blank after flipping out, before fading
+const FADE_DURATION_MS = 500; // how long the overlay fade-out takes, revealing the site
+// ───────────────────────────────────────────────────────────────────────────
 
 function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function isMobileViewport(): boolean {
+  return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`).matches;
 }
 
 export function IntroAnimation() {
@@ -17,14 +31,26 @@ export function IntroAnimation() {
   const [screenIndex, setScreenIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [visible, setVisible] = useState(() => !reducedMotion);
+  const [isMobile, setIsMobile] = useState(isMobileViewport);
+
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX}px)`);
+    const onChange = () => setIsMobile(mql.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  const { columns, rows } = useMemo(() => getBoardConfig(isMobile), [isMobile]);
 
   const totalScreens = variant.screens.length + 1;
   const isBlankScreen = screenIndex >= variant.screens.length;
-  const currentLines = isBlankScreen ? [] : variant.screens[screenIndex];
+  const rawLines = isBlankScreen ? [] : variant.screens[screenIndex];
+  const currentLines = useMemo(() => wrapScreenLines(rawLines, columns), [rawLines, columns]);
 
   useEffect(() => {
     if (!visible || fading) return;
     const isLastScreen = screenIndex === totalScreens - 1;
+    const settleMs = isBlankScreen ? OUTRO_SETTLE_MS : SETTLE_BUFFER_MS;
     const holdMs = isBlankScreen ? BLANK_HOLD_MS : SCREEN_HOLD_MS;
     const timer = window.setTimeout(() => {
       if (isLastScreen) {
@@ -32,7 +58,7 @@ export function IntroAnimation() {
       } else {
         setScreenIndex((index) => index + 1);
       }
-    }, SETTLE_BUFFER_MS + holdMs);
+    }, settleMs + holdMs);
     return () => window.clearTimeout(timer);
   }, [screenIndex, fading, visible, totalScreens, isBlankScreen]);
 
@@ -44,9 +70,11 @@ export function IntroAnimation() {
 
   if (!visible) return null;
 
+  const overlayStyle = { '--intro-fade-ms': `${FADE_DURATION_MS}ms` } as CSSProperties;
+
   return (
-    <div className={`intro-overlay${fading ? ' intro-overlay--fading' : ''}`}>
-      <FlipBoard lines={currentLines} rows={BOARD_ROWS} columns={BOARD_COLUMNS} />
+    <div className={`intro-overlay${fading ? ' intro-overlay--fading' : ''}`} style={overlayStyle}>
+      <FlipBoard lines={currentLines} rows={rows} columns={columns} />
     </div>
   );
 }
