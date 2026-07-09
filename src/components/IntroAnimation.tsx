@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FlipBoard } from './FlipBoard';
 import { BOARD_COLUMNS, BOARD_ROWS, INTRO_VARIANTS } from '../data/introMessages';
 
-const SETTLE_BUFFER_MS = 900;
+const SETTLE_BUFFER_MS = 1600;
 const SCREEN_HOLD_MS = 1800;
 const FADE_DURATION_MS = 800;
 

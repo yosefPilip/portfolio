@@ -1,9 +1,9 @@
 import { useMemo, type CSSProperties } from 'react';
 import { FlipCell } from './FlipCell';
 
-const STAGGER_COL_MS = 15;
-const STAGGER_ROW_MS = 40;
-const STAGGER_JITTER_MS = 80;
+const STAGGER_COL_MS = 18;
+const STAGGER_ROW_MS = 70;
+const STAGGER_JITTER_MS = 100;
 const BLANK = ' ';
 
 interface FlipBoardProps {
@@ -30,8 +30,11 @@ function padLine(line: string, columns: number): string {
 export function FlipBoard({ lines, rows, columns }: FlipBoardProps) {
   const cells = useMemo<CellDescriptor[]>(() => {
     const result: CellDescriptor[] = [];
+    const topPad = Math.max(0, Math.floor((rows - lines.length) / 2));
     for (let r = 0; r < rows; r += 1) {
-      const line = padLine(lines[r] ?? '', columns);
+      const lineIndex = r - topPad;
+      const rawLine = lineIndex >= 0 && lineIndex < lines.length ? lines[lineIndex] : '';
+      const line = padLine(rawLine, columns);
       for (let c = 0; c < columns; c += 1) {
         result.push({
           key: `${r}-${c}`,

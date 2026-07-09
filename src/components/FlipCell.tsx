@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const SCRAMBLE_STEPS = 3;
-const SCRAMBLE_STEP_MS = 70;
+const SCRAMBLE_STEPS = 6;
+const SCRAMBLE_STEP_MS = 160;
 const NBSP = String.fromCharCode(160);
 const BLANK = ' ';
 
@@ -15,6 +15,7 @@ interface FlipCellProps {
 export function FlipCell({ targetChar, delayMs, highlight }: FlipCellProps) {
   const [displayChar, setDisplayChar] = useState(BLANK);
   const [flipping, setFlipping] = useState(false);
+  const [flapKey, setFlapKey] = useState(0);
 
   useEffect(() => {
     setDisplayChar(BLANK);
@@ -26,10 +27,12 @@ export function FlipCell({ targetChar, delayMs, highlight }: FlipCellProps) {
       const runStep = () => {
         if (stepsLeft > 0) {
           setDisplayChar(targetChar === BLANK ? BLANK : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]);
+          setFlapKey((key) => key + 1);
           stepsLeft -= 1;
           stepTimer = window.setTimeout(runStep, SCRAMBLE_STEP_MS);
         } else {
           setDisplayChar(targetChar);
+          setFlapKey((key) => key + 1);
           setFlipping(false);
         }
       };
@@ -46,7 +49,9 @@ export function FlipCell({ targetChar, delayMs, highlight }: FlipCellProps) {
 
   return (
     <div className={`flip-cell${flipping ? ` flip-cell--active flip-cell--${highlight}` : ''}`}>
-      <span>{glyph}</span>
+      <div className="flip-cell__flap" key={flapKey}>
+        <span>{glyph}</span>
+      </div>
     </div>
   );
 }

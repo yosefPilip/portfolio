@@ -8,8 +8,10 @@ export const INTRO_VARIANTS: IntroVariant[] = [
   { screens: [['SUP.', 'WELCOME TO THE SITE.'], ['YOSEF PILIP']] },
 ];
 
-export const BOARD_ROWS = 2;
+export const BOARD_ROWS = 6;
 
-export const BOARD_COLUMNS = Math.max(
-  ...INTRO_VARIANTS.flatMap((variant) => variant.screens.flat()).map((line) => line.length),
-);
+const BOARD_COLUMN_PADDING = 6;
+
+export const BOARD_COLUMNS =
+  Math.max(...INTRO_VARIANTS.flatMap((variant) => variant.screens.flat()).map((line) => line.length)) +
+  BOARD_COLUMN_PADDING;

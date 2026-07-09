@@ -18,12 +18,12 @@
 .flip-board {
   display: grid;
   grid-template-columns: repeat(var(--flip-board-columns), 1fr);
-  gap: 4px;
-  width: min(92vw, 640px);
-  padding: 20px;
+  gap: 5px;
+  width: min(94vw, 760px);
+  padding: 24px;
   background: var(--surface);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .flip-cell {
@@ -34,12 +34,9 @@
   justify-content: center;
   background: var(--bg-lowest);
   border-radius: 3px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: clamp(9px, 2.4vw, 22px);
-  color: var(--text);
   overflow: hidden;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  perspective: 240px;
+  transition: background-color 0.12s ease;
 }
 
 .flip-cell::after {
@@ -50,6 +47,40 @@
   top: 50%;
   height: 1px;
   background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+.flip-cell__flap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(9px, 1.9vw, 20px);
+  color: var(--text);
+  transform-origin: 50% 50%;
+  animation: flip-step 0.14s ease-out;
+}
+
+.flip-cell--active .flip-cell__flap {
+  color: inherit;
+}
+
+@keyframes flip-step {
+  0% {
+    transform: rotateX(75deg);
+    opacity: 0.35;
+  }
+  60% {
+    transform: rotateX(-10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
 }
 
 .flip-cell--active.flip-cell--lime {
