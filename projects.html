@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects — Yosef Pilip</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/site.css" />
+</head>
+<body>
+
+  <div class="grain"></div>
+
+  <header>
+    <div class="container">
+      <a class="wordmark" href="/"><span class="wordmark-chevron">&gt;</span> <span>Yosef Pilip</span></a>
+      <nav class="nav-desktop">
+        <a href="/">Home</a>
+        <a href="/projects.html" class="active">Projects</a>
+        <a href="/music.html">DJ &amp; Music</a>
+      </nav>
+      <div class="header-status">
+        <div class="eq-bars" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <button class="menu-toggle" id="menuOpen" aria-label="Open menu">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <button class="mobile-close" id="menuClose" aria-label="Close menu">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+    </button>
+    <a href="/">Home</a>
+    <a href="/projects.html" class="active">Projects</a>
+    <a href="/music.html">DJ &amp; Music</a>
+  </div>
+
+  <aside class="rail">
+    <div class="rail-id">
+      <div class="rail-monogram">YP</div>
+      <div class="rail-id-text">
+        <div class="l1">NODE_YP</div>
+        <div class="l2">STATUS: ONLINE</div>
+      </div>
+    </div>
+    <nav class="rail-nav">
+      <a class="rail-link" href="#featured">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7Z"/></svg>
+        <span class="label">Featured</span>
+      </a>
+      <a class="rail-link" href="#more">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="label">More Projects</span>
+      </a>
+    </nav>
+    <a class="rail-cta" href="/#contact">CONTACT_ME</a>
+  </aside>
+
+  <main>
+
+    <!-- FEATURED -->
+    <section id="featured" class="page-intro">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <p class="eyebrow">Sector_02 // Project_Archive</p>
+            <h2 class="section-heading">Projects</h2>
+          </div>
+          <p class="section-note mono">Automations and tools built for real teams, not just demos.</p>
+        </div>
+
+        <!-- Photo licensed under the Unsplash License, sourced via images.unsplash.com -->
+        <div class="project-featured glass reveal">
+          <div class="project-media">
+            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop" alt="Macro photograph of a dark circuit board" loading="lazy" />
+          </div>
+          <div class="project-body">
+            <div class="project-name">Slack HR Bot</div>
+            <p class="project-desc">
+              Natural-language HR assistant built for CloudGeometry. Handles PTO and sick-day
+              requests via Slack, using Gemini API for parsing and manager approval flows.
+            </p>
+            <div class="project-tags">
+              <span class="tag">Gemini API</span>
+              <span class="tag">Slack API</span>
+              <span class="tag">Apps Script</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MORE PROJECTS -->
+    <section id="more" style="border-bottom: none;">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <p class="eyebrow">Sector_02b // More_Builds</p>
+            <h2 class="section-heading">More Projects</h2>
+          </div>
+        </div>
+
+        <div class="project-trio">
+
+          <div class="project-card glass reveal">
+            <div class="project-name">HR Management System</div>
+            <p class="project-desc">
+              Role-based HR management app built in AppSheet, backed by Google Sheets.
+              Streamlines employee records and access control for a distributed org.
+            </p>
+            <div class="project-tags">
+              <span class="tag">AppSheet</span>
+              <span class="tag">Google Sheets</span>
+              <span class="tag">Apps Script</span>
+            </div>
+          </div>
+
+          <div class="project-card glass reveal">
+            <div class="project-name">IT Security Automation</div>
+            <p class="project-desc">
+              Bot that automates weekly Google Workspace hygiene checks — flagging stale
+              accounts, misconfigured permissions, and security gaps across the org.
+            </p>
+            <div class="project-tags">
+              <span class="tag">Admin SDK</span>
+              <span class="tag">Apps Script</span>
+              <span class="tag">Google Workspace</span>
+            </div>
+          </div>
+
+          <div class="project-card glass reveal">
+            <div class="project-name">Portfolio Site</div>
+            <p class="project-desc">
+              This site — a hand-written HTML/CSS portfolio deployed on Vercel via Vite's
+              multi-page build. No JS framework driving the layout, just a couple of small
+              React islands for the intro animation.
+            </p>
+            <div class="project-tags">
+              <span class="tag">HTML</span>
+              <span class="tag">CSS</span>
+              <span class="tag">Vercel</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-copy">© 2026 Yosef Pilip</div>
+      <div class="footer-status">BUILD_STATIC // NO_FRAMEWORK</div>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/shared/site.ts"></script>
+
+</body>
+</html>
