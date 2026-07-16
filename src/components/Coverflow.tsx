@@ -8,12 +8,25 @@ const TILT = 38; // deg each side cover rotates away in perspective
 const DEPTH = 70; // px each step recedes into the screen
 const SWIPE_THRESHOLD = 45; // px of horizontal drag before a swipe navigates
 
-function coverStyle(offset: number): React.CSSProperties {
+const N = tracks.length;
+const HALF = N / 2;
+
+// Shortest signed distance from `active` to card `i` around the ring, so the
+// carousel always fans covers out on BOTH sides and loops seamlessly.
+function circOffset(i: number, active: number): number {
+  let o = (((i - active) % N) + N) % N; // 0 .. N-1
+  if (o > HALF) o -= N; // pull the far half onto the negative (left) side
+  return o;
+}
+
+function coverStyle(offset: number, instant: boolean): React.CSSProperties {
   const abs = Math.abs(offset);
   const dir = Math.sign(offset);
+  const base: React.CSSProperties = instant ? { transition: 'none' } : {};
 
   if (abs > MAX_VISIBLE) {
     return {
+      ...base,
       opacity: 0,
       pointerEvents: 'none',
       transform: `translateX(${dir * (MAX_VISIBLE + 1) * SPREAD}%) scale(0.5)`,
@@ -22,6 +35,7 @@ function coverStyle(offset: number): React.CSSProperties {
   }
 
   return {
+    ...base,
     transform: [
       `translateX(${offset * SPREAD}%)`,
       `translateZ(${-abs * DEPTH}px)`,
@@ -29,19 +43,55 @@ function coverStyle(offset: number): React.CSSProperties {
       `scale(${abs === 0 ? 1 : Math.max(0.62, 1 - abs * 0.14)})`,
     ].join(' '),
     opacity: abs === 0 ? 1 : Math.max(0.32, 1 - abs * 0.3),
-    zIndex: tracks.length - abs,
+    zIndex: N - abs,
     pointerEvents: 'auto',
   };
 }
 
 export function Coverflow() {
   const [active, setActive] = useState(0);
+  // ids of covers that wrapped across the seam this step — they teleport
+  // (no transition) instead of flying through the middle of the stage.
+  const [instantIds, setInstantIds] = useState<string[]>([]);
+  const activeRef = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef<number | null>(null);
   const dragMoved = useRef(false);
 
-  const clamp = (i: number) => Math.max(0, Math.min(tracks.length - 1, i));
-  const go = useCallback((delta: number) => setActive((i) => clamp(i + delta)), []);
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
+
+  // Move selection to `next` (wrapping around the ring), flagging any cover
+  // whose shortest path crosses the seam so it snaps into place instantly.
+  const select = useCallback((next: number) => {
+    const prev = activeRef.current;
+    const target = (((next % N) + N) % N);
+    if (target === prev) return;
+    const wrapping: string[] = [];
+    for (let i = 0; i < N; i++) {
+      if (Math.abs(circOffset(i, target) - circOffset(i, prev)) > HALF) {
+        wrapping.push(tracks[i].id);
+      }
+    }
+    setInstantIds(wrapping);
+    setActive(target);
+  }, []);
+
+  const go = useCallback((delta: number) => select(activeRef.current + delta), [select]);
+
+  // Re-enable transitions once the teleport has painted.
+  useEffect(() => {
+    if (instantIds.length === 0) return;
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setInstantIds([]));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
+  }, [instantIds]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
@@ -77,26 +127,17 @@ export function Coverflow() {
       e.preventDefault();
       return;
     }
+    e.preventDefault();
     if (index !== active) {
-      e.preventDefault();
-      setActive(index);
+      select(index);
     } else {
-      // active cover — let the anchor navigate to SoundCloud in a new tab.
+      // active cover — open SoundCloud in a new tab.
       window.open(href, '_blank', 'noopener');
-      e.preventDefault();
     }
   };
 
-  // Keep the focus ring behavior sane: focus the stage on mount is not forced,
-  // but pressing arrows anywhere on the page while nothing else is focused works.
+  // Arrow keys navigate whenever the carousel is on screen (and no field focused).
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const tag = (document.activeElement?.tagName || '').toLowerCase();
-      if (tag === 'input' || tag === 'textarea') return;
-      if (e.key === 'ArrowLeft') go(-1);
-      if (e.key === 'ArrowRight') go(1);
-    };
-    // Only bind global arrows when the carousel is on screen.
     const el = stageRef.current;
     if (!el) return;
     let onScreen = false;
@@ -107,12 +148,16 @@ export function Coverflow() {
       { threshold: 0.3 },
     );
     io.observe(el);
-    const wrapped = (e: KeyboardEvent) => {
-      if (onScreen) handler(e);
+    const handler = (e: KeyboardEvent) => {
+      if (!onScreen) return;
+      const tag = (document.activeElement?.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+      if (e.key === 'ArrowLeft') go(-1);
+      if (e.key === 'ArrowRight') go(1);
     };
-    window.addEventListener('keydown', wrapped);
+    window.addEventListener('keydown', handler);
     return () => {
-      window.removeEventListener('keydown', wrapped);
+      window.removeEventListener('keydown', handler);
       io.disconnect();
     };
   }, [go]);
@@ -123,12 +168,7 @@ export function Coverflow() {
   return (
     <div className="cf">
       <div className="cf-controls">
-        <button
-          className="cf-arrow"
-          onClick={() => go(-1)}
-          disabled={active === 0}
-          aria-label="Previous mix"
-        >
+        <button className="cf-arrow" onClick={() => go(-1)} aria-label="Previous mix">
           <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <polyline points="15 18 9 12 15 6" />
           </svg>
@@ -147,13 +187,13 @@ export function Coverflow() {
           onPointerCancel={() => (dragStart.current = null)}
         >
           {tracks.map((t, i) => {
-            const offset = i - active;
+            const offset = circOffset(i, active);
             const isActive = i === active;
             return (
               <a
                 key={t.id}
                 className={`cf-cover${isActive ? ' is-active' : ''}`}
-                style={coverStyle(offset)}
+                style={coverStyle(offset, instantIds.includes(t.id))}
                 href={t.href}
                 target="_blank"
                 rel="noopener"
@@ -178,12 +218,7 @@ export function Coverflow() {
           })}
         </div>
 
-        <button
-          className="cf-arrow"
-          onClick={() => go(1)}
-          disabled={active === tracks.length - 1}
-          aria-label="Next mix"
-        >
+        <button className="cf-arrow" onClick={() => go(1)} aria-label="Next mix">
           <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <polyline points="9 18 15 12 9 6" />
           </svg>
@@ -192,7 +227,7 @@ export function Coverflow() {
 
       <div className="cf-info" aria-live="polite">
         <div className="cf-index mono">
-          {pad(active + 1)} <span>/</span> {pad(tracks.length)}
+          {pad(active + 1)} <span>/</span> {pad(N)}
         </div>
         <h3 className="cf-title">{current.title}</h3>
         <p className="cf-desc">{current.description}</p>
@@ -210,7 +245,7 @@ export function Coverflow() {
           <button
             key={t.id}
             className={`cf-dot${i === active ? ' is-active' : ''}`}
-            onClick={() => setActive(i)}
+            onClick={() => select(i)}
             aria-label={`Go to ${t.title}`}
             aria-selected={i === active}
             role="tab"
