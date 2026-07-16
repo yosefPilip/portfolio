@@ -1,0 +1,195 @@
+/* ── DJ coverflow carousel ───────────────────────────────────────────────── */
+
+.cf {
+  --cover-size: clamp(180px, 42vw, 340px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding-top: 8px;
+}
+
+/* stage + arrows on one row */
+.cf-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.cf-arrow {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  color: var(--text-muted);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+  z-index: 5;
+}
+.cf-arrow:hover:not(:disabled) {
+  color: var(--lime);
+  border-color: var(--lime);
+  background: var(--lime-container);
+}
+.cf-arrow:active:not(:disabled) { transform: scale(0.92); }
+.cf-arrow:disabled { opacity: 0.28; cursor: default; }
+.cf-arrow .icon { width: 22px; height: 22px; }
+
+/* the 3D stage — a fixed-height perspective box the covers float inside */
+.cf-stage {
+  position: relative;
+  flex: 1 1 auto;
+  height: calc(var(--cover-size) + 46px);
+  max-width: 720px;
+  perspective: 1400px;
+  transform-style: preserve-3d;
+  outline: none;
+  touch-action: pan-y;
+  cursor: grab;
+}
+.cf-stage:active { cursor: grabbing; }
+.cf-stage:focus-visible { outline: none; }
+.cf-stage:focus-visible .cf-cover.is-active {
+  box-shadow: 0 0 0 2px var(--lime), 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+/* each cover is absolutely centered; transform (set inline) fans it out */
+.cf-cover {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--cover-size);
+  height: var(--cover-size);
+  margin-left: calc(var(--cover-size) / -2);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  background: var(--surface-low);
+  transform-origin: center center;
+  transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.5s ease, box-shadow 0.3s ease;
+  will-change: transform, opacity;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  user-select: none;
+}
+.cf-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.85) brightness(0.82);
+  transition: filter 0.4s ease;
+  pointer-events: none;
+}
+.cf-cover.is-active {
+  border-color: rgba(164, 214, 76, 0.4);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 40px rgba(164, 214, 76, 0.08);
+  cursor: pointer;
+}
+.cf-cover.is-active img { filter: saturate(1.05) brightness(1); }
+
+/* "Play on SoundCloud" badge that fades in over the centered cover */
+.cf-cover-badge {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text);
+  background: linear-gradient(180deg, transparent, rgba(12, 15, 14, 0.9));
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.cf-cover-badge .icon { width: 16px; height: 16px; color: var(--lime); }
+.cf-cover.is-active:hover .cf-cover-badge,
+.cf-stage:focus-visible .cf-cover.is-active .cf-cover-badge {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* info panel under the stage */
+.cf-info {
+  text-align: center;
+  max-width: 520px;
+  min-height: 132px;
+}
+.cf-index {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--lime);
+}
+.cf-index span { color: var(--text-dim); }
+.cf-title {
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+.cf-desc {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.cf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--lime);
+  color: var(--lime);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.cf-link:hover { background: var(--lime); color: #131f00; }
+.cf-link:active { transform: scale(0.96); }
+.cf-link .icon { width: 15px; height: 15px; }
+
+/* progress dots */
+.cf-dots {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.cf-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: var(--outline-variant);
+  cursor: pointer;
+  transition: background 0.2s ease, width 0.25s ease, border-radius 0.25s ease;
+}
+.cf-dot:hover { background: var(--text-dim); }
+.cf-dot.is-active {
+  width: 22px;
+  border-radius: 4px;
+  background: var(--lime);
+}
+
+@media (max-width: 640px) {
+  .cf { gap: 22px; }
+  .cf-controls { gap: 2px; }
+  .cf-arrow { width: 38px; height: 38px; }
+  .cf-stage { max-width: none; }
+}
