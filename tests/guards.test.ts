@@ -9,9 +9,9 @@ describe('findForbiddenCopy', () => {
     );
   });
 
-  it('finds log ids, uplink and build-status lines', () => {
-    const src = 'LOG_001 ... UPLINK_READY ... SIGNAL_LIVE ... BUILD_STATIC // NO_FRAMEWORK';
-    expect(findForbiddenCopy(src)).toHaveLength(4);
+  it('finds log ids, uplink, build-status, and status-online lines', () => {
+    const src = 'LOG_001 ... UPLINK_READY ... SIGNAL_LIVE ... BUILD_STATIC // NO_FRAMEWORK ... STATUS: ONLINE';
+    expect(findForbiddenCopy(src)).toHaveLength(5);
   });
 
   it('returns an empty array for clean copy', () => {
