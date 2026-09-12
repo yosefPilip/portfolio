@@ -10,7 +10,8 @@
 
 A complete rework of the portfolio: every word rewritten, the information
 architecture rebuilt, and a new visual system. The existing pages (Home,
-Projects, DJ & Music) keep their identities; a small Resale page is added.
+Projects, DJ & Music) keep their identities. A fourth room, **Workshop**, is
+designed now and built after launch (§8.4).
 
 The site is a **personal brand hub**, not a recruiting funnel. One link that
 works for a recruiter, a Zip Launchpad mentor, a promoter, and a friend. Each
@@ -89,7 +90,7 @@ makes a page feel like a different room without touching contrast.
 [data-room="home"]     { --bg:#171b19; --bg-deep:#0f1512; --surface:#1f2422; --surface-tint:#222c25; --accent-2:#8aa572; }
 [data-room="projects"] { --bg:#16191d; --bg-deep:#0e1115; --surface:#1f232a; --surface-tint:#222831; --accent-2:#7f9bbd; }
 [data-room="music"]    { --bg:#1a171d; --bg-deep:#0c090f; --surface:#24202a; --surface-tint:#2a2130; --accent-2:#b97fc9; }
-[data-room="resale"]   { --bg:#1b1917; --bg-deep:#12100e; --surface:#241f1b; --surface-tint:#2b2621; --accent-2:#b5a184; }
+[data-room="workshop"] { --bg:#1b1917; --bg-deep:#12100e; --surface:#241f1b; --surface-tint:#2b2621; --accent-2:#c0a06a; }
 ```
 
 | Room | Setting | Category color |
@@ -97,13 +98,15 @@ makes a page feel like a different room without touching contrast.
 | Home | jungle floor | sage `#8aa572` |
 | Projects | mountain ridgeline | slate `#7f9bbd` |
 | DJ & Music | cave club | orchid `#b97fc9` |
-| Resale | the rack | bleached sand `#b5a184` |
+| Workshop | the workbench | ochre `#c0a06a` |
 
-Resale's accent started as ochre `#c0a06a` and was moved to `#b5a184`. Ochre sat
-too close to clay in both hue and chroma, which blurred the line between "this is
-a category" and "this is clickable." Sand keeps the warm hue but drops the
-chroma far enough to read as a different role. **Verify this one visually before
-shipping** — it is the only pairing in the set that needed adjusting.
+Ochre `#c0a06a` sits closest to clay of the four category colours, in both hue
+and chroma. A desaturated sand `#b5a184` was proposed to widen that gap; the
+owner kept ochre, and the Resale page becoming a **Workshop** page (§8.4) makes
+ochre the more honest colour anyway — sawdust, raw wood and warm shop light,
+rather than a clothing rack. **This is the one pairing to verify visually before
+shipping.** If clay and ochre blur in context, desaturate ochre toward `#b5a184`
+rather than shifting its hue, which would pull it toward sage.
 
 ### 3.3 The role split — load-bearing rule
 
@@ -295,7 +298,9 @@ Other pages get three-layer stacks. The six-layer hero is never repeated.
 5. **Experience** — condensed timeline. **This is where the hardest numbers
    live** and it is the section Overgrowth omitted: $8,000/yr saved, 40 hrs/month
    eliminated, 3 days → same-day, ~100 employees, 400+ attendees, $12,000 budget.
-6. **Elsewhere** — three image panels: Build / DJ / Resale.
+6. **Elsewhere** — three image panels: Build / DJ / Workshop. Each panel
+   carries a few sentences of its own, so Home is complete at launch whether or
+   not the Workshop page (§8.4) exists yet.
 7. **Contact** — tinted panel, the one filled clay button.
 
 Experience entries, in résumé order: CloudGeometry (May 2025 – Present) ·
@@ -341,15 +346,36 @@ the new palette, then Connect (`soundcloud.com/recursion-mp3`,
 
 The coverflow is working code and is not rebuilt.
 
-### 8.4 Resale — `data-room="resale"`, the rack, sand
+### 8.4 Workshop — `data-room="workshop"`, the workbench, ochre
 
-The smallest page. Rack scene, a few honest lines on sourcing and pricing, the
-Depop link, and an explicit tie to the Resell Assistant MCP. **That connection is
-the page's justification** — it turns a hobby page into a portfolio page by
-showing the tool he built for his own business.
+**Deferred. Not in the launch scope.** The room, its tokens and its Home panel
+are specified now so the palette and nav are designed for four rooms; the page
+itself ships after launch, once its content exists.
 
-If the Depop link and the sourcing copy are never supplied, this collapses into a
-section on Home rather than shipping a page of placeholders.
+A resale-only page was considered first and rejected. The honest subject is
+broader and stronger: **making and remaking physical things.** Thrifting and
+refurbishing furniture, crafts, and reselling across Depop, eBay and Mercari —
+with the De Anza manufacturing work (CAD/SolidWorks, 3D printing across FDM, VAT
+and powder-bed fusion, CNC machining, manual metalwork; parts designed and
+manufactured end to end) as the section that makes it a discipline rather than a
+pastime. That background is currently buried as a bullet under a high-school
+entry and is genuinely unusual for a CS applicant.
+
+Why this earns a page where "hobbies" would not:
+
+- It reframes the software. Cache It reaches for a wall, a chip and a phone;
+  a workshop room shows that reach is a pattern, not a one-off.
+- It gives the **Resell Assistant (MCP)** project the context that explains why
+  it exists — a tool built for the owner's own business.
+- It fits the concept. Overgrowth is nature reclaiming tech; refurbishing is the
+  same idea reversed — taking something discarded and bringing it back.
+
+Sections: workbench hero (three layers) → why thrifting → refurbishing, with
+before/after photography → manufacturing background → where to buy (Depop, eBay,
+Mercari) → a link across to the Resell Assistant project.
+
+Photography here should be **the owner's own** — real before/after shots of real
+pieces. Generated imagery would defeat the point of the page.
 
 ---
 
@@ -416,10 +442,9 @@ Numbers appear in the first sentence of anything that has them.
 > meant, writes it down properly, and goes to find their manager. Three days
 > became same-day, for about 100 people."*
 
-This voice was selected on the owner's stated brief — "lighter, less corporate,
-impressive and fun" — rather than confirmed against samples, because that
-question was interrupted mid-conversation. It is cheap to change and should be
-re-confirmed on the first page of real copy.
+**Confirmed by the owner on 2026-09-11:** lighter, less corporate, impressive
+and fun. Applies to every page including the Cache It case study — depth of
+detail rises there, register does not change.
 
 ### Rules
 
@@ -436,7 +461,7 @@ re-confirmed on the first page of real copy.
 
 ## 12. Images
 
-15 slots. Every slot is a real `<img>` at its final path. While the file is
+14 slots. Every slot is a real `<img>` at its final path. While the file is
 missing, the frame shows a labeled placeholder at the exact aspect ratio, so
 composition can be judged before spending. Drop the file in and it works — no
 code change.
@@ -447,7 +472,7 @@ don't bubble) adds `.is-missing` to the wrapping frame, plus a pass over
 
 ### Shared prompt lock
 
-So 15 renders read as one shoot: deep desaturated greens, wet black, one warm
+So 14 renders read as one shoot: deep desaturated greens, wet black, one warm
 clay note. Single soft directional source — overcast or shaft-through-canopy.
 Underexposed; shadows keep detail. Photographic 35mm, shallow depth of field,
 visible grain. Not illustration, not 3D, not concept art.
@@ -473,11 +498,12 @@ Export WebP, quality ~72. Never ship the raw PNG.
 | `cacheit-street.webp` | 2400×1350 | case study | pasted artwork on concrete, ivy beside it |
 | `cacheit-scan.webp` | 1600×1200 | case study | hand holding a phone up to a wall |
 | `fronds-near.webp` | 2400×1600 | case study | front plate — **needs real alpha** |
-| `rack.webp` | 2000×1400 | resale | rack against concrete, mixed colour and texture |
+| *(Workshop imagery)* | — | workshop | **deferred** — owner's own before/after photos, not generated (§8.4) |
 
 `life-rack.webp` is the one slot that should carry real saturation — let the
 garments be the brightest thing on the site. That is the honest answer to "the
-images provide the color."
+images provide the color." It doubles as the Home panel pointing at the deferred
+Workshop page.
 
 The music room is the one place the shared prompt lock bends: a cave club needs
 its light source to read orchid rather than overcast green. Keep everything else
@@ -491,7 +517,7 @@ its light source to read orchid rather than overcast green. Keep everything else
    conversation reopens, so do not batch it.
 4. The three `life-*` panels as one batch (shared prompt skeleton = consistent set).
 5. `ridge-*` and `cave-*` pairs.
-6. `cacheit-*`, `fronds-near`, `rack` last — all below the fold on sub-pages.
+6. `cacheit-*` and `fronds-near` last — all below the fold on sub-pages.
 
 ---
 
@@ -537,7 +563,7 @@ routing needs `history.pushState` and a small route table.
 5. Tier-3 overlay + `pushState` routing + left rail.
 6. Cache It case study.
 7. Music page — restyle, cave hero.
-8. Resale page.
+8. Workshop page — after launch, once its content and photography exist.
 9. Images generated and dropped into existing slots.
 10. Accessibility, reduced-motion, and breakpoint pass.
 
@@ -546,7 +572,9 @@ routing needs `history.pushState` and a small route table.
 ## 14. Open items — ship as `—`, never invent
 
 - **DJ Music Sorter** — one line on what it sorts and by what.
-- **Depop** — handle and link; what he specializes in reselling.
+- **Depop, eBay and Mercari** — shop handles and links.
+- **Workshop** — before/after photos of refurbished pieces, and a few lines on
+  what draws him to thrifting and restoring.
 - **"Based in"** city — the résumé carries no location and it will not be guessed.
 - Mix archive link beyond SoundCloud; residencies, if any.
 
@@ -557,7 +585,7 @@ routing needs `history.pushState` and a small route table.
 - [ ] Every color literal lives in `:root` or a `[data-room]` block. Zero
       hardcoded hex elsewhere.
 - [ ] Clay appears only on clickable things. ≤2 visible uses of each color per screen.
-- [ ] Sand vs clay checked visually on the Resale page.
+- [ ] Ochre vs clay checked visually wherever both appear (§3.2).
 - [ ] All-caps ≥ `0.06em` tracking; display ≥32px has negative tracking.
 - [ ] Hero wordmark fits on one line at 1440px **in the Georgia fallback too**.
 - [ ] No horizontal scroll at any breakpoint in §5.
