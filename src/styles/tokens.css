@@ -1,0 +1,46 @@
+/* Overgrowth tokens. The ONLY file in the project allowed to contain colour
+   literals. Everything else uses var() or color-mix(). See spec §3 and §4. */
+
+:root {
+  /* ── fixed sitewide: what makes four rooms read as one building ── */
+  --fg:            #f0efe9;              /* bone — never pure white */
+  --fg-dim:        #c2c4bc;              /* secondary prose */
+  --muted:         #8e958a;              /* labels, meta, dates */
+  --border:        rgba(240, 239, 233, 0.12);
+  --border-strong: rgba(240, 239, 233, 0.24);
+
+  --accent:        #cf6b3e;              /* clay — ACTION only */
+  --accent-press:  #b45a31;              /* clay, pressed */
+  --on-accent:     #17110c;              /* dark text on a filled clay button */
+
+  /* ── type ── */
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-body:    'Outfit', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:    ui-monospace, 'JetBrains Mono', Menlo, monospace;
+
+  --step-wordmark: clamp(38px, 13.5vw, 290px);
+  --step-display:  clamp(56px, 9vw, 132px);
+  --step-h1:       clamp(40px, 6vw, 76px);
+  --step-h2:       clamp(28px, 3.4vw, 44px);
+  --step-lede:     clamp(19px, 1.7vw, 26px);
+  --step-body:     17px;
+  --step-meta:     12px;
+
+  /* ── geometry ── */
+  --r:       8px;
+  --gutter:  clamp(20px, 5vw, 88px);
+  --section: clamp(72px, 11vw, 168px);
+  --stack-h: 240vh;                      /* Home hero overrides to 260vh */
+
+  /* ── fallback room so an unlabelled page is never unstyled ── */
+  --bg:           #171b19;
+  --bg-deep:      #0f1512;
+  --surface:      #1f2422;
+  --surface-tint: #222c25;
+  --accent-2:     #8aa572;
+}
+
+[data-room="home"]     { --bg:#171b19; --bg-deep:#0f1512; --surface:#1f2422; --surface-tint:#222c25; --accent-2:#8aa572; }
+[data-room="projects"] { --bg:#16191d; --bg-deep:#0e1115; --surface:#1f232a; --surface-tint:#222831; --accent-2:#7f9bbd; }
+[data-room="music"]    { --bg:#1a171d; --bg-deep:#0c090f; --surface:#24202a; --surface-tint:#2a2130; --accent-2:#b97fc9; }
+[data-room="workshop"] { --bg:#1b1917; --bg-deep:#12100e; --surface:#241f1b; --surface-tint:#2b2621; --accent-2:#c0a06a; }
