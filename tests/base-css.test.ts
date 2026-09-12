@@ -4,6 +4,47 @@ import { findHardcodedHex } from '../src/lib/guards';
 
 const base = readFileSync('src/styles/base.css', 'utf8');
 
+/**
+ * Extract @keyframes bodies by matching braces, not by naive regex.
+ * Handles nested braces correctly and unbalanced blocks.
+ */
+function extractKeyframesBodies(css: string): string[] {
+  const bodies: string[] = [];
+  const regex = /@keyframes/g;
+  let match;
+
+  while ((match = regex.exec(css)) !== null) {
+    const startPos = match.index;
+    // Find the opening brace of the @keyframes rule
+    const openBracePos = css.indexOf('{', startPos);
+    if (openBracePos === -1) continue;
+
+    // Count braces to find the matching closing brace
+    let braceDepth = 0;
+    let endPos = openBracePos;
+    let foundMatchingBrace = false;
+
+    for (let i = openBracePos; i < css.length; i++) {
+      if (css[i] === '{') {
+        braceDepth++;
+      } else if (css[i] === '}') {
+        braceDepth--;
+        if (braceDepth === 0) {
+          endPos = i;
+          foundMatchingBrace = true;
+          break;
+        }
+      }
+    }
+
+    // Extract the entire @keyframes block (or rest of file if unbalanced)
+    const end = foundMatchingBrace ? endPos + 1 : css.length;
+    bodies.push(css.substring(startPos, end));
+  }
+
+  return bodies;
+}
+
 describe('base.css', () => {
   it('contains no colour literals — every colour comes from a token', () => {
     expect(findHardcodedHex(base)).toEqual([]);
@@ -31,7 +72,7 @@ describe('base.css', () => {
     }
 
     // Check @keyframes bodies for banned property names (e.g., "top:", "width:")
-    const keyframes = base.match(/@keyframes[^{]*\{[^}]*\}/g) ?? [];
+    const keyframes = extractKeyframesBodies(base);
     for (const kf of keyframes) {
       expect(kf).not.toMatch(/\b(top|left|right|bottom|background-position|width|height)\s*:/);
     }
