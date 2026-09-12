@@ -286,7 +286,7 @@ Create `tests/workshop-page.test.ts`:
 
 ```ts
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { findForbiddenCopy } from '../src/lib/guards';
 
 const html = readFileSync('workshop.html', 'utf8');
@@ -317,14 +317,31 @@ describe('workshop.html', () => {
     expect(html).toContain('/projects.html#resell-assistant');
   });
 
-  it('marks every before/after slot as the owner\'s own photograph', () => {
-    const pairs = html.match(/<figure class="frame ba__shot"[^>]*>/g) ?? [];
-    expect(pairs.length).toBeGreaterThanOrEqual(6);
-    pairs.forEach((f) => expect(f).toContain('data-own-photo="true"'));
+  it('marks every before/after shot as a photograph the owner took', () => {
+    const shots = html.match(/<figure class="frame ba__shot"[^>]*>/g) ?? [];
+    expect(shots).toHaveLength(5); // piece 1: before/during/after; piece 2: before/after
+    shots.forEach((f) => expect(f).toContain('data-own-photo="true"'));
   });
 
-  it('leaves the shop links as honest dashes until they are supplied', () => {
-    expect(html).toContain('<!-- OPEN: Depop');
+  it('points every shot at a file that actually exists', () => {
+    const srcs = Array.from(html.matchAll(/src="(\/assets\/img\/workshop\/[^"]+)"/g)).map((m) => m[1]);
+    expect(srcs).toHaveLength(5);
+    srcs.forEach((src) => expect(existsSync(`.${src}`)).toBe(true));
+  });
+
+  it('gives every workshop photo real alt text — they are the page evidence', () => {
+    const imgs = html.match(/<img src="\/assets\/img\/workshop\/[^>]*>/g) ?? [];
+    imgs.forEach((img) => {
+      const alt = img.match(/alt="([^"]*)"/);
+      expect(alt).not.toBeNull();
+      expect(alt[1].length).toBeGreaterThan(10);
+    });
+  });
+
+  it('links the real Depop shop, leaving the other two as honest dashes', () => {
+    expect(html).toContain('depop.com/explosef');
+    expect(html).toContain('<!-- OPEN: eBay');
+    expect(html).toContain('<!-- OPEN: Mercari');
   });
 
   it('carries no banned copy', () => {
@@ -398,40 +415,33 @@ Head follows the same pattern; stylesheet `/src/styles/workshop.css`, title `Wor
           </div>
         </div>
 
-        <!-- Before/after pairs. Photographs are the owner's own, never generated. -->
+        <!-- Real photographs of real pieces, already committed to
+             assets/img/workshop/. Never generated. -->
         <div class="ba reveal">
-          <!-- OPEN: piece 1 — name, and the owner's own before/after photographs -->
-          <figure class="ba__pair">
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Piece 1 — before (your photo)">
-              <img src="/assets/img/workshop/piece-1-before.webp" alt="" loading="lazy" />
+
+          <figure class="ba__piece ba__piece--three">
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — before">
+              <img src="/assets/img/workshop/piece-1-before.webp" alt="A worn orange-brown cabinet with a badly damaged top, sitting in a garage" loading="lazy" />
             </figure>
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Piece 1 — after (your photo)">
-              <img src="/assets/img/workshop/piece-1-after.webp" alt="" loading="lazy" />
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — during">
+              <img src="/assets/img/workshop/piece-1-during.webp" alt="The same cabinet stripped to its carcass outdoors, with a new top being fitted" loading="lazy" />
             </figure>
-            <figcaption class="meta">&mdash;</figcaption>
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — after">
+              <img src="/assets/img/workshop/piece-1-after.webp" alt="The finished cabinet painted white with a dark walnut top" loading="lazy" />
+            </figure>
+            <figcaption class="meta">Low cabinet &mdash; the top was past saving, so it got a new one.</figcaption>
           </figure>
 
-          <!-- OPEN: piece 2 -->
-          <figure class="ba__pair">
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Piece 2 — before (your photo)">
-              <img src="/assets/img/workshop/piece-2-before.webp" alt="" loading="lazy" />
+          <figure class="ba__piece">
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — before">
+              <img src="/assets/img/workshop/piece-2-before.webp" alt="A small orange-brown side cabinet with a water-damaged top" loading="lazy" />
             </figure>
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Piece 2 — after (your photo)">
-              <img src="/assets/img/workshop/piece-2-after.webp" alt="" loading="lazy" />
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — after">
+              <img src="/assets/img/workshop/piece-2-after.webp" alt="The same cabinet in white with a stained wood top and black hardware" loading="lazy" />
             </figure>
-            <figcaption class="meta">&mdash;</figcaption>
+            <figcaption class="meta">Side cabinet &mdash; original grain kept on the top, everything else painted out.</figcaption>
           </figure>
 
-          <!-- OPEN: piece 3 -->
-          <figure class="ba__pair">
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Piece 3 — before (your photo)">
-              <img src="/assets/img/workshop/piece-3-before.webp" alt="" loading="lazy" />
-            </figure>
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Piece 3 — after (your photo)">
-              <img src="/assets/img/workshop/piece-3-after.webp" alt="" loading="lazy" />
-            </figure>
-            <figcaption class="meta">&mdash;</figcaption>
-          </figure>
         </div>
       </div>
     </section>
@@ -443,8 +453,7 @@ Head follows the same pattern; stylesheet `/src/styles/workshop.css`, title `Wor
         <div class="reveal">
           <p>Then it goes back out &mdash; Depop, eBay, Mercari, depending on what it is and who&rsquo;s looking. Pricing is the interesting half. Get it wrong high and it sits there telling you that you were wrong; get it wrong low and you find out instantly.</p>
           <p class="workshop__shops">
-            <!-- OPEN: Depop handle and link -->
-            <span class="meta">Depop &mdash;</span>
+            <a class="link" href="https://www.depop.com/explosef/" target="_blank" rel="noopener">Depop &#8599;</a>
             <!-- OPEN: eBay handle and link -->
             <span class="meta">eBay &mdash;</span>
             <!-- OPEN: Mercari handle and link -->
@@ -524,13 +533,15 @@ Create `src/styles/workshop.css`:
 .workshop__shops { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 20px; }
 
 /* ── before / after ── */
-.ba { display: grid; gap: clamp(20px, 3vw, 40px); margin-top: clamp(32px, 4vw, 64px); }
-@media (min-width: 900px) { .ba { grid-template-columns: repeat(3, 1fr); } }
-.ba__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.ba__pair figcaption { grid-column: 1 / -1; margin-top: 8px; }
+.ba { display: grid; gap: clamp(28px, 4vw, 56px); margin-top: clamp(32px, 4vw, 64px); }
+.ba__piece { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* Piece 1 has a during frame, so it runs three across. */
+.ba__piece--three { grid-template-columns: repeat(3, 1fr); }
+.ba__piece figcaption { grid-column: 1 / -1; margin-top: 10px; }
+@media (max-width: 600px) { .ba__piece--three { grid-template-columns: 1fr 1fr; } }
 /* The left shot is the "before" — labelled with the category colour, not clay,
    because it is a label and not a control. */
-.ba__shot:first-of-type::before {
+.ba__shot[data-label$='before']::before {
   content: 'Before';
   position: absolute;
   z-index: 2;
@@ -542,7 +553,19 @@ Create `src/styles/workshop.css`:
   text-transform: uppercase;
   color: var(--accent-2);
 }
-.ba__shot:last-of-type::before {
+.ba__shot[data-label$='during']::before {
+  content: 'During';
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.ba__shot[data-label$='after']::before {
   content: 'After';
   position: absolute;
   z-index: 2;
@@ -813,9 +836,16 @@ Same prompt skeleton keeps them a consistent set.
 - `cacheit-scan.webp` 1600×1200 — *Hand holding a phone up to a wall at arm's length, phone screen not visible to camera, out-of-focus green foliage behind, overcast daylight*
 - `fronds-near.webp` 2400×1600 — **needs real alpha or a pure black background** — *A few large wet fern fronds in extreme foreground, out of focus, silhouetted against pure black, entering from the bottom-left corner only, rest of frame empty black, rain droplets*
 
-- [ ] **Step 10: Do NOT generate the workshop before/after photographs**
+- [ ] **Step 10: Do NOT generate anything under `assets/img/workshop/`**
 
-`assets/img/workshop/piece-*-{before,after}.webp` are the owner's own photographs. Leave those six slots as labelled placeholders. Generating them would present a fabricated object as real work, which fails the definition of done.
+Those five files are the owner's own photographs of two real pieces, already
+converted and committed. They are the page's evidence. Generating a substitute
+would present a fabricated object as real work and fails the definition of done.
+
+They are also the only photographs on the site that are *not* colour-graded to
+the prompt lock, and they should stay that way — a real garage and a real living
+room look like a real garage and a real living room. Do not filter them toward
+the Overgrowth palette.
 
 - [ ] **Step 11: Check the set reads as one shoot**
 
@@ -856,14 +886,15 @@ Deploy to Vercel. Then confirm in a fresh browser that **`yosefpilip.com/project
 
 - [ ] **Step 4: Fill the open items when they arrive**
 
-Still shipping as honest dashes. Each is a one-line edit:
+Two remain. Each is a one-line edit:
 
-| Item | Where |
-|---|---|
-| DJ Music Sorter hook | `src/data/projects.ts`, `projects.html` `#music-sorter` |
-| Depop / eBay / Mercari | `workshop.html` `.workshop__shops` |
-| Before/after photos | `assets/img/workshop/` — six files |
-| City | `index.html` `<dt>Based</dt>` |
+| Item | Where | Status |
+|---|---|---|
+| DJ Music Sorter hook | `src/data/projects.ts`, `projects.html` `#music-sorter` | open — being built in another session |
+| eBay + Mercari handles | `workshop.html` `.workshop__shops` | open |
+| Depop | `workshop.html` `.workshop__shops` | **done** — `depop.com/explosef` |
+| Before/after photos | `assets/img/workshop/` | **done** — 2 pieces, 5 shots |
+| City | — | **closed** — owner declined to publish one; the row is removed, not dashed |
 
 - [ ] **Step 5: Final commit**
 

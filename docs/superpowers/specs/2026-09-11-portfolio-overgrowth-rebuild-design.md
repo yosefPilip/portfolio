@@ -396,8 +396,13 @@ Two categories, and they must not blur:
   labeled placeholders at their exact aspect ratios, exactly like every other
   slot.
 
-Before/after pairs are laid out as a 2-up per piece, `--accent-2` labelling the
-*before* and bone the *after*. Three pieces at launch; the grid takes any number.
+Before/after pairs are laid out per piece, `--accent-2` labelling the *before*
+and bone the *after*. **Two pieces at launch** (supplied 2026-09-12); the grid
+takes any number.
+
+Piece 1 runs as a **three-up — before, during, after**. The during frame is the
+one that makes the page persuasive: a stripped carcass with a new top being
+fitted is evidence of work, where a before/after alone is only a claim.
 
 ---
 
@@ -598,12 +603,28 @@ routing needs `history.pushState` and a small route table.
 
 ## 14. Open items — ship as `—`, never invent
 
-- **DJ Music Sorter** — one line on what it sorts and by what.
-- **Depop, eBay and Mercari** — shop handles and links.
-- **Workshop** — before/after photos of at least three refurbished pieces, and a
-  few lines on what draws him to thrifting and restoring. The page ships with
-  placeholders in these slots until they arrive.
-- **"Based in"** city — the résumé carries no location and it will not be guessed.
+### Supplied 2026-09-12
+
+- **Depop** — `depop.com/explosef`.
+- **Workshop photography** — two real pieces, converted and committed to
+  `assets/img/workshop/`. Piece 1 (low cabinet, spindle doors) has a
+  **before / during / after** set; piece 2 (side cabinet, open shelves) has
+  before / after plus detail shots. The mid-process frame is the strongest of
+  the nine: it shows the carcass stripped with the new top being fitted, which
+  evidences the work rather than only the result.
+
+### Closed by decision
+
+- **"Based in" city** — the owner has declined to publish one. The row is
+  **removed** from Home's spec list rather than shipped as a dash; a dash
+  implies a value is coming, and none is.
+
+### Still open
+
+- **DJ Music Sorter** — one line on what it sorts and by what. Being built in a
+  separate session, so this will close on its own.
+- **eBay and Mercari** — handles and links. Depop ships alone until they arrive;
+  the other two are the only dashes left on the Workshop page.
 - Mix archive link beyond SoundCloud; residencies, if any.
 
 ---

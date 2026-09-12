@@ -1562,11 +1562,9 @@ describe('Home content', () => {
     expect(html).not.toContain('Apali');
   });
 
-  it('marks unknown values with an honest dash plus a comment', () => {
-    const based = html.match(/<dt[^>]*>Based<\/dt>\s*<dd[^>]*>([\s\S]*?)<\/dd>/);
-    expect(based).not.toBeNull();
-    expect(based![1]).toContain('—');
-    expect(html).toContain('<!-- OPEN: city');
+  it('does not publish a location — the owner declined to give one', () => {
+    // A dash would imply a value is coming. There isn't one, so the row is gone.
+    expect(html).not.toMatch(/<dt[^>]*>Based<\/dt>/);
   });
 });
 ```
@@ -1590,9 +1588,6 @@ Replace everything in `index.html` between the hero's closing `</section>` and `
           <p>I&rsquo;m a computer science student at San Diego State, and the work I chase has a physical edge on it &mdash; a wall, an NFC chip, a phone held up at arm&rsquo;s length. That&rsquo;s what Cache It is, and it&rsquo;s the kind of problem I want more of.</p>
         </div>
         <dl class="spec reveal">
-          <dt>Based</dt>
-          <!-- OPEN: city — owner has not supplied one; résumé carries no location -->
-          <dd>&mdash;</dd>
           <dt>School</dt>
           <dd>San Diego State University<br /><span class="meta">B.S. Computer Science, 2028</span></dd>
           <dt>Now</dt>
