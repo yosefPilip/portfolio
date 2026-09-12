@@ -10,8 +10,8 @@
 
 A complete rework of the portfolio: every word rewritten, the information
 architecture rebuilt, and a new visual system. The existing pages (Home,
-Projects, DJ & Music) keep their identities. A fourth room, **Workshop**, is
-designed now and built after launch (§8.4).
+Projects, DJ & Music) keep their identities, and a fourth room, **Workshop**,
+is added (§8.4).
 
 The site is a **personal brand hub**, not a recruiting funnel. One link that
 works for a recruiter, a Zip Launchpad mentor, a promoter, and a friend. Each
@@ -298,9 +298,8 @@ Other pages get three-layer stacks. The six-layer hero is never repeated.
 5. **Experience** — condensed timeline. **This is where the hardest numbers
    live** and it is the section Overgrowth omitted: $8,000/yr saved, 40 hrs/month
    eliminated, 3 days → same-day, ~100 employees, 400+ attendees, $12,000 budget.
-6. **Elsewhere** — three image panels: Build / DJ / Workshop. Each panel
-   carries a few sentences of its own, so Home is complete at launch whether or
-   not the Workshop page (§8.4) exists yet.
+6. **Elsewhere** — three image panels: Build / DJ / Workshop, each linking to
+   its room.
 7. **Contact** — tinted panel, the one filled clay button.
 
 Experience entries, in résumé order: CloudGeometry (May 2025 – Present) ·
@@ -348,34 +347,57 @@ The coverflow is working code and is not rebuilt.
 
 ### 8.4 Workshop — `data-room="workshop"`, the workbench, ochre
 
-**Deferred. Not in the launch scope.** The room, its tokens and its Home panel
-are specified now so the palette and nav are designed for four rooms; the page
-itself ships after launch, once its content exists.
+The fourth room, in launch scope. Subject: **making and remaking physical
+things** — thrifting, refurbishing, repairing, and reselling across Depop, eBay
+and Mercari.
 
-A resale-only page was considered first and rejected. The honest subject is
-broader and stronger: **making and remaking physical things.** Thrifting and
-refurbishing furniture, crafts, and reselling across Depop, eBay and Mercari —
-with the De Anza manufacturing work (CAD/SolidWorks, 3D printing across FDM, VAT
-and powder-bed fusion, CNC machining, manual metalwork; parts designed and
-manufactured end to end) as the section that makes it a discipline rather than a
-pastime. That background is currently buried as a bullet under a high-school
-entry and is genuinely unusual for a CS applicant.
+#### The organising device: `RE—`
 
-Why this earns a page where "hobbies" would not:
+The page is built on the prefix. Each act is set as display-size `RE—` in
+Instrument Serif with only the suffix changing, so scrolling the page reads as
+one word repeating and resolving differently:
 
-- It reframes the software. Cache It reaches for a wall, a chip and a phone;
-  a workshop room shows that reach is a pattern, not a one-off.
-- It gives the **Resell Assistant (MCP)** project the context that explains why
-  it exists — a tool built for the owner's own business.
+| Act | Section | What it covers |
+|---|---|---|
+| **RE·SCUE** | sourcing | Thrifting. What he looks for, what makes a piece worth taking home |
+| **RE·NEW** | the work | Refurbishing, repairing, crafts. The before/after evidence |
+| **RE·SELL** | letting go | Depop, eBay, Mercari. Pricing, shooting, shipping |
+
+That is also literally an object's lifecycle through his hands, so the device
+carries structure rather than decorating it.
+
+Supporting sections, after the three acts:
+
+- **Where the hands came from** — the De Anza manufacturing work: CAD/SolidWorks,
+  3D printing across FDM, VAT and powder-bed fusion, CNC machining, manual
+  metalwork, parts designed and manufactured end to end. Currently buried as a
+  bullet under a high-school entry, and genuinely unusual for a CS applicant.
+  This is the section that makes the page a discipline rather than a pastime.
+- **The tool he built for it** — a link across to the **Resell Assistant (MCP)**
+  project, which finally has the context explaining why it exists.
+
+#### Why this page earns its place
+
+- It reframes the software. Cache It reaches for a wall, a chip and a phone; a
+  workshop room shows that reach is a pattern, not a one-off.
+- It rescues the manufacturing background from the footnotes.
 - It fits the concept. Overgrowth is nature reclaiming tech; refurbishing is the
   same idea reversed — taking something discarded and bringing it back.
 
-Sections: workbench hero (three layers) → why thrifting → refurbishing, with
-before/after photography → manufacturing background → where to buy (Depop, eBay,
-Mercari) → a link across to the Resell Assistant project.
+#### Photography — the integrity line
 
-Photography here should be **the owner's own** — real before/after shots of real
-pieces. Generated imagery would defeat the point of the page.
+Two categories, and they must not blur:
+
+- **Generated: atmosphere only.** The workbench hero scene (`bench-far`,
+  `bench-near`). These make no claim about any specific object.
+- **The owner's own: all before/after work.** A generated photo of a
+  "refurbished chair" would be a fabricated portfolio piece, which is the one
+  thing this site does not do. Until real photos exist these slots render
+  labeled placeholders at their exact aspect ratios, exactly like every other
+  slot.
+
+Before/after pairs are laid out as a 2-up per piece, `--accent-2` labelling the
+*before* and bone the *after*. Three pieces at launch; the grid takes any number.
 
 ---
 
@@ -461,7 +483,7 @@ detail rises there, register does not change.
 
 ## 12. Images
 
-14 slots. Every slot is a real `<img>` at its final path. While the file is
+16 generated slots, plus the owner's own before/after pairs. Every slot is a real `<img>` at its final path. While the file is
 missing, the frame shows a labeled placeholder at the exact aspect ratio, so
 composition can be judged before spending. Drop the file in and it works — no
 code change.
@@ -472,7 +494,7 @@ don't bubble) adds `.is-missing` to the wrapping frame, plus a pass over
 
 ### Shared prompt lock
 
-So 14 renders read as one shoot: deep desaturated greens, wet black, one warm
+So 16 renders read as one shoot: deep desaturated greens, wet black, one warm
 clay note. Single soft directional source — overcast or shaft-through-canopy.
 Underexposed; shadows keep detail. Photographic 35mm, shallow depth of field,
 visible grain. Not illustration, not 3D, not concept art.
@@ -498,14 +520,19 @@ Export WebP, quality ~72. Never ship the raw PNG.
 | `cacheit-street.webp` | 2400×1350 | case study | pasted artwork on concrete, ivy beside it |
 | `cacheit-scan.webp` | 1600×1200 | case study | hand holding a phone up to a wall |
 | `fronds-near.webp` | 2400×1600 | case study | front plate — **needs real alpha** |
-| *(Workshop imagery)* | — | workshop | **deferred** — owner's own before/after photos, not generated (§8.4) |
+| `bench-far.webp` | 2400×1600 | workshop | hero back — bench, tools on a wall, window light |
+| `bench-near.webp` | 2400×1600 | workshop | hero front — foreground clutter, clamps, shavings |
+| *(before/after pairs)* | 4:5 | workshop | **owner's own photos, never generated** (§8.4) |
 
 `life-rack.webp` is the one slot that should carry real saturation — let the
 garments be the brightest thing on the site. That is the honest answer to "the
-images provide the color." It doubles as the Home panel pointing at the deferred
-Workshop page.
+images provide the color." It doubles as the Home panel pointing at the Workshop
+room.
 
-The music room is the one place the shared prompt lock bends: a cave club needs
+The workshop room bends the lock toward warm interior light — sawdust, raw wood,
+window light rather than canopy light. Keep 35mm, underexposed, grain, no neon.
+
+The music room bends it further: a cave club needs
 its light source to read orchid rather than overcast green. Keep everything else
 (35mm, underexposed, grain, no neon, no flare) identical.
 
@@ -516,7 +543,7 @@ its light source to read orchid rather than overcast green. Keep everything else
 3. `server-moss` — the concept image. If this doesn't land, the palette
    conversation reopens, so do not batch it.
 4. The three `life-*` panels as one batch (shared prompt skeleton = consistent set).
-5. `ridge-*` and `cave-*` pairs.
+5. `ridge-*`, `cave-*` and `bench-*` pairs.
 6. `cacheit-*` and `fronds-near` last — all below the fold on sub-pages.
 
 ---
@@ -563,7 +590,7 @@ routing needs `history.pushState` and a small route table.
 5. Tier-3 overlay + `pushState` routing + left rail.
 6. Cache It case study.
 7. Music page — restyle, cave hero.
-8. Workshop page — after launch, once its content and photography exist.
+8. Workshop page — the `RE—` acts, before/after grid, manufacturing section.
 9. Images generated and dropped into existing slots.
 10. Accessibility, reduced-motion, and breakpoint pass.
 
@@ -573,8 +600,9 @@ routing needs `history.pushState` and a small route table.
 
 - **DJ Music Sorter** — one line on what it sorts and by what.
 - **Depop, eBay and Mercari** — shop handles and links.
-- **Workshop** — before/after photos of refurbished pieces, and a few lines on
-  what draws him to thrifting and restoring.
+- **Workshop** — before/after photos of at least three refurbished pieces, and a
+  few lines on what draws him to thrifting and restoring. The page ships with
+  placeholders in these slots until they arrive.
 - **"Based in"** city — the résumé carries no location and it will not be guessed.
 - Mix archive link beyond SoundCloud; residencies, if any.
 
@@ -594,6 +622,8 @@ routing needs `history.pushState` and a small route table.
 - [ ] `/projects/cache-it` loads correctly as a cold URL, and the back button
       closes the overlay.
 - [ ] Every number on the site traces to the résumé. Zero invented metrics.
+- [ ] No generated image is presented as a real refurbished piece. Workshop
+      before/after photos are the owner's own or a visible placeholder (§8.4).
 - [ ] No `Sector_`, `NODE_`, `LOG_`, `UPLINK_`, or `SIGNAL_` strings remain.
 - [ ] Nothing from §6.4 present.
 - [ ] Every unknown is a visible `—` plus an HTML comment, never a fabrication.
