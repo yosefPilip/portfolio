@@ -27,6 +27,10 @@
 .plate--copy  { z-index: 2; --rate: -260; display: grid; place-content: center; padding-inline: var(--gutter); }
 .plate--front { z-index: 3; --rate: -430; }
 
+/* A missing FRONT plate must not hide the copy it is meant to overlay.
+   The real image is a sparse alpha overlay; its opaque placeholder is not. */
+.plate--front .frame.is-missing { opacity: 0.25; }
+
 /* ── the hero: six layers, Home only ── */
 .hero { --stack-h: 260vh; }
 .hero .plate--canopy { z-index: 1; --rate: -60; }
