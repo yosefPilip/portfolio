@@ -1,48 +1,6 @@
 @import './base.css';
 @import './stack.css';
-
-/* ── header ── */
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 80;
-  background: color-mix(in oklab, var(--bg) 86%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
-}
-.site-header__inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
-.wordmark { font-family: var(--font-display); font-size: 21px; letter-spacing: -0.01em; }
-.nav-desktop { display: none; gap: 28px; font-size: 15px; }
-.nav-desktop a { color: var(--fg-dim); }
-.nav-desktop a:hover { color: var(--fg); }
-.nav-desktop a[aria-current='page'] { color: var(--fg); }
-@media (min-width: 800px) { .nav-desktop { display: flex; } .menu-toggle { display: none; } }
-
-.menu-toggle { background: none; border: 0; color: var(--fg); cursor: pointer; padding: 8px; }
-.menu-toggle svg { width: 24px; height: 24px; }
-
-.mobile-menu {
-  position: fixed;
-  inset: 0;
-  z-index: 95;
-  background: var(--bg);
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  gap: 12px;
-  padding-inline: var(--gutter);
-}
-.mobile-menu.is-open { display: flex; }
-.mobile-menu__close { position: absolute; top: 18px; right: var(--gutter); background: none; border: 0; color: var(--fg); cursor: pointer; }
-.mobile-menu__close svg { width: 26px; height: 26px; }
-
-/* ── about spec list ── */
-.spec { display: grid; grid-template-columns: auto 1fr; gap: 10px 20px; align-content: start; }
-.spec dt { font-family: var(--font-mono); font-size: var(--step-meta); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
-.spec dd { color: var(--fg-dim); }
-
-.link { color: var(--accent); }
-.link:hover { color: var(--accent-press); }
+@import './chrome.css';
 
 /* ── selected work rows ── */
 .work-list { margin-block: clamp(28px, 4vw, 56px); border-top: 1px solid var(--border); }
@@ -96,7 +54,3 @@
   color: var(--accent-press);
   text-decoration-color: var(--accent-press);
 }
-
-/* ── footer ── */
-.site-footer { background: var(--bg-deep); border-top: 1px solid var(--border); padding-block: 28px; }
-.site-footer__inner { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
