@@ -1,0 +1,132 @@
+/* Sticky layer parallax. JS writes a single --p per in-view .stack; CSS moves
+   everything off it. Only transform and opacity animate. See spec §6a and §7. */
+
+.stack { position: relative; height: var(--stack-h); }
+
+.stack-view {
+  position: sticky;
+  top: 0;
+  height: 100svh;          /* svh, not vh — iOS jumps when the bar hides */
+  overflow: hidden;
+}
+
+.plate {
+  position: absolute;
+  inset: -12% -3%;
+  will-change: transform;
+  transform: translate3d(0, calc(var(--p, 0) * var(--rate, 0) * 1px), 0);
+}
+.plate img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Blur lives on a child, never on the transformed parent, or the browser
+   re-rasterises it every frame. */
+.plate > .blurred { filter: blur(var(--blur, 0)); width: 100%; height: 100%; }
+
+/* Body stacks: three plates. */
+.plate--back  { z-index: 1; --rate: -90; }
+.plate--copy  { z-index: 2; --rate: -260; display: grid; place-content: center; padding-inline: var(--gutter); }
+.plate--front { z-index: 3; --rate: -430; }
+
+/* ── the hero: six layers, Home only ── */
+.hero { --stack-h: 260vh; }
+.hero .plate--canopy { z-index: 1; --rate: -60; }
+.hero .plate--fog    { z-index: 2; --rate: -120; }
+.hero .plate--trees  { z-index: 3; --rate: -190; }
+.hero .plate--name   { z-index: 4; --rate: -250; display: grid; place-content: center; }
+.hero .plate--trunks { z-index: 5; --rate: -350; }
+.hero .plate--low    { z-index: 6; --rate: -440; }
+
+.hero-wordmark {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--step-wordmark);
+  line-height: 1;
+  letter-spacing: 0.06em;   /* caps always get positive tracking */
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+/* Fog is CSS, not an image. No gradient used as *light* — this is atmosphere
+   sitting between depth planes, which is what fog physically is. */
+.hero .plate--fog::after,
+.hero .plate--low::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--bg-deep) 92%, transparent) 0%,
+    color-mix(in oklab, var(--bg-deep) 40%, transparent) 45%,
+    transparent 80%
+  );
+}
+.hero .plate--low::after { opacity: 0.8; }
+
+/* ── the seven front trunks: CSS, not an image ──
+   Alpha cutouts from image models halo; out-of-focus trunks in fog are just
+   soft vertical shapes. Positions are deliberately irregular — evenly spaced
+   bars read as a barcode, not a forest. Spec §7. */
+.trunk {
+  position: absolute;
+  top: -10%;
+  height: 120%;
+  background: linear-gradient(
+    90deg,
+    var(--bg-deep) 0%,
+    color-mix(in oklab, var(--bg-deep) 60%, var(--surface)) 55%,
+    var(--bg-deep) 100%
+  );
+  filter: blur(var(--blur));
+}
+.trunk--1 { left: 12.5%; width: clamp(10px, 2.6vw, 62px); --blur: 5px; }
+.trunk--2 { left: 24%;   width: clamp(10px, 1.7vw, 62px); --blur: 3px; }
+.trunk--3 { left: 35.5%; width: clamp(10px, 3.1vw, 62px); --blur: 7px; }
+.trunk--4 { left: 48%;   width: clamp(10px, 1.5vw, 62px); --blur: 2px; }
+.trunk--5 { left: 59%;   width: clamp(10px, 2.3vw, 62px); --blur: 5px; }
+.trunk--6 { left: 74%;   width: clamp(10px, 1.9vw, 62px); --blur: 4px; }
+.trunk--7 { left: 88%;   width: clamp(10px, 3.4vw, 62px); --blur: 8px; }
+
+/* Hero intro copy: z-index 7, bottom-left, deliberately NOT parallaxed. */
+.hero-intro {
+  position: absolute;
+  z-index: 7;
+  left: var(--gutter);
+  bottom: clamp(48px, 9vh, 104px);
+  max-width: 34ch;
+}
+
+/* A single hairline tick fills across the bottom. No numbers, no badge. */
+.hero-progress {
+  position: absolute;
+  z-index: 7;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: var(--border);
+}
+.hero-progress::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: calc(var(--p, 0) * 100%);
+  background: var(--accent-2);
+}
+
+@media (max-width: 744px) {
+  .hero-wordmark { font-size: 22vw; white-space: normal; max-width: 7ch; text-align: left; }
+  .hero .plate--canopy { --rate: -36; }
+  .hero .plate--fog    { --rate: -70; }
+  .hero .plate--trees  { --rate: -110; }
+  .hero .plate--name   { --rate: -150; place-content: center start; padding-inline: var(--gutter); }
+  .hero .plate--trunks { --rate: -215; }
+  .hero .plate--low    { --rate: -270; }
+  /* Bars 3 and 6 hide so the name still reads. */
+  .trunk--3, .trunk--6 { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack { height: auto; }
+  .stack-view { position: relative; height: 72svh; }
+  .plate { transform: none; }
+}
