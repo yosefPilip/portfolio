@@ -67,3 +67,33 @@
   .work-row__hook { grid-column: 1 / -1; }
   .work-row__name { grid-column: 1 / -1; }
 }
+
+.cs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
+  background: var(--bg);
+  animation: cs-in 0.32s ease both;
+}
+@keyframes cs-in { from { opacity: 0; transform: translate3d(0, 18px, 0); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cs-overlay { animation: none; } }
+
+.cs-close {
+  position: fixed;
+  top: 18px;
+  right: var(--gutter);
+  z-index: 101;
+  width: 40px;
+  height: 40px;
+  border-radius: 99px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 15px;
+  cursor: pointer;
+}
+.cs-close:hover { background: var(--surface-tint); }
+.cs-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+body.is-overlay-open { overflow: hidden; }
