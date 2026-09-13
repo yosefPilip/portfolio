@@ -30,8 +30,7 @@ describe('Home hero', () => {
     expect(html.match(/class="trunk trunk--\d"/g) ?? []).toHaveLength(7);
   });
 
-  // TODO(Task 8): re-enable once the old body is replaced
-  it.skip('carries no banned copy', () => {
+  it('carries no banned copy', () => {
     expect(findForbiddenCopy(html)).toEqual([]);
   });
 

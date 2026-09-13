@@ -37,3 +37,55 @@
 .mobile-menu.is-open { display: flex; }
 .mobile-menu__close { position: absolute; top: 18px; right: var(--gutter); background: none; border: 0; color: var(--fg); cursor: pointer; }
 .mobile-menu__close svg { width: 26px; height: 26px; }
+
+/* ── about spec list ── */
+.spec { display: grid; grid-template-columns: auto 1fr; gap: 10px 20px; align-content: start; }
+.spec dt { font-family: var(--font-mono); font-size: var(--step-meta); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+.spec dd { color: var(--fg-dim); }
+
+.link { color: var(--accent); }
+.link:hover { color: var(--accent-press); }
+
+/* ── selected work rows ── */
+.work-list { margin-block: clamp(28px, 4vw, 56px); border-top: 1px solid var(--border); }
+.work-row {
+  display: grid;
+  grid-template-columns: 5rem 1fr auto;
+  gap: 6px 24px;
+  align-items: baseline;
+  padding-block: clamp(20px, 2.4vw, 32px);
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+}
+.work-row:hover { background: color-mix(in oklab, var(--fg) 4%, transparent); }
+.work-row:hover .work-row__year { color: var(--accent-2); }
+.work-row__name { font-family: var(--font-display); font-size: var(--step-h2); }
+.work-row__hook { grid-column: 2; color: var(--fg-dim); }
+.work-row__go { color: var(--accent); font-size: 20px; }
+@media (max-width: 700px) {
+  .work-row { grid-template-columns: 1fr auto; }
+  .work-row__year { grid-column: 1; }
+  .work-row__hook { grid-column: 1 / -1; }
+}
+
+/* ── experience ── */
+.exp { padding-block: clamp(24px, 3vw, 40px); border-bottom: 1px solid var(--border); }
+.exp__head { margin-bottom: 14px; }
+.exp__role { font-family: var(--font-display); font-size: var(--step-h2); }
+.exp + .panel { margin-top: clamp(32px, 4vw, 56px); }
+
+/* ── lives: three panels, never a uniform grid elsewhere on the page ── */
+.lives { display: grid; gap: clamp(16px, 2.5vw, 28px); margin-top: clamp(24px, 3vw, 44px); }
+@media (min-width: 820px) { .lives { grid-template-columns: repeat(3, 1fr); } }
+.life h3 { font-family: var(--font-display); font-size: var(--step-h2); margin-top: 16px; }
+.life p { color: var(--fg-dim); margin-top: 6px; }
+.life:hover h3 { color: var(--accent-2); }
+
+/* ── contact ── */
+.contact { text-align: left; }
+.contact .btn { margin-top: 20px; }
+.contact__links { display: flex; gap: 20px; margin-top: 22px; }
+
+/* ── footer ── */
+.site-footer { background: var(--bg-deep); border-top: 1px solid var(--border); padding-block: 28px; }
+.site-footer__inner { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
