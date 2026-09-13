@@ -97,6 +97,7 @@ export function IntroAnimation() {
 
   return (
     <div className={`intro-overlay${fading ? ' intro-overlay--fading' : ''}`} style={overlayStyle}>
+      <div className="intro-backdrop" aria-hidden="true" />
       <FlipBoard lines={currentLines} rows={rows} columns={columns} />
     </div>
   );
