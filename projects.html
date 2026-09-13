@@ -4,147 +4,163 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Projects — Yosef Pilip</title>
+  <meta name="description" content="Things I've built: Cache It, a batch podcast generator, an MCP resale assistant, and the internal tools behind a 100-person company." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/src/styles/site.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/projects.css" />
 </head>
-<body>
+<body data-room="projects">
 
-  <div class="grain"></div>
+  <div class="grain" aria-hidden="true"></div>
 
-  <header>
-    <div class="container">
-      <a class="wordmark" href="/"><span class="wordmark-chevron">&gt;</span> <span>Yosef Pilip</span></a>
-      <nav class="nav-desktop">
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="wordmark" href="/">Yosef Pilip</a>
+      <nav class="nav-desktop" aria-label="Primary">
         <a href="/">Home</a>
-        <a href="/projects.html" class="active">Projects</a>
+        <a href="/projects.html" aria-current="page">Projects</a>
         <a href="/music.html">DJ &amp; Music</a>
+        <a href="/workshop.html">Workshop</a>
       </nav>
-      <div class="header-status">
-        <div class="eq-bars" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-        <button class="menu-toggle" id="menuOpen" aria-label="Open menu">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-      </div>
+      <button class="menu-toggle" id="menuOpen" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+      </button>
     </div>
   </header>
 
-  <div class="mobile-menu" id="mobileMenu">
-    <button class="mobile-close" id="menuClose" aria-label="Close menu">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+  <div class="mobile-menu title-h2" id="mobileMenu">
+    <button class="mobile-menu__close" id="menuClose" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
     </button>
     <a href="/">Home</a>
-    <a href="/projects.html" class="active">Projects</a>
+    <a href="/projects.html">Projects</a>
     <a href="/music.html">DJ &amp; Music</a>
+    <a href="/workshop.html">Workshop</a>
   </div>
-
-  <aside class="rail">
-    <div class="rail-id">
-      <div class="rail-monogram">YP</div>
-      <div class="rail-id-text">
-        <div class="l1">NODE_YP</div>
-        <div class="l2">STATUS: ONLINE</div>
-      </div>
-    </div>
-    <nav class="rail-nav">
-      <a class="rail-link" href="#featured">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7Z"/></svg>
-        <span class="label">Featured</span>
-      </a>
-      <a class="rail-link" href="#more">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        <span class="label">More Projects</span>
-      </a>
-    </nav>
-    <a class="rail-cta" href="/#contact">CONTACT_ME</a>
-  </aside>
 
   <main>
 
-    <!-- FEATURED -->
-    <section id="featured" class="page-intro">
-      <div class="container">
-        <div class="section-head reveal">
-          <div>
-            <p class="eyebrow">Sector_02 // Project_Archive</p>
-            <h2 class="section-heading">Projects</h2>
-          </div>
-          <p class="section-note mono">Automations and tools built for real teams, not just demos.</p>
+    <!-- ── RIDGE HERO: three layers, not six ── -->
+    <section class="stack page-hero">
+      <div class="stack-view">
+        <div class="plate plate--back">
+          <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Projects L1 — ridge-far">
+            <img src="/assets/img/ridge-far.webp" alt="" loading="eager" />
+          </figure>
         </div>
-
-        <!-- Photo licensed under the Unsplash License, sourced via images.unsplash.com -->
-        <div class="project-featured glass reveal">
-          <div class="project-media">
-            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop" alt="Macro photograph of a dark circuit board" loading="lazy" />
-          </div>
-          <div class="project-body">
-            <div class="project-name">Slack HR Bot</div>
-            <p class="project-desc">
-              Natural-language HR assistant built for CloudGeometry. Handles PTO and sick-day
-              requests via Slack, using Gemini API for parsing and manager approval flows.
-            </p>
-            <div class="project-tags">
-              <span class="tag">Gemini API</span>
-              <span class="tag">Slack API</span>
-              <span class="tag">Apps Script</span>
-            </div>
-          </div>
+        <div class="plate plate--copy">
+          <h1 class="display">Projects</h1>
+          <p class="lede">Six things, roughly in the order I care about them.</p>
+        </div>
+        <div class="plate plate--front">
+          <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Projects L3 — ridge-near">
+            <img src="/assets/img/ridge-near.webp" alt="" loading="eager" />
+          </figure>
         </div>
       </div>
     </section>
 
-    <!-- MORE PROJECTS -->
-    <section id="more" style="border-bottom: none;">
+    <section class="section" id="index">
       <div class="container">
-        <div class="section-head reveal">
-          <div>
-            <p class="eyebrow">Sector_02b // More_Builds</p>
-            <h2 class="section-heading">More Projects</h2>
-          </div>
+
+        <div class="filters" role="group" aria-label="Filter projects">
+          <button class="pill is-active" data-filter="all" aria-pressed="true">All</button>
+          <button class="pill" data-filter="ai" aria-pressed="false">AI &amp; automation</button>
+          <button class="pill" data-filter="fullstack" aria-pressed="false">Full-stack</button>
+          <button class="pill" data-filter="tools" aria-pressed="false">Tools</button>
+          <span class="meta" id="filterCount">6 projects</span>
         </div>
 
-        <div class="project-trio">
+        <div class="work-list" id="projectList">
 
-          <div class="project-card glass reveal">
-            <div class="project-name">HR Management System</div>
-            <p class="project-desc">
-              Role-based HR management app built in AppSheet, backed by Google Sheets.
-              Streamlines employee records and access control for a distributed org.
-            </p>
-            <div class="project-tags">
-              <span class="tag">AppSheet</span>
-              <span class="tag">Google Sheets</span>
-              <span class="tag">Apps Script</span>
+          <article class="work-item" data-slug="cache-it" data-category="fullstack" id="cache-it">
+            <button class="work-row work-row--button" aria-expanded="false">
+              <span class="work-row__year meta">2026</span>
+              <span class="work-row__name title-h2">Cache It</span>
+              <span class="work-row__hook">Hidden art around a city. Find it, tap it, keep it.</span>
+              <span class="work-row__go" aria-hidden="true">+</span>
+            </button>
+            <div class="work-detail" hidden>
+              <p>A geocaching-style hunt for street art. An artist hides a piece somewhere in the city, you go and find it, and you tap your phone against it to collect it into your own portfolio. I designed and built the whole thing — React and Vite on the front, FastAPI behind it.</p>
+              <p class="meta">React &middot; Vite &middot; FastAPI &middot; NFC &middot; NTAG 424 DNA</p>
+              <p class="work-detail__links">
+                <a class="link" href="/projects/cache-it">Read the case study &rarr;</a>
+                <a class="link" href="https://cache-it-one.vercel.app" target="_blank" rel="noopener">Live site &#8599;</a>
+              </p>
             </div>
-          </div>
+          </article>
 
-          <div class="project-card glass reveal">
-            <div class="project-name">IT Security Automation</div>
-            <p class="project-desc">
-              Bot that automates weekly Google Workspace hygiene checks — flagging stale
-              accounts, misconfigured permissions, and security gaps across the org.
-            </p>
-            <div class="project-tags">
-              <span class="tag">Admin SDK</span>
-              <span class="tag">Apps Script</span>
-              <span class="tag">Google Workspace</span>
+          <article class="work-item" data-slug="podcast-generator" data-category="ai" id="podcast-generator">
+            <button class="work-row work-row--button" aria-expanded="false">
+              <span class="work-row__year meta">2026</span>
+              <span class="work-row__name title-h2">Batch Podcast Generator</span>
+              <span class="work-row__hook">100-episode runs from a prompt, without melting the API.</span>
+              <span class="work-row__go" aria-hidden="true">+</span>
+            </button>
+            <div class="work-detail" hidden>
+              <p>Give it a prompt, get back a whole batch of podcast episodes. Scripts come from the Anthropic API; the voices come from a pluggable TTS adapter layer, so swapping Fish Audio for ElevenLabs is a config change rather than a rewrite. The interesting part is the concurrency — a 100-episode run is bounded by an asyncio semaphore so it saturates without falling over. SQLite behind it, deployed on Vercel.</p>
+              <p class="meta">Python &middot; Anthropic API &middot; SQLite &middot; Vercel</p>
             </div>
-          </div>
+          </article>
 
-          <div class="project-card glass reveal">
-            <div class="project-name">Portfolio Site</div>
-            <p class="project-desc">
-              This site — a hand-written HTML/CSS portfolio deployed on Vercel via Vite's
-              multi-page build. No JS framework driving the layout, just a couple of small
-              React islands for the intro animation.
-            </p>
-            <div class="project-tags">
-              <span class="tag">HTML</span>
-              <span class="tag">CSS</span>
-              <span class="tag">Vercel</span>
+          <article class="work-item" data-slug="resell-assistant" data-category="ai" id="resell-assistant">
+            <button class="work-row work-row--button" aria-expanded="false">
+              <span class="work-row__year meta">In development</span>
+              <span class="work-row__name title-h2">Resell Assistant</span>
+              <span class="work-row__hook">Ask what a thing is worth. It answers, then updates the books.</span>
+              <span class="work-row__go" aria-hidden="true">+</span>
+            </button>
+            <div class="work-detail" hidden>
+              <p>A custom MCP server for my own reselling. You ask it a pricing question in plain language and it answers, then keeps a live financial and inventory tracker in Google Sheets up to date without me touching it. Auth is per-user OAuth rather than one shared credential, so it can be handed to someone else without handing over my account.</p>
+              <p class="meta">MCP &middot; Google Sheets API &middot; OAuth 2.0</p>
+              <p class="work-detail__links"><a class="link" href="/workshop.html">Why it exists &rarr;</a></p>
             </div>
-          </div>
+          </article>
+
+          <article class="work-item" data-slug="cloudgeometry" data-category="ai" id="cloudgeometry">
+            <button class="work-row work-row--button" aria-expanded="false">
+              <span class="work-row__year meta">2025&ndash;</span>
+              <span class="work-row__name title-h2">CloudGeometry internal tools</span>
+              <span class="work-row__hook">The Slack bot, the HR platform, and the thing that audits everyone&rsquo;s account.</span>
+              <span class="work-row__go" aria-hidden="true">+</span>
+            </button>
+            <div class="work-detail" hidden>
+              <p><strong>The Slack bot.</strong> Nobody should have to write a formal email to say they&rsquo;re sick. Now they tell Slack in whatever words they&rsquo;d actually use, and the bot works out what they meant, files it as a real record, and routes it to their manager. Three days became same-day, for about 100 people.</p>
+              <p><strong>The HR platform.</strong> A four-tier permission model, and an internal HR app built on top of it. It replaced a paid third-party tool and saves $8,000 a year.</p>
+              <p><strong>The auditor.</strong> A scheduled Apps Script service that checks every account for 2FA, recovery info and profile photos, then logs what it finds. It replaced 40 hours a month of manual review across ~100 accounts.</p>
+              <p class="meta">Python &middot; Gemini API &middot; Apps Script &middot; AppSheet &middot; Admin SDK</p>
+            </div>
+          </article>
+
+          <article class="work-item" data-slug="music-sorter" data-category="tools" id="music-sorter">
+            <button class="work-row work-row--button" aria-expanded="false">
+              <span class="work-row__year meta">Being built</span>
+              <span class="work-row__name title-h2">DJ Music Sorter</span>
+              <!-- OPEN: owner has not said what it sorts or by what -->
+              <span class="work-row__hook">&mdash;</span>
+              <span class="work-row__go" aria-hidden="true">+</span>
+            </button>
+            <div class="work-detail" hidden>
+              <!-- OPEN: one line on what it sorts and by what -->
+              <p>&mdash;</p>
+              <p class="meta">In progress</p>
+            </div>
+          </article>
+
+          <article class="work-item" data-slug="portfolio" data-category="fullstack" id="portfolio">
+            <button class="work-row work-row--button" aria-expanded="false">
+              <span class="work-row__year meta">2026</span>
+              <span class="work-row__name title-h2">This site</span>
+              <span class="work-row__hook">Four rooms, one building. Scroll-linked depth, hand-built.</span>
+              <span class="work-row__go" aria-hidden="true">+</span>
+            </button>
+            <div class="work-detail" hidden>
+              <p>A Vite multi-page build, no framework driving the layout. The green lives in the photography and the interface stays out of its way. Every page is a different setting, and one scroll-progress value drives the layers on all of them — so the hero&rsquo;s trunks can slide across my name instead of sitting on top of it.</p>
+              <p class="meta">Vite &middot; TypeScript &middot; React &middot; Lenis</p>
+              <p class="work-detail__links"><a class="link" href="https://github.com/yosefPilip" target="_blank" rel="noopener">Source &#8599;</a></p>
+            </div>
+          </article>
 
         </div>
       </div>
@@ -152,14 +168,16 @@
 
   </main>
 
-  <footer>
-    <div class="container">
-      <div class="footer-copy">© 2026 Yosef Pilip</div>
-      <div class="footer-status">BUILD_STATIC // NO_FRAMEWORK</div>
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <span class="meta">&copy; 2026 Yosef Pilip</span>
+      <span class="meta">Built by hand</span>
     </div>
   </footer>
 
-  <script type="module" src="/src/shared/site.ts"></script>
+  <div class="cs-overlay" id="csOverlay" hidden aria-modal="true" role="dialog" aria-label="Case study"></div>
+
+  <script type="module" src="/src/entries/projects.ts" id="projects-entry"></script>
 
 </body>
 </html>

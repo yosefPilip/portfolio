@@ -1,0 +1,69 @@
+@import './base.css';
+@import './stack.css';
+@import './chrome.css';
+
+/* Page heroes are three layers. Six belongs to Home alone. */
+.page-hero { --stack-h: 180vh; }
+.page-hero .plate--copy { text-align: center; }
+.page-hero .display { color: var(--fg); }
+.page-hero .lede { margin-inline: auto; }
+
+/* ── filters ── */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: clamp(24px, 3vw, 44px); }
+.pill {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 15px;
+  border-radius: 99px;
+  border: 1px solid var(--border-strong);
+  background: none;
+  color: var(--fg-dim);
+  cursor: pointer;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+.pill:hover { color: var(--fg); }
+/* The active filter is a selected state, not an action — so it is the one
+   place --accent-2 is allowed to be a fill. */
+.pill.is-active { background: var(--accent-2); border-color: var(--accent-2); color: var(--bg-deep); }
+.pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.filters .meta { margin-left: auto; }
+
+/* ── rows ── */
+.work-list { border-top: 1px solid var(--border); }
+.work-item { border-bottom: 1px solid var(--border); }
+.work-item[hidden] { display: none; }
+
+.work-row--button {
+  display: grid;
+  grid-template-columns: 7rem 1fr auto;
+  gap: 6px 24px;
+  align-items: baseline;
+  width: 100%;
+  padding-block: clamp(20px, 2.4vw, 32px);
+  background: none;
+  border: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.work-row--button:hover { background: color-mix(in oklab, var(--fg) 4%, transparent); }
+.work-row--button:hover .work-row__year { color: var(--accent-2); }
+.work-row--button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* .work-row__name takes its type from .title-h2 in base.css */
+.work-row__hook { grid-column: 2; color: var(--fg-dim); }
+.work-row__go { color: var(--accent); font-size: 22px; line-height: 1; transition: transform 0.2s ease; }
+.work-row--button[aria-expanded='true'] .work-row__go { transform: rotate(45deg); }
+
+.work-detail { padding-bottom: clamp(24px, 3vw, 40px); max-width: 62ch; }
+.work-detail p + p { margin-top: 0.9em; }
+.work-detail__links { display: flex; gap: 22px; margin-top: 16px; }
+
+@media (max-width: 700px) {
+  .work-row--button { grid-template-columns: 1fr auto; }
+  .work-row__year { grid-column: 1; }
+  .work-row__hook { grid-column: 1 / -1; }
+  .work-row__name { grid-column: 1 / -1; }
+}
