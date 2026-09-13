@@ -5,6 +5,8 @@ import { Coverflow } from './components/Coverflow';
 import './styles/intro.css';
 import './styles/nameFlip.css';
 import './styles/coverflow.css';
+import { initChrome } from './shared/chrome';
+import { initMotion } from './shared/motion';
 
 const introRoot = document.getElementById('intro-root');
 
@@ -23,3 +25,6 @@ const coverflowRoot = document.getElementById('coverflow-root');
 if (coverflowRoot) {
   createRoot(coverflowRoot).render(<Coverflow />);
 }
+
+initChrome();
+initMotion();

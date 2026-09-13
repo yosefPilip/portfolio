@@ -4,101 +4,86 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yosef Pilip</title>
+  <meta name="description" content="Computer science student and AI developer. I build tools that delete other people's busywork." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/src/styles/site.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/home.css" />
 </head>
-<body>
+<body data-room="home">
 
   <div id="intro-root"></div>
+  <div class="grain" aria-hidden="true"></div>
 
-  <div class="grain"></div>
-
-  <header>
-    <div class="container">
-      <span class="wordmark"><span class="wordmark-chevron">&gt;</span> <span id="name-flip-root"></span></span>
-      <nav class="nav-desktop">
-        <a href="/" class="active">Home</a>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="wordmark" href="/"><span id="name-flip-root">Yosef Pilip</span></a>
+      <nav class="nav-desktop" aria-label="Primary">
+        <a href="/" aria-current="page">Home</a>
         <a href="/projects.html">Projects</a>
         <a href="/music.html">DJ &amp; Music</a>
+        <a href="/workshop.html">Workshop</a>
       </nav>
-      <div class="header-status">
-        <div class="eq-bars" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-        <button class="menu-toggle" id="menuOpen" aria-label="Open menu">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-      </div>
+      <button class="menu-toggle" id="menuOpen" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+      </button>
     </div>
   </header>
 
   <div class="mobile-menu" id="mobileMenu">
-    <button class="mobile-close" id="menuClose" aria-label="Close menu">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+    <button class="mobile-menu__close" id="menuClose" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
     </button>
-    <a href="/" class="active">Home</a>
+    <a href="/">Home</a>
     <a href="/projects.html">Projects</a>
     <a href="/music.html">DJ &amp; Music</a>
+    <a href="/workshop.html">Workshop</a>
   </div>
-
-  <aside class="rail">
-    <div class="rail-id">
-      <div class="rail-monogram">YP</div>
-      <div class="rail-id-text">
-        <div class="l1">NODE_YP</div>
-        <div class="l2">STATUS: ONLINE</div>
-      </div>
-    </div>
-    <nav class="rail-nav">
-      <a class="rail-link" href="#experience">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3"/><path d="M13 15h4"/></svg>
-        <span class="label">Experience</span>
-      </a>
-      <a class="rail-link" href="#projects">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7Z"/></svg>
-        <span class="label">Projects</span>
-      </a>
-      <a class="rail-link" href="#education">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11.5V17c0 1.5 3 3 6 3s6-1.5 6-3v-5.5"/></svg>
-        <span class="label">Education</span>
-      </a>
-      <a class="rail-link" href="#skills">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M3 13l9 5 9-5"/></svg>
-        <span class="label">Skills</span>
-      </a>
-      <a class="rail-link" href="#contact">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20v-6"/><path d="M9 20V10"/><path d="M14 20V6"/><path d="M19 20V3"/></svg>
-        <span class="label">Contact</span>
-      </a>
-    </nav>
-    <a class="rail-cta" href="#contact">CONTACT_ME</a>
-  </aside>
 
   <main>
 
-    <!-- HERO -->
-    <!-- Background photo licensed under the Unsplash License, sourced via images.unsplash.com -->
-    <section id="hero">
-      <div class="hero-bg" id="heroBg"></div>
-      <div class="hero-overlay"></div>
-      <div class="hero-content reveal visible">
-        <span class="hero-tag"><span class="dot"></span>SYSTEM_INITIALIZED</span>
-        <h1>Building tools that<br>connect systems.</h1>
-        <p class="hero-tagline">CS Student &middot; AI Developer &middot; DJ</p>
-        <p class="hero-bio">
-          I'm a Computer Science student at <strong>San Diego State University</strong>
-          interested in full-stack development, AI automation, and API integrations.
-          I like experimenting with AI agents and large language models to build tools
-          that make processes more efficient. Outside of tech, I'm into music, DJing,
-          guitar, and piano.
-        </p>
-        <div class="hero-links">
-          <a class="btn btn-primary" href="#contact">Get in touch</a>
-          <a class="btn btn-ghost" href="https://github.com/yosefPilip" target="_blank" rel="noopener">GitHub &#8599;</a>
-          <a class="btn btn-ghost" href="https://www.linkedin.com/in/yosefpilip/" target="_blank" rel="noopener">LinkedIn &#8599;</a>
+    <!-- ── HERO: six depth layers on one --p. The site's one signature move. ── -->
+    <section class="stack hero" id="hero">
+      <div class="stack-view">
+
+        <div class="plate plate--canopy">
+          <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Hero L1 — canopy-far">
+            <img src="/assets/img/canopy-far.webp" alt="" loading="eager" />
+          </figure>
         </div>
+
+        <div class="plate plate--fog" aria-hidden="true"></div>
+
+        <div class="plate plate--trees">
+          <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Hero L3 — trees-back">
+            <img src="/assets/img/trees-back.webp" alt="" loading="eager" />
+          </figure>
+        </div>
+
+        <div class="plate plate--name">
+          <h1 class="hero-wordmark">Yosef Pilip</h1>
+        </div>
+
+        <div class="plate plate--trunks" aria-hidden="true">
+          <span class="trunk trunk--1"></span>
+          <span class="trunk trunk--2"></span>
+          <span class="trunk trunk--3"></span>
+          <span class="trunk trunk--4"></span>
+          <span class="trunk trunk--5"></span>
+          <span class="trunk trunk--6"></span>
+          <span class="trunk trunk--7"></span>
+        </div>
+
+        <div class="plate plate--low" aria-hidden="true"></div>
+
+        <div class="hero-intro">
+          <p class="eyebrow">CS at San Diego State &middot; AI developer &middot; DJ</p>
+          <p class="lede">I build things that delete other people&rsquo;s busywork. Occasionally I make a room very loud.</p>
+        </div>
+
+        <div class="hero-progress" aria-hidden="true"></div>
+
       </div>
-      <div class="scroll-cue"><span>SCROLL</span><div class="line"></div></div>
     </section>
 
     <!-- EXPERIENCE -->
