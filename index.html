@@ -24,7 +24,7 @@
         <a href="/music.html">DJ &amp; Music</a>
         <a href="/workshop.html">Workshop</a>
       </nav>
-      <button class="menu-toggle" id="menuOpen" aria-label="Open menu">
+      <button class="menu-toggle" id="menuOpen" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
       </button>
     </div>
@@ -46,7 +46,7 @@
     <section class="stack hero" id="hero">
       <div class="stack-view">
 
-        <div class="plate plate--canopy">
+        <div class="plate plate--canopy" aria-hidden="true">
           <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Hero L1 — canopy-far">
             <img src="/assets/img/canopy-far.webp" alt="" loading="eager" />
           </figure>
@@ -54,7 +54,7 @@
 
         <div class="plate plate--fog" aria-hidden="true"></div>
 
-        <div class="plate plate--trees">
+        <div class="plate plate--trees" aria-hidden="true">
           <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Hero L3 — trees-back">
             <img src="/assets/img/trees-back.webp" alt="" loading="eager" />
           </figure>
@@ -114,10 +114,10 @@
           </figure>
         </div>
         <div class="plate plate--copy">
-          <p class="display">Software keeps reaching for the physical world.</p>
+          <h2 class="display">Software keeps reaching for the physical world.</h2>
           <p class="lede">When part of the problem lives outside the browser, the engineering gets harder and the design has to get honest.</p>
         </div>
-        <div class="plate plate--front">
+        <div class="plate plate--front" aria-hidden="true">
           <figure class="frame" style="--ar: 4 / 5; height: 100%;" data-label="Thesis front — roots-overlay">
             <img src="/assets/img/roots-overlay.webp" alt="" loading="lazy" />
           </figure>
@@ -204,7 +204,7 @@
     </section>
 
     <!-- ── ELSEWHERE ── -->
-    <section class="section section--tight" id="elsewhere">
+    <section class="section" id="elsewhere">
       <div class="container">
         <h2 class="reveal">Elsewhere</h2>
         <div class="lives">
