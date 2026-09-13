@@ -26,5 +26,12 @@ if (coverflowRoot) {
   createRoot(coverflowRoot).render(<Coverflow />);
 }
 
-initChrome();
-initMotion();
+// Only a migrated page opts into the new runtime. music.html and projects.html
+// still load the site.ts shim and have no data-room, so without this guard
+// Lenis would install on a page whose stylesheet was deleted, chrome.ts would
+// hijack its in-page anchors, and it would fall back to the home palette.
+// Plans 2 and 3 add data-room to those pages as they are rebuilt.
+if (document.body.dataset.room) {
+  initChrome();
+  initMotion();
+}

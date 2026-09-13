@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // timers/rAF work that has nothing to do with what this file verifies.
 vi.mock('lenis', () => ({
   default: vi.fn().mockImplementation(function LenisMock() {
-    return { raf: vi.fn() };
+    return { raf: vi.fn(), stop: vi.fn(), start: vi.fn(), scrollTo: vi.fn(), destroy: vi.fn() };
   }),
 }));
 
