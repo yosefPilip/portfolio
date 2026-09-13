@@ -11,6 +11,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         projects: resolve(__dirname, 'projects.html'),
         music: resolve(__dirname, 'music.html'),
+        'cache-it': resolve(__dirname, 'projects/cache-it.html'),
       },
     },
   },

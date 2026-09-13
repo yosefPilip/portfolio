@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cache It — Yosef Pilip</title>
+  <meta name="description" content="A geocaching-style hunt for street art. Find the piece in the real world, tap your phone against it, keep it." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/case-study.css" />
+</head>
+<body data-room="projects">
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <main class="cs">
+
+    <aside class="cs-rail">
+      <a class="cs-rail__back" href="/projects.html">&larr; All projects</a>
+      <nav data-rail="sections" aria-label="Sections of this case study">
+        <a href="#idea">The idea</a>
+        <a href="#map">The map</a>
+        <a href="#collaborators">Collaborators</a>
+        <a href="#authentic">Keeping finds honest</a>
+        <a href="#open">Still open</a>
+      </nav>
+      <nav data-rail="projects" aria-label="Other projects">
+        <a href="/projects.html#podcast-generator">Batch Podcast Generator</a>
+        <a href="/projects.html#resell-assistant">Resell Assistant</a>
+        <a href="/projects.html#cloudgeometry">CloudGeometry tools</a>
+      </nav>
+    </aside>
+
+    <div class="cs-body">
+
+      <header class="cs-head">
+        <p class="eyebrow">Case study</p>
+        <h1 class="display">Cache It</h1>
+        <p class="lede">Hidden art around a city. Find it, tap it, keep it.</p>
+        <dl class="spec">
+          <dt>Role</dt><dd>Founder &amp; CEO &mdash; designed and built it solo</dd>
+          <dt>Dates</dt><dd>Aug 2026 &ndash; Present</dd>
+          <dt>Stack</dt><dd>React, Vite, FastAPI, NFC</dd>
+          <dt>Incubator</dt><dd>Zip Launchpad, SDSU &mdash; starting Fall 2026</dd>
+          <dt>Live</dt><dd><a class="link" href="https://cache-it-one.vercel.app" target="_blank" rel="noopener">cache-it-one.vercel.app &#8599;</a></dd>
+        </dl>
+      </header>
+
+      <figure class="frame cs-hero" style="--ar: 16 / 9;" data-label="Case study hero — cacheit-street">
+        <img src="/assets/img/cacheit-street.webp" alt="A small pasted artwork on a weathered concrete wall, ivy climbing beside it" loading="eager" />
+      </figure>
+
+      <section id="idea" class="cs-section split-7-5">
+        <div>
+          <h2>The idea</h2>
+          <p>An artist hides a piece somewhere in a city. You go and find it &mdash; actually go, on foot, to the wall it&rsquo;s on. Then you hold your phone against it and it lands in your collection.</p>
+          <p>That&rsquo;s the whole product, and almost every decision falls out of it. The find has to happen in the real world, or none of it means anything.</p>
+        </div>
+        <div class="panel panel--tint">
+          <h3>Constraints I set</h3>
+          <ul class="ticks">
+            <li>No account needed to start looking. Curiosity shouldn&rsquo;t hit a signup wall.</li>
+            <li>Collecting has to work one-handed, in bad light, standing in front of a wall.</li>
+            <li>Artists stay in control of their own work.</li>
+            <li>A find you didn&rsquo;t actually make shouldn&rsquo;t count.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="stack">
+        <div class="stack-view">
+          <div class="plate plate--back">
+            <figure class="frame" style="--ar: 4 / 3; height: 100%;" data-label="Case study — cacheit-scan">
+              <img src="/assets/img/cacheit-scan.webp" alt="A hand holding a phone up to a wall at arm's length" loading="lazy" />
+            </figure>
+          </div>
+          <div class="plate plate--copy">
+            <p class="display">You have to be there.</p>
+          </div>
+          <div class="plate plate--front">
+            <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Front plate — fronds-near">
+              <img src="/assets/img/fronds-near.webp" alt="" loading="lazy" />
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="map" class="cs-section split-5-7">
+        <div>
+          <h2>The map</h2>
+        </div>
+        <div>
+          <p>The discovery map tracks your area in real time off geolocation, so hunting feels like hunting &mdash; you move, the map moves, and pieces near you surface as you get close.</p>
+          <p>It deliberately does not just drop a pin on every artwork. A map that tells you exactly where everything is isn&rsquo;t a hunt, it&rsquo;s a shopping list.</p>
+        </div>
+      </section>
+
+      <section id="collaborators" class="cs-section split-7-5">
+        <div>
+          <h2>Letting other artists in</h2>
+          <p>Early on, every piece in the app had to come from me, which meant the collection could only grow as fast as I could work. That&rsquo;s a bad ceiling for something whose whole appeal is that there&rsquo;s more out there.</p>
+          <p>So there&rsquo;s a collaborator role. An outside artist can place their own work independently &mdash; their pieces, their placements, no involvement from me. It decouples the collection growing from me shipping code, which is the difference between a demo and a thing that can actually spread through a city.</p>
+        </div>
+      </section>
+
+      <section id="authentic" class="cs-section split-5-7">
+        <div>
+          <h2>Keeping finds honest</h2>
+        </div>
+        <div>
+          <p>The obvious version of this is a QR code taped to the wall. It&rsquo;s also the broken version: a QR code is just a picture, and a picture can be screenshotted and sent to a group chat. Then nobody has to go anywhere.</p>
+          <p>So collection runs on <strong>NFC</strong> instead &mdash; you physically tap the phone against the piece. That put me inside a real constraint set, because iOS and Web NFC disagree about a lot and neither gives you everything you&rsquo;d want.</p>
+          <p>I architected around those limits with an upgrade path to <strong>NTAG 424 DNA</strong> chips, which sign each tap rather than just handing over a static payload. That&rsquo;s the difference between &ldquo;this tag exists somewhere&rdquo; and &ldquo;this person tapped this tag.&rdquo;</p>
+        </div>
+      </section>
+
+      <section id="open" class="cs-section">
+        <div class="panel panel--tint">
+          <h2>Still open</h2>
+          <p>How do you keep a hunt honest once people start sharing the answers? Locations spread by word of mouth, and a solved map is a dead map.</p>
+          <p>My current thinking is that finds expire and art rotates, so the city re-randomises instead of being solved once. That&rsquo;s a bet, not a result &mdash; it isn&rsquo;t built yet, and I&rsquo;m not certain it&rsquo;s right.</p>
+        </div>
+      </section>
+
+      <nav class="cs-next">
+        <a class="cs-next__link" href="/projects.html#podcast-generator">
+          <span class="meta">Next</span>
+          <span class="cs-next__name title-h2">Batch Podcast Generator</span>
+          <span class="cs-next__go" aria-hidden="true">&rarr;</span>
+        </a>
+      </nav>
+
+    </div>
+  </main>
+
+  <script type="module" src="/src/entries/case-study.ts"></script>
+
+</body>
+</html>

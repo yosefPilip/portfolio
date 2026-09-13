@@ -1,0 +1,45 @@
+@import './base.css';
+@import './stack.css';
+@import './chrome.css';
+
+.cs { display: block; padding-block: clamp(40px, 6vw, 96px); }
+.cs-body { width: min(860px, 100% - 2 * var(--gutter)); margin-inline: auto; }
+
+@media (min-width: 1100px) {
+  .cs { display: grid; grid-template-columns: 232px 1fr; gap: clamp(32px, 4vw, 72px); padding-inline: var(--gutter); }
+  .cs-body { width: min(860px, 100%); margin-inline: 0; }
+}
+
+/* ── the rail does double duty: sections within, and other projects ── */
+.cs-rail { display: none; }
+@media (min-width: 1100px) {
+  .cs-rail { display: block; position: sticky; top: 32px; align-self: start; }
+}
+.cs-rail__back { display: block; font-size: 14px; color: var(--accent); margin-bottom: 26px; }
+.cs-rail nav { display: grid; gap: 9px; padding-block: 16px; border-top: 1px solid var(--border); }
+.cs-rail nav a { font-size: 14px; color: var(--muted); }
+.cs-rail nav a:hover { color: var(--fg); }
+.cs-rail nav[data-rail='sections'] a { color: var(--fg-dim); }
+
+.cs-head { margin-bottom: clamp(32px, 4vw, 56px); }
+.cs-head .display { margin-block: 10px 14px; }
+.cs-head .spec { margin-top: 28px; }
+
+.cs-hero { margin-bottom: clamp(40px, 5vw, 80px); }
+.cs-section { padding-block: clamp(36px, 5vw, 72px); border-top: 1px solid var(--border); }
+.cs-section h2 { margin-bottom: 16px; }
+
+.ticks { display: grid; gap: 10px; margin-top: 14px; }
+.ticks li { color: var(--fg-dim); padding-left: 20px; position: relative; }
+.ticks li::before { content: '\2014'; position: absolute; left: 0; color: var(--accent-2); }
+
+.cs-next { margin-top: clamp(40px, 5vw, 80px); border-top: 1px solid var(--border); }
+.cs-next__link { display: grid; grid-template-columns: 1fr auto; gap: 4px 20px; align-items: center; padding-block: 28px; }
+.cs-next__name { grid-column: 1; }
+.cs-next__link .meta { grid-column: 1; }
+.cs-next__go { grid-row: 1 / -1; grid-column: 2; color: var(--accent); font-size: 26px; }
+.cs-next__link:hover .cs-next__name { color: var(--accent-2); }
+
+/* Inside the overlay the rail is redundant — the overlay has its own close. */
+.cs-overlay .cs-rail { display: none; }
+.cs-overlay .cs { grid-template-columns: 1fr; }
