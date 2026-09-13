@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface);
+  background: var(--bg-deep);
   border-radius: 3px;
   overflow: hidden;
   perspective: 240px;
@@ -97,13 +97,17 @@
   }
 }
 
+.flip-cell--active::after {
+  background: color-mix(in oklab, var(--bg-deep) 25%, transparent);
+}
+
 .flip-cell--active.flip-cell--lime {
   background: var(--accent-2);
   color: var(--bg-deep);
 }
 
 .flip-cell--active.flip-cell--amber {
-  background: var(--accent-2);
+  background: var(--fg);
   color: var(--bg-deep);
 }
 
