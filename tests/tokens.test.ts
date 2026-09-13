@@ -65,4 +65,41 @@ describe('tokens.css', () => {
     expect(contrastRatio(token(':root', 'on-accent'), token(':root', 'accent')))
       .toBeGreaterThanOrEqual(5);
   });
+
+  // .btn--primary:hover swaps the fill to --accent-press while keeping --on-accent
+  // text, so the pressed fill has to clear the same gate the resting fill does.
+  it('keeps dark text on the PRESSED clay fill above 5:1', () => {
+    expect(contrastRatio(token(':root', 'on-accent'), token(':root', 'accent-press')))
+      .toBeGreaterThanOrEqual(5);
+  });
+
+  // .link:hover paints --accent-press as text straight on the room's ground.
+  it('meets the body-text gate for the pressed action colour in every room', () => {
+    for (const room of ROOMS) {
+      const bg = token(`\\[data-room="${room}"\\]`, 'bg');
+      expect(contrastRatio(token(':root', 'accent-press'), bg)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  /**
+   * Panels are the other ground text lands on: .panel uses --surface and
+   * .panel--tint uses --surface-tint, and both carry 12px meta and links.
+   *
+   * --accent deliberately is NOT in this list. It is spec-fixed at #cf6b3e and
+   * measures 4.00–4.29 on --surface-tint, which is exactly why clay-as-text on a
+   * tinted panel is a mistake: the pressed token goes there instead.
+   */
+  it('meets the body-text gate on both panel surfaces in every room', () => {
+    for (const room of ROOMS) {
+      for (const ground of ['surface', 'surface-tint']) {
+        const bg = token(`\\[data-room="${room}"\\]`, ground);
+        for (const ink of ['fg', 'fg-dim', 'muted', 'accent-press']) {
+          expect(
+            contrastRatio(token(':root', ink), bg),
+            `--${ink} on --${ground} in ${room}`,
+          ).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    }
+  });
 });

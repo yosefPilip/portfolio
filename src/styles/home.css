@@ -93,8 +93,10 @@
   text-underline-offset: 4px;
 }
 .contact__links .link:hover {
-  color: var(--accent);
-  text-decoration-color: var(--accent);
+  /* --accent-press, not --accent: clay measures only 4.0-4.3:1 on --surface-tint
+     and this 12px link sits inside a .panel--tint. See spec §3.4. */
+  color: var(--accent-press);
+  text-decoration-color: var(--accent-press);
 }
 
 /* ── footer ── */

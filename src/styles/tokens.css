@@ -10,7 +10,12 @@
   --border-strong: rgba(240, 239, 233, 0.24);
 
   --accent:        #cf6b3e;              /* clay — ACTION only */
-  --accent-press:  #b45a31;              /* clay, pressed */
+  --accent-press:  #d97f55;              /* clay, hover + pressed state — lighter than
+                                            --accent so dark text on a filled clay
+                                            button clears 5:1 and clay-as-text clears
+                                            4.5:1 on tinted panels (spec §3.4). The
+                                            press still reads as pressed via the 2px
+                                            translateY travel on .btn:active. */
   --on-accent:     #17110c;              /* dark text on a filled clay button */
 
   /* ── type ── */
