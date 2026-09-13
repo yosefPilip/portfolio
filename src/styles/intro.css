@@ -71,7 +71,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   font-size: clamp(9px, 1.9vw, 20px);
   color: var(--fg);
   transform-origin: 50% 50%;

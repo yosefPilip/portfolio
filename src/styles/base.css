@@ -63,6 +63,17 @@ h2        { font-size: var(--step-h2);      line-height: 1.1;  letter-spacing: -
 p { max-width: 62ch; }
 p + p { margin-top: 1.1em; }
 
+/* The universal reset zeroes every margin, and p + p was the only rule putting
+   any back — so a heading sat flush against the paragraph under it everywhere
+   except .life, which set its own. Tighter than p + p on purpose: a paragraph
+   belongs to the heading above it, and should read as attached to it. */
+h1 + p, h2 + p, h3 + p, .display + p { margin-top: 0.6em; }
+
+/* Three weights only: 400 read / 500 emphasize / 600 announce (spec §4).
+   <strong> defaults to 700, which Outfit does not ship — so the browser
+   synthesises a fake bold, and the system fallback renders a real 700. */
+strong { font-weight: 600; }
+
 /* ALL CAPS always gets positive tracking. */
 .eyebrow, .meta {
   font-family: var(--font-mono);

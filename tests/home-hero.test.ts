@@ -35,7 +35,10 @@ describe('Home hero', () => {
   });
 
   it('labels every image frame so the placeholder says what belongs there', () => {
-    const frames = html.match(/<figure class="frame"[^>]*>/g) ?? [];
+    // `frame` as a WORD in the class list, not the whole attribute: Plan 3's
+    // Workshop frames are class="frame frame--before" and an exact match would
+    // silently stop checking them rather than fail.
+    const frames = html.match(/<figure[^>]*\bclass="[^"]*\bframe\b[^"]*"[^>]*>/g) ?? [];
     expect(frames.length).toBeGreaterThan(0);
     frames.forEach((frame) => expect(frame).toContain('data-label='));
   });
