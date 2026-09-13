@@ -20,7 +20,7 @@ export function findForbiddenCopy(source: string): string[] {
 }
 
 /** Blocks where colour literals are allowed to live: the token blocks only. */
-const TOKEN_BLOCK = /(?::root|\[data-room="[a-z]+"\])\s*\{[^}]*\}/g;
+const TOKEN_BLOCK = /(?::root|\[data-room="[a-z0-9-]+"\])\s*\{[^}]*\}/g;
 const COMMENT = /\/\*[\s\S]*?\*\//g;
 const HEX = /#[0-9a-fA-F]{3,8}\b/g;
 

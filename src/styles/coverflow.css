@@ -25,18 +25,18 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1px solid var(--card-border);
-  background: var(--card);
-  color: var(--text-muted);
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 72%, transparent);
+  color: var(--fg-dim);
   cursor: pointer;
   backdrop-filter: blur(8px);
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
   z-index: 5;
 }
 .cf-arrow:hover:not(:disabled) {
-  color: var(--lime);
-  border-color: var(--lime);
-  background: var(--lime-container);
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
 }
 .cf-arrow:active:not(:disabled) { transform: scale(0.92); }
 .cf-arrow:disabled { opacity: 0.28; cursor: default; }
@@ -57,7 +57,7 @@
 .cf-stage:active { cursor: grabbing; }
 .cf-stage:focus-visible { outline: none; }
 .cf-stage:focus-visible .cf-cover.is-active {
-  box-shadow: 0 0 0 2px var(--lime), 0 24px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 2px var(--accent), 0 24px 60px color-mix(in oklab, var(--bg-deep) 72%, transparent);
 }
 
 /* each cover is absolutely centered; transform (set inline) fans it out */
@@ -70,12 +70,12 @@
   margin-left: calc(var(--cover-size) / -2);
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid var(--card-border);
-  background: var(--surface-low);
+  border: 1px solid var(--border);
+  background: var(--bg-deep);
   transform-origin: center center;
   transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.5s ease, box-shadow 0.3s ease;
   will-change: transform, opacity;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--bg-deep) 55%, transparent);
   user-select: none;
 }
 .cf-cover img {
@@ -87,8 +87,8 @@
   pointer-events: none;
 }
 .cf-cover.is-active {
-  border-color: rgba(164, 214, 76, 0.4);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 40px rgba(164, 214, 76, 0.08);
+  border-color: color-mix(in oklab, var(--accent) 40%, transparent);
+  box-shadow: 0 24px 60px color-mix(in oklab, var(--bg-deep) 72%, transparent);
   cursor: pointer;
 }
 .cf-cover.is-active img { filter: saturate(1.05) brightness(1); }
@@ -106,13 +106,13 @@
   font-size: 11px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--text);
-  background: linear-gradient(180deg, transparent, rgba(12, 15, 14, 0.9));
+  color: var(--fg);
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--bg-deep) 90%, transparent));
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
-.cf-cover-badge .icon { width: 16px; height: 16px; color: var(--lime); }
+.cf-cover-badge .icon { width: 16px; height: 16px; color: var(--accent); }
 .cf-cover.is-active:hover .cf-cover-badge,
 .cf-stage:focus-visible .cf-cover.is-active .cf-cover-badge {
   opacity: 1;
@@ -128,22 +128,22 @@
 .cf-index {
   font-size: 12px;
   letter-spacing: 2px;
-  color: var(--lime);
+  color: var(--accent-2);
 }
-.cf-index span { color: var(--text-dim); }
+.cf-index span { color: var(--fg-dim); }
 .cf-title {
   margin-top: 6px;
   font-family: var(--font-body);
   font-size: clamp(22px, 4vw, 30px);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.3px;
-  color: var(--text);
+  color: var(--fg);
 }
 .cf-desc {
   margin-top: 8px;
   font-size: 15px;
   line-height: 1.55;
-  color: var(--text-muted);
+  color: var(--fg-dim);
 }
 .cf-link {
   display: inline-flex;
@@ -152,15 +152,15 @@
   margin-top: 16px;
   padding: 9px 18px;
   border-radius: 999px;
-  border: 1px solid var(--lime);
-  color: var(--lime);
+  border: 1px solid var(--accent);
+  color: var(--accent);
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
 }
-.cf-link:hover { background: var(--lime); color: #131f00; }
+.cf-link:hover { background: var(--accent); color: var(--on-accent); }
 .cf-link:active { transform: scale(0.96); }
 .cf-link .icon { width: 15px; height: 15px; }
 
@@ -176,15 +176,15 @@
   border-radius: 50%;
   border: none;
   padding: 0;
-  background: var(--outline-variant);
+  background: var(--border-strong);
   cursor: pointer;
-  transition: background 0.2s ease, width 0.25s ease, border-radius 0.25s ease;
+  transition: background-color 0.2s ease;
 }
-.cf-dot:hover { background: var(--text-dim); }
+.cf-dot:hover { background: var(--fg-dim); }
 .cf-dot.is-active {
   width: 22px;
   border-radius: 4px;
-  background: var(--lime);
+  background: var(--accent);
 }
 
 @media (max-width: 640px) {

@@ -1,18 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { findHardcodedHex } from '../src/lib/guards';
+import { STYLESHEETS } from './stylesheets';
 
 const base = readFileSync('src/styles/base.css', 'utf8');
-
-/**
- * Every project stylesheet except tokens.css, which is the one file allowed to
- * hold colour literals. Enumerated from the directory rather than listed by
- * hand, so a stylesheet added in a later plan is enforced the moment it lands.
- */
-export const STYLESHEETS = readdirSync('src/styles')
-  .filter((f) => f.endsWith('.css') && f !== 'tokens.css')
-  .map((f) => `src/styles/${f}`)
-  .sort();
 
 /**
  * Extract @keyframes bodies by matching braces, not by naive regex.
@@ -166,46 +157,50 @@ describe('display type ≥32px carries tracking (spec §4)', () => {
   });
 });
 
-describe('base.css', () => {
+// ── the colour and motion guards (spec §15) ────────────────────────────────
+//
+// These run over EVERY stylesheet, not a hand-written list. Spec §15 states the
+// rules sitewide — "zero hardcoded hex elsewhere", "only transform and opacity
+// animate" — so the guards have to be sitewide too, or a stylesheet is only
+// covered for as long as somebody remembers to add it here.
+
+describe.each(STYLESHEETS)('%s', (file) => {
+  const css = readFileSync(file, 'utf8');
+
   it('contains no colour literals — every colour comes from a token', () => {
-    expect(findHardcodedHex(base)).toEqual([]);
+    expect(findHardcodedHex(css)).toEqual([]);
+  });
+
+  it('uses no pure black or pure white', () => {
+    expect(css).not.toMatch(/#000\b|#000000\b|#fff\b|#ffffff\b/);
   });
 
   it('does not animate expensive layout properties', () => {
     const bannedProps = /\b(top|left|right|bottom|background-position|width|height)\b/;
 
-    // Check transition: declarations
-    const transitions = base.match(/transition:[^;]+;/g) ?? [];
-    for (const t of transitions) {
-      expect(t).not.toMatch(bannedProps);
+    // transition: and transition-property: declarations
+    for (const t of css.match(/transition(?:-property)?:[^;]+;/g) ?? []) {
+      expect(t, `${file}: ${t}`).not.toMatch(bannedProps);
     }
 
-    // Check transition-property: declarations
-    const transitionProps = base.match(/transition-property:[^;]+;/g) ?? [];
-    for (const t of transitionProps) {
-      expect(t).not.toMatch(bannedProps);
+    // animation: and animation-name: declarations
+    for (const a of css.match(/animation(?:-name)?:[^;]+;/g) ?? []) {
+      expect(a, `${file}: ${a}`).not.toMatch(bannedProps);
     }
 
-    // Check animation: and animation-name: declarations
-    const animations = base.match(/animation(?:-name)?:[^;]+;/g) ?? [];
-    for (const a of animations) {
-      expect(a).not.toMatch(bannedProps);
-    }
-
-    // Check @keyframes bodies for banned property names (e.g., "top:", "width:")
-    const keyframes = extractKeyframesBodies(base);
-    for (const kf of keyframes) {
-      expect(kf).not.toMatch(/\b(top|left|right|bottom|background-position|width|height)\s*:/);
+    // @keyframes bodies, for banned property names in any stop (e.g. "top:")
+    for (const kf of extractKeyframesBodies(css)) {
+      expect(kf, file).not.toMatch(
+        /\b(top|left|right|bottom|background-position|width|height)\s*:/,
+      );
     }
   });
+});
 
+describe('base.css', () => {
   it('gives all-caps classes at least 0.06em tracking', () => {
     const caps = base.match(/\.eyebrow(?![a-zA-Z0-9_-])[^{]*\.meta(?![a-zA-Z0-9_-])[^{]*\{[^}]*\}/g);
     expect(caps).not.toBeNull();
     expect(caps!.join('')).toMatch(/letter-spacing:\s*0\.1em/);
-  });
-
-  it('uses no pure black or pure white', () => {
-    expect(base).not.toMatch(/#000\b|#000000\b|#fff\b|#ffffff\b/);
   });
 });
