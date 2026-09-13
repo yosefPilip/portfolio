@@ -75,10 +75,33 @@ export function NameFlipBoard() {
   const [inverted, setInverted] = useState(false);
   const [flourishSignal, setFlourishSignal] = useState(0);
   const invertedRef = useRef(inverted);
+  const boardRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     invertedRef.current = inverted;
   }, [inverted]);
+
+  /**
+   * The board mounts inside <a class="wordmark">, so the ANCHOR is the tab stop
+   * and the thing that gets a focus ring. The board itself must not be
+   * focusable: a focusable span inside a link is two tab stops for one control,
+   * and the inner one activates nothing (WCAG 2.4.7 / 4.1.2).
+   *
+   * focusin does not reach a child of the focused element, so the keyboard flip
+   * is bound to the anchor instead of being lost with the removed tabIndex.
+   */
+  useEffect(() => {
+    const host = boardRef.current?.closest('a');
+    if (!host) return;
+    const on = () => setInverted(true);
+    const off = () => setInverted(false);
+    host.addEventListener('focus', on);
+    host.addEventListener('blur', off);
+    return () => {
+      host.removeEventListener('focus', on);
+      host.removeEventListener('blur', off);
+    };
+  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -96,12 +119,10 @@ export function NameFlipBoard() {
 
   return (
     <span
+      ref={boardRef}
       className="name-flip-board"
       onMouseEnter={() => setInverted(true)}
       onMouseLeave={() => setInverted(false)}
-      onFocus={() => setInverted(true)}
-      onBlur={() => setInverted(false)}
-      tabIndex={0}
       role="img"
       aria-label="Yosef Pilip"
     >

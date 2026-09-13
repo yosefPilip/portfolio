@@ -4,7 +4,10 @@
   display: inline-flex;
   gap: 2px;
   cursor: pointer;
-  outline: none;
+  /* No outline: none here. The board is not focusable — the wrapping
+     <a class="wordmark"> is the tab stop, and it carries the site's standard
+     focus ring (see chrome.css). Suppressing an outline on this span only ever
+     hid a WCAG 2.4.7 failure. */
   vertical-align: middle;
 }
 
@@ -47,7 +50,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 11px;
   color: var(--fg);
   transform-origin: 50% 50%;
