@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { markMissing, sweepLoadedImages } from '../src/lib/imageFrame';
+import { markMissing, sweepLoadedImages, installImageFallback } from '../src/lib/imageFrame';
 
 function frameWithImage(): HTMLImageElement {
   document.body.innerHTML = `
@@ -55,6 +55,42 @@ describe('sweepLoadedImages', () => {
     Object.defineProperty(img, 'complete', { value: false });
     Object.defineProperty(img, 'naturalWidth', { value: 0 });
     sweepLoadedImages(document);
+    expect(document.querySelector('.frame')!.classList.contains('is-missing')).toBe(false);
+  });
+});
+
+describe('installImageFallback', () => {
+  it('capture phase reaches a real error event', () => {
+    const img = frameWithImage();
+    installImageFallback(document);
+    img.dispatchEvent(new Event('error'));
+    expect(document.querySelector('.frame')!.classList.contains('is-missing')).toBe(true);
+  });
+
+  it('instanceof narrowing blocks non-image elements', () => {
+    document.body.innerHTML = `
+      <figure class="frame" data-label="Test">
+        <div></div>
+      </figure>`;
+    const div = document.querySelector('div')!;
+    installImageFallback(document);
+    div.dispatchEvent(new Event('error'));
+    expect(document.querySelector('.frame')!.classList.contains('is-missing')).toBe(false);
+  });
+
+  it('sweep-on-install marks pre-failed images', () => {
+    const img = frameWithImage();
+    Object.defineProperty(img, 'complete', { value: true });
+    Object.defineProperty(img, 'naturalWidth', { value: 0 });
+    installImageFallback(document);
+    expect(document.querySelector('.frame')!.classList.contains('is-missing')).toBe(true);
+  });
+
+  it('leaves successfully loaded images alone through install', () => {
+    const img = frameWithImage();
+    Object.defineProperty(img, 'complete', { value: true });
+    Object.defineProperty(img, 'naturalWidth', { value: 2400 });
+    installImageFallback(document);
     expect(document.querySelector('.frame')!.classList.contains('is-missing')).toBe(false);
   });
 });
