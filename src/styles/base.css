@@ -67,7 +67,14 @@ p + p { margin-top: 1.1em; }
    any back — so a heading sat flush against the paragraph under it everywhere
    except .life, which set its own. Tighter than p + p on purpose: a paragraph
    belongs to the heading above it, and should read as attached to it. */
-h1 + p, h2 + p, h3 + p, .display + p { margin-top: 0.6em; }
+h1 + p, h2 + p, h3 + p { margin-top: 0.6em; }
+
+/* .display keeps the full p + p measure instead. It is set at line-height 0.95
+   and up to 132px, so 0.6em of a 19–26px deck reads as a collision under the
+   descenders — and the thesis deck DID sit at 1.1em until its <p class="display">
+   became an <h2 class="display"> and stopped matching p + p. Higher specificity
+   than h2 + p, so the swap is now genuinely pixel-identical. */
+.display + p { margin-top: 1.1em; }
 
 /* Three weights only: 400 read / 500 emphasize / 600 announce (spec §4).
    <strong> defaults to 700, which Outfit does not ship — so the browser
