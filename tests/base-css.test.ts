@@ -1,8 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { findHardcodedHex } from '../src/lib/guards';
 
 const base = readFileSync('src/styles/base.css', 'utf8');
+
+/**
+ * Every project stylesheet except tokens.css, which is the one file allowed to
+ * hold colour literals. Enumerated from the directory rather than listed by
+ * hand, so a stylesheet added in a later plan is enforced the moment it lands.
+ */
+export const STYLESHEETS = readdirSync('src/styles')
+  .filter((f) => f.endsWith('.css') && f !== 'tokens.css')
+  .map((f) => `src/styles/${f}`)
+  .sort();
 
 /**
  * Extract @keyframes bodies by matching braces, not by naive regex.
@@ -44,6 +54,117 @@ function extractKeyframesBodies(css: string): string[] {
 
   return bodies;
 }
+
+// ── the negative-tracking guard (spec §4) ──────────────────────────────────
+//
+// "Display text ≥32px always gets negative tracking. Skipping either is the
+// most reliable tell of machine-generated type."
+//
+// This is a pragmatic scanner, not a CSS parser. It resolves the --step-*
+// custom properties out of tokens.css so `font-size: var(--step-h2)` is seen
+// for the 44px it can reach, then asserts every rule that can render at ≥32px
+// carries tracking — negative for normal-case display type, positive for
+// all-caps, which is the other half of the same spec rule.
+
+const tokensCss = readFileSync('src/styles/tokens.css', 'utf8');
+
+/** `--step-h2` → `clamp(28px, 3.4vw, 44px)`, read straight out of `:root`. */
+const STEPS = new Map<string, string>();
+for (const [, name, value] of tokensCss.matchAll(/(--step-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+  STEPS.set(name, value.trim());
+}
+
+/**
+ * The largest px this value can ever render at, or null when it is expressed
+ * only in relative units we cannot resolve statically (vw, em, %).
+ *
+ * A `clamp(min, pref, max)` is bounded by its max, and the max is the largest
+ * px literal in the expression — so taking the biggest px literal is both
+ * correct here and far more readable than parsing clamp arguments.
+ */
+function maxRenderedPx(rawValue: string): number | null {
+  let value = rawValue.trim();
+  // Resolve one level of var(--step-*); nothing in this project nests deeper.
+  value = value.replace(/var\(\s*(--step-[a-z0-9-]+)\s*\)/g, (whole, name: string) =>
+    STEPS.get(name) ?? whole,
+  );
+  const pxLiterals = [...value.matchAll(/(\d+(?:\.\d+)?)px/g)].map((m) => Number(m[1]));
+  if (pxLiterals.length === 0) return null;
+  return Math.max(...pxLiterals);
+}
+
+interface Rule {
+  file: string;
+  selector: string;
+  body: string;
+}
+
+/**
+ * Every `selector { declarations }` pair in a stylesheet, including rules
+ * nested inside `@media` blocks — the inner braces mean a media prelude can
+ * never itself match, so nested rules are picked up on their own.
+ */
+function rules(file: string): Rule[] {
+  const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, selector, body]) => ({
+    file,
+    selector: selector.trim(),
+    body,
+  }));
+}
+
+const ALL_RULES = STYLESHEETS.flatMap(rules);
+
+/** Individual selectors (comma-split) that are given negative tracking anywhere. */
+const NEGATIVELY_TRACKED = new Set<string>();
+for (const rule of ALL_RULES) {
+  if (!/letter-spacing:\s*-/.test(rule.body)) continue;
+  for (const selector of rule.selector.split(',')) NEGATIVELY_TRACKED.add(selector.trim());
+}
+
+describe('display type ≥32px carries tracking (spec §4)', () => {
+  it('finds the type scale in tokens.css, or the whole scan is vacuous', () => {
+    expect(STEPS.get('--step-h2')).toBe('clamp(28px, 3.4vw, 44px)');
+    expect(maxRenderedPx('var(--step-h2)')).toBe(44);
+    expect(maxRenderedPx('15px')).toBe(15);
+    expect(maxRenderedPx('22vw')).toBeNull();
+  });
+
+  it('scans more than one stylesheet', () => {
+    expect(STYLESHEETS.length).toBeGreaterThan(1);
+    expect(ALL_RULES.length).toBeGreaterThan(20);
+  });
+
+  it('gives every rule that can render at ≥32px the tracking the spec demands', () => {
+    const offenders: string[] = [];
+
+    for (const rule of ALL_RULES) {
+      const declared = rule.body.match(/(?:^|[;{\s])font-size:\s*([^;]+)/);
+      if (!declared) continue;
+      const px = maxRenderedPx(declared[1]);
+      if (px === null || px < 32) continue;
+
+      // All-caps is the other half of the same spec rule: ≥0.06em POSITIVE.
+      if (/text-transform:\s*uppercase/.test(rule.body)) {
+        const caps = rule.body.match(/letter-spacing:\s*(0?\.\d+)em/);
+        if (!caps || Number(caps[1]) < 0.06) {
+          offenders.push(`${rule.file} — ${rule.selector} (${px}px, all-caps, needs ≥0.06em)`);
+        }
+        continue;
+      }
+
+      const trackedHere = /letter-spacing:\s*-/.test(rule.body);
+      const trackedElsewhere = rule.selector
+        .split(',')
+        .every((s) => NEGATIVELY_TRACKED.has(s.trim()));
+      if (!trackedHere && !trackedElsewhere) {
+        offenders.push(`${rule.file} — ${rule.selector} (${px}px, needs negative letter-spacing)`);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+});
 
 describe('base.css', () => {
   it('contains no colour literals — every colour comes from a token', () => {

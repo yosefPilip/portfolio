@@ -47,6 +47,18 @@ img { max-width: 100%; display: block; }
 h1        { font-size: var(--step-h1);      line-height: 1.02; letter-spacing: -0.02em; }
 h2        { font-size: var(--step-h2);      line-height: 1.1;  letter-spacing: -0.015em; }
 
+/* H2-scale display type on an element that is not .display, h1 or h2 — a span,
+   an h3, a menu container. Family, weight, size and the negative tracking
+   travel together in one class, so the ≥32px tracking rule (spec §4) cannot be
+   separated from the size that requires it. Reach for this instead of
+   redeclaring font-family + font-size on a new selector. */
+.title-h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--step-h2);
+  letter-spacing: -0.015em;
+}
+
 .lede { font-size: var(--step-lede); line-height: 1.5; color: var(--fg-dim); max-width: 46ch; }
 p { max-width: 62ch; }
 p + p { margin-top: 1.1em; }

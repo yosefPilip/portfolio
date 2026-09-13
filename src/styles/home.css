@@ -31,8 +31,6 @@
   justify-content: center;
   gap: 12px;
   padding-inline: var(--gutter);
-  font-family: var(--font-display);
-  font-size: var(--step-h2);
 }
 .mobile-menu.is-open { display: flex; }
 .mobile-menu__close { position: absolute; top: 18px; right: var(--gutter); background: none; border: 0; color: var(--fg); cursor: pointer; }
@@ -59,7 +57,7 @@
 }
 .work-row:hover { background: color-mix(in oklab, var(--fg) 4%, transparent); }
 .work-row:hover .work-row__year { color: var(--accent-2); }
-.work-row__name { font-family: var(--font-display); font-size: var(--step-h2); }
+/* .work-row__name takes its type from .title-h2 in base.css */
 .work-row__hook { grid-column: 2; color: var(--fg-dim); }
 .work-row__go { color: var(--accent); font-size: 20px; }
 @media (max-width: 700px) {
@@ -72,13 +70,13 @@
 /* ── experience ── */
 .exp { padding-block: clamp(24px, 3vw, 40px); border-bottom: 1px solid var(--border); }
 .exp__head { margin-bottom: 14px; }
-.exp__role { font-family: var(--font-display); font-size: var(--step-h2); }
+/* .exp__role takes its type from .title-h2 in base.css */
 .exp + .panel { margin-top: clamp(32px, 4vw, 56px); }
 
 /* ── lives: three panels, never a uniform grid elsewhere on the page ── */
 .lives { display: grid; gap: clamp(16px, 2.5vw, 28px); margin-top: clamp(24px, 3vw, 44px); }
 @media (min-width: 820px) { .lives { grid-template-columns: repeat(3, 1fr); } }
-.life h3 { font-family: var(--font-display); font-size: var(--step-h2); margin-top: 16px; }
+.life h3 { margin-top: 16px; }  /* type comes from .title-h2 in base.css */
 .life p { color: var(--fg-dim); margin-top: 6px; }
 .life:hover h3 { color: var(--accent-2); }
 
