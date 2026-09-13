@@ -31,7 +31,7 @@ export const PROJECTS: readonly Project[] = [
     title: 'Batch Podcast Generator',
     hook: '100-episode runs from a prompt, without melting the API.',
     category: 'ai',
-    // OPEN: year is not in the résumé or brief spec; carried from index.html pending owner confirmation.
+    // Year confirmed directly by the owner: 2026 is correct.
     year: '2026',
     stack: ['Python', 'Anthropic API', 'SQLite', 'Vercel'],
     hasCaseStudy: false,
