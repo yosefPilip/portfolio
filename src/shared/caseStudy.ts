@@ -76,7 +76,16 @@ export function initCaseStudyRouting(root: Document): void {
       // and the fetched page brings its own <main> — without this, a
       // keyboard user tabs straight into hidden background content, and the
       // document briefly carries two <main> landmarks at once.
-      root.querySelectorAll(BACKGROUND).forEach((el) => el.setAttribute('inert', ''));
+      //
+      // BACKGROUND is document-wide ('header, main, footer'), and the overlay
+      // now contains its own <main> (and that <main> may carry its own
+      // <header>). A containment check keeps the sweep scoped to what is
+      // actually behind the overlay, rather than relying on statement order
+      // between this loop and the append() above it — order would work today
+      // but silently rot the moment either line moves.
+      root.querySelectorAll(BACKGROUND).forEach((el) => {
+        if (!overlay!.contains(el)) el.setAttribute('inert', '');
+      });
 
       if (push) history.pushState({ cs: slug }, '', path);
       closeButton.focus();

@@ -25,9 +25,15 @@ const PAGE = `<!DOCTYPE html><html><body>
 // initCaseStudyRouting runs.
 beforeAll(() => {
   history.replaceState(null, '', '/projects.html');
+  // A real <header>/<main>/<footer> triple, not just the two anchors the
+  // fixture used to carry — BACKGROUND ('header, main, footer') is a
+  // document-wide selector, and a fixture with none of those elements can
+  // never catch a sweep that is scoped wrong, because querySelectorAll
+  // against them always returns an empty list either way.
   document.body.innerHTML = `
-    <a id="go" href="/projects/cache-it">Read the case study</a>
-    <a id="ext" href="https://cache-it-one.vercel.app">Live</a>
+    <header id="siteHeader"><a id="go" href="/projects/cache-it">Read the case study</a></header>
+    <main id="siteMain"><a id="ext" href="https://cache-it-one.vercel.app">Live</a></main>
+    <footer id="siteFooter"></footer>
     <div class="cs-overlay" id="csOverlay" hidden></div>`;
   initCaseStudyRouting(document);
 });
@@ -56,6 +62,25 @@ describe('case study overlay', () => {
     const overlay = document.getElementById('csOverlay')!;
     await vi.waitFor(() => expect(overlay.textContent).toContain('The case study body.'));
     expect(overlay.hidden).toBe(false);
+  });
+
+  it('inerts the page background but leaves the overlay\'s own <main> reachable', async () => {
+    document.getElementById('go')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    const overlay = document.getElementById('csOverlay')!;
+    await vi.waitFor(() => expect(overlay.hidden).toBe(false));
+
+    // The page's real header/main/footer sit behind the overlay and must be
+    // taken out of the tab order and hidden from assistive tech.
+    expect(document.getElementById('siteHeader')!.hasAttribute('inert')).toBe(true);
+    expect(document.getElementById('siteMain')!.hasAttribute('inert')).toBe(true);
+    expect(document.getElementById('siteFooter')!.hasAttribute('inert')).toBe(true);
+
+    // The overlay's own lifted <main> matches the same 'header, main, footer'
+    // selector — a sweep that does not exclude the overlay's subtree makes
+    // the case study itself unreachable by keyboard or screen reader.
+    const overlayMain = overlay.querySelector('main');
+    expect(overlayMain).not.toBeNull();
+    expect(overlayMain!.hasAttribute('inert')).toBe(false);
   });
 
   it('leaves external links alone', () => {
