@@ -91,11 +91,11 @@ describe('filtering', () => {
     const buttons = document.querySelectorAll<HTMLButtonElement>('.work-row--button');
     const fullstackButton = buttons[1];
     const fullstackDetail = document.querySelectorAll<HTMLElement>('.work-detail')[1];
+    const fullstackItem = document.querySelectorAll<HTMLElement>('.work-item')[1];
     fullstackButton.click();
     expect(fullstackButton.getAttribute('aria-expanded')).toBe('true');
     document.querySelector<HTMLButtonElement>('[data-filter="ai"]')!.click();
-    expect(document.querySelectorAll<HTMLElement>('.work-item')[1].hidden).toBe(true);
-    document.querySelector<HTMLButtonElement>('[data-filter="all"]')!.click();
+    expect(fullstackItem.hidden).toBe(true);
     expect(fullstackButton.getAttribute('aria-expanded')).toBe('false');
     expect(fullstackDetail.hidden).toBe(true);
   });
