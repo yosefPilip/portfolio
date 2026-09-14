@@ -28,6 +28,28 @@ describe('Cache It case study', () => {
     expect(html).toContain('data-rail="projects"');
   });
 
+  /**
+   * .cs-rail is hidden below 1100px, so without the sitewide chrome a phone
+   * cold-loading this URL — the exact reason tier 3 owns a URL — had no way
+   * off the page at all. The blocks must sit OUTSIDE <main>: the overlay
+   * lifts only <main>, so anything inside it would be duplicated into the
+   * overlay, and anything outside it correctly stays behind and goes inert.
+   */
+  it('carries the sitewide chrome, outside <main>, with Projects current', () => {
+    expect(html).toContain('class="site-header"');
+    expect(html).toContain('id="mobileMenu"');
+    expect(html).toContain('id="menuOpen"');
+    expect(html).toContain('class="site-footer"');
+    expect(html).toContain('<a href="/projects.html" aria-current="page">Projects</a>');
+
+    const mainStart = html.indexOf('<main class="cs">');
+    const mainEnd = html.indexOf('</main>');
+    expect(mainStart).toBeGreaterThan(-1);
+    expect(html.indexOf('class="site-header"')).toBeLessThan(mainStart);
+    expect(html.indexOf('id="mobileMenu"')).toBeLessThan(mainStart);
+    expect(html.indexOf('class="site-footer"')).toBeGreaterThan(mainEnd);
+  });
+
   it('uses exactly one three-layer stack, never the six-layer hero', () => {
     expect(html.match(/class="stack"/g) ?? []).toHaveLength(1);
     expect(html).not.toContain('plate--trunks');
