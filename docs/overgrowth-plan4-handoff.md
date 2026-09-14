@@ -113,8 +113,49 @@ theme and earns the interior by making you arrive at it.
   rather than being discarded.
 - Then the `RE—` acts run as they do now, now read as happening inside.
 
-**Open question for him:** plains/grassland, or a forest clearing? He said "maybe some
-plains, or I'm not sure." Ask before generating anything — this decides three images.
+**SETTLED 2026-09-14 — the setting is a northern conifer forest.** He ruled on it directly:
+
+> "I want the cottage to be in a spruce forest. If the first forest will be like a jungle,
+> I want this one to be a northern spruce or redwood forest, just some more northern style
+> compared to the jungle of the first."
+
+Not plains. This is a better answer than plains because it makes the rooms **contrast
+without leaving the concept** — both are forests, so the site still reads as one world, but
+they are visibly different biomes:
+
+| | Home (spec §8.1) | Workshop |
+|---|---|---|
+| Biome | jungle / rainforest | northern spruce or redwood |
+| Structure | tangled, horizontal, dense understory | vertical, tall straight trunks, clear needle floor |
+| Light | diffuse green gloom | shafts falling through a high canopy |
+| Colour temp | warm green, yellower | cold blue-green, greyer |
+| Room accent | sage `#8aa572` | ochre `#c0a06a` |
+
+That verticality is worth exploiting: tall parallel trunks give the hero a natural rhythm
+for the layered parallax, the same way Home's seven CSS trunks already do — and a clear
+understory means the foreground plate can be sparse, which is exactly what §3.3 says a front
+plate needs.
+
+**One trade to decide when prompting, not now.** Spruce reads colder and greyer; redwood
+brings dramatic trunk scale and warm reddish-brown bark.
+
+- **Redwood's warm bark harmonises with the ochre room colour** — biome and palette agreeing
+  is a real argument for it.
+- **But it risks two problems:** warm brown bark sits close to clay `#cf6b3e`, which is the
+  site's reserved "this is clickable" signal and must not be diluted by scenery; and it
+  weakens the lit window, which only works as a focal point because it is the **one** warm
+  thing in a cold frame.
+
+**Recommendation: spruce-dominant, with redwood's sense of scale.** Cold blue-green trunks,
+massive and close, so the warm window is the only warm pixel on the page. If redwood bark is
+used at all, keep it dark and desaturated so it never approaches clay. Judge this on the
+first test render (§3.4 step 3) rather than arguing it in advance.
+
+**Prompt-lock consequence.** The shared lock (spec §12) is "deep desaturated greens and wet
+black." Workshop now bends it **twice, in opposite directions within one page**: the exterior
+bends **cold** (blue-green, northern, grey light) and the window and interior bend **warm**.
+Write those as two separate prompt families, not one. Every other element of the lock — 35mm,
+underexposed, grain, no neon, no flare — still holds throughout.
 
 ### 1.5 On the whole
 
@@ -306,9 +347,19 @@ preserved at
 **Two changes to it:**
 
 - The Workshop pair (`bench-far`, `bench-near`) moves from the hero to the *interior* stack,
-  and **new cottage exterior images are added** — roughly `cottage-far` (treeline or plains),
-  `cottage-mid` (the cottage, lit window), `grass-near` (foreground, front-plate rules from
-  §3.3). Settle §1.4's plains-vs-clearing question first.
+  and **new cottage exterior images are added**. Per §1.4 the setting is a northern spruce
+  forest, so roughly:
+  - `spruce-far` — back plate. Tall conifer trunks receding into cold mist, no subject, quiet
+    centre third (the wordmark sits over it). Cold blue-green, flat overcast light.
+  - `cottage-mid` — mid plate. The cottage in the clearing, small in frame, **one lit window**
+    as the only warm element. This is the page's focal point; it is the only image here
+    allowed to be interesting.
+  - `needles-near` — front plate. Sparse foreground: a few dark boughs or trunk edges entering
+    from **one** edge only, well under half the frame, rest flat background. Generate on pure
+    white for `mix-blend-mode: multiply` per §3.1 Tier 2 — do not attempt an alpha cutout.
+
+  Note the front plate is deliberately *not* undergrowth: a conifer forest has a clear floor,
+  which is why this biome suits the layered hero better than a jungle would.
 - Re-examine every slot against §3.1: several probably want to be Tier 1 (CSS) or Tier 2
   (blend mode) rather than the alpha cutout the old brief assumed. `fronds-near` is the
   obvious case — its brief already hedges, "needs real alpha or a pure black background."
