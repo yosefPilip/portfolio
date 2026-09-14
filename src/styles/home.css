@@ -17,7 +17,19 @@
 .work-row:hover .work-row__year { color: var(--accent-2); }
 /* .work-row__name takes its type from .title-h2 in base.css */
 .work-row__hook { grid-column: 2; color: var(--fg-dim); }
-.work-row__go { color: var(--accent); font-size: 20px; }
+.work-row__go {
+  /* Same fix as Projects' expand mark: pinned to the first row, last
+     column, top-aligned instead of baseline. Home's row is a plain link
+     rather than an expand toggle, but it shares the same grid mechanics
+     (and the same class) so it sinks into the identical dead corner for
+     the identical reason — consistency between the two lists, which are
+     the same visual component, wins here since nothing the owner liked
+     (colour, size) is touched. */
+  grid-area: 1 / -2;
+  align-self: start;
+  color: var(--accent);
+  font-size: 20px;
+}
 @media (max-width: 700px) {
   .work-row { grid-template-columns: 1fr auto; }
   .work-row__year { grid-column: 1; }
