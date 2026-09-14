@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workshop — Yosef Pilip</title>
+  <meta name="description" content="Thrifting, refurbishing and reselling — plus the machine shop the habit came from." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/workshop.css" />
+</head>
+<body data-room="workshop">
+
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="wordmark" href="/">Yosef Pilip</a>
+      <nav class="nav-desktop" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/projects.html">Projects</a>
+        <a href="/music.html">DJ &amp; Music</a>
+        <a href="/workshop.html" aria-current="page">Workshop</a>
+      </nav>
+      <button class="menu-toggle" id="menuOpen" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="mobile-menu title-h2" id="mobileMenu">
+    <button class="mobile-menu__close" id="menuClose" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+    </button>
+    <a href="/">Home</a>
+    <a href="/projects.html">Projects</a>
+    <a href="/music.html">DJ &amp; Music</a>
+    <a href="/workshop.html">Workshop</a>
+  </div>
+
+  <main>
+
+    <section class="stack page-hero">
+      <div class="stack-view">
+        <div class="plate plate--back">
+          <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Workshop L1 — bench-far">
+            <img src="/assets/img/bench-far.webp" alt="" loading="eager" />
+          </figure>
+        </div>
+        <div class="plate plate--copy">
+          <h1 class="display">Workshop</h1>
+          <p class="lede">Finding things, fixing things, and letting them go again.</p>
+        </div>
+        <div class="plate plate--front">
+          <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Workshop L3 — bench-near">
+            <img src="/assets/img/bench-near.webp" alt="" loading="eager" />
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tight" id="intro">
+      <div class="container">
+        <p class="lede reveal" style="max-width: 34ch;">Three verbs, and they&rsquo;re all the same one.</p>
+      </div>
+    </section>
+
+    <!-- ── ACT 1 ── -->
+    <section class="section act" id="rescue" data-act="rescue">
+      <div class="container split-7-5">
+        <h2 class="act__word reveal"><span class="act__re">Re</span><span class="act__suffix">scue</span></h2>
+        <div class="reveal">
+          <p>Thrifting is a filtering problem with bad tooling. Everything is one-of-one, nothing is labelled properly, and the only index is your own eyes going along a rail.</p>
+          <p>What I&rsquo;m looking for is the gap between what something is and what it looks like right now. A good piece under a bad finish is worth more than a mediocre piece in good shape, because the first one is a problem I can solve and the second one is just a purchase.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ACT 2 ── -->
+    <section class="section act" id="renew" data-act="renew">
+      <div class="container">
+        <div class="split-7-5">
+          <h2 class="act__word reveal"><span class="act__re">Re</span><span class="act__suffix">new</span></h2>
+          <div class="reveal">
+            <p>Stripping, sanding, repairing, refinishing. Some of it is furniture, some of it is smaller craft work. The part I like is that the object tells you immediately whether you were right &mdash; there&rsquo;s no arguing with a surface.</p>
+          </div>
+        </div>
+
+        <!-- Real photographs of real pieces, already committed to
+             assets/img/workshop/. Never generated. -->
+        <div class="ba reveal">
+
+          <figure class="ba__piece ba__piece--three">
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — before">
+              <img src="/assets/img/workshop/piece-1-before.webp" alt="A worn orange-brown cabinet with a badly damaged top, sitting in a garage" loading="lazy" />
+            </figure>
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — during">
+              <img src="/assets/img/workshop/piece-1-during.webp" alt="The same cabinet stripped to its carcass outdoors, with a new top being fitted" loading="lazy" />
+            </figure>
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — after">
+              <img src="/assets/img/workshop/piece-1-after.webp" alt="The finished cabinet painted white with a dark walnut top" loading="lazy" />
+            </figure>
+            <figcaption class="meta">Low cabinet &mdash; the top was past saving, so it got a new one.</figcaption>
+          </figure>
+
+          <figure class="ba__piece">
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — before">
+              <img src="/assets/img/workshop/piece-2-before.webp" alt="A small orange-brown side cabinet with a water-damaged top" loading="lazy" />
+            </figure>
+            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — after">
+              <img src="/assets/img/workshop/piece-2-after.webp" alt="The same cabinet in white with a stained wood top and black hardware" loading="lazy" />
+            </figure>
+            <figcaption class="meta">Side cabinet &mdash; original grain kept on the top, everything else painted out.</figcaption>
+          </figure>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ACT 3 ── -->
+    <section class="section act" id="resell" data-act="resell">
+      <div class="container split-7-5">
+        <h2 class="act__word reveal"><span class="act__re">Re</span><span class="act__suffix">sell</span></h2>
+        <div class="reveal">
+          <p>Then it goes back out &mdash; Depop, eBay, Mercari, depending on what it is and who&rsquo;s looking. Pricing is the interesting half. Get it wrong high and it sits there telling you that you were wrong; get it wrong low and you find out instantly.</p>
+          <!-- CONTROLLER CORRECTION C1: eBay and Mercari are dropped, not
+               dashed — "drop for now. I can add later." A visible "—" here
+               would misreport a withheld decision as an unknown value, so
+               only the real Depop link ships. -->
+          <p class="workshop__shops">
+            <a class="link" href="https://www.depop.com/explosef/" target="_blank" rel="noopener">Depop &#8599;</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── WHERE THE HANDS CAME FROM ── -->
+    <section class="section section--tight" id="shop">
+      <div class="container split-5-7">
+        <h2 class="reveal">Where the hands came from</h2>
+        <div class="reveal">
+          <p>I dual-enrolled in manufacturing engineering at De Anza while I was still in high school. CAD and SolidWorks, 3D printing across FDM, VAT and powder-bed fusion, CNC machining, and manual metalwork &mdash; designing parts and then actually making them, end to end.</p>
+          <p>That&rsquo;s the part that makes the rest of this page a habit rather than a hobby. Once you&rsquo;ve machined something to a tolerance, a wobbly chair stops looking like a chair and starts looking like a fixable joint.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── THE TOOL ── -->
+    <section class="section" id="tool">
+      <div class="container">
+        <div class="panel panel--tint reveal">
+          <p class="eyebrow">Which is why I built</p>
+          <h2>Resell Assistant</h2>
+          <p class="lede">Pricing by feel works until you&rsquo;re holding forty things at once.</p>
+          <p>So I wrote an MCP server I can ask in plain language what something is worth &mdash; and which keeps the financial and inventory tracker in Google Sheets current on its own, instead of me updating a spreadsheet at midnight.</p>
+          <p><a class="btn btn--primary" href="/projects.html#resell-assistant">See the project</a></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <span class="meta">&copy; 2026 Yosef Pilip</span>
+      <span class="meta">Built by hand</span>
+    </div>
+  </footer>
+
+  <script type="module" src="/src/entries/workshop.ts"></script>
+
+</body>
+</html>

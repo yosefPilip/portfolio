@@ -1,0 +1,68 @@
+@import './base.css';
+@import './stack.css';
+@import './chrome.css';
+
+.page-hero { --stack-h: 180vh; }
+.page-hero .plate--copy { text-align: center; }
+.page-hero .lede { margin-inline: auto; }
+
+/* ── the RE— device: one word repeating, only the suffix resolving ── */
+.act { border-top: 1px solid var(--border); }
+.act__word {
+  font-family: var(--font-display);
+  font-size: var(--step-display);
+  line-height: 0.95;
+  letter-spacing: -0.03em;   /* display ≥32px always gets negative tracking */
+}
+.act__re { color: var(--fg); }
+.act__suffix { color: var(--accent-2); }
+
+.workshop__shops { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 20px; }
+
+/* ── before / after ── */
+.ba { display: grid; gap: clamp(28px, 4vw, 56px); margin-top: clamp(32px, 4vw, 64px); }
+.ba__piece { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* Piece 1 has a during frame, so it runs three across. */
+.ba__piece--three { grid-template-columns: repeat(3, 1fr); }
+.ba__piece figcaption { grid-column: 1 / -1; margin-top: 10px; }
+@media (max-width: 600px) { .ba__piece--three { grid-template-columns: 1fr 1fr; } }
+/* The left shot is the "before" — labelled with the category colour, not clay,
+   because it is a label and not a control. */
+.ba__shot[data-label$='before']::before {
+  content: 'Before';
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.ba__shot[data-label$='during']::before {
+  content: 'During';
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.ba__shot[data-label$='after']::before {
+  content: 'After';
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+/* .spec and .link come from chrome.css. Not redefined here. */
