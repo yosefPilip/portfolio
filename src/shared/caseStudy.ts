@@ -60,6 +60,14 @@ export function initCaseStudyRouting(root: Document): void {
       const main = parsed.querySelector('main');
       if (!main) throw new Error('no main');
 
+      // The check above only covers the fetch await. `response.text()` is a
+      // second await, and a Back/Forward or a second click landing during the
+      // body read would otherwise race straight through it. This is the
+      // authoritative checkpoint: it sits before the first line that mutates
+      // the overlay, so a stale open can neither show itself nor stomp the
+      // content a newer open has already put there.
+      if (window.location.pathname !== startPath) return;
+
       overlay!.innerHTML = '';
       const closeButton = root.createElement('button');
       closeButton.className = 'cs-close';
