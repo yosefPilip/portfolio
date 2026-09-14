@@ -10,12 +10,20 @@ const PAGE = `<!DOCTYPE html><html><body>
   <main class="cs">
     <aside class="cs-rail">
       <a id="railBack" class="cs-rail__back" href="/projects.html">&larr; All projects</a>
-      <nav data-rail="sections"><a id="railIdea" href="#idea">The idea</a></nav>
-      <nav data-rail="projects"><a id="railPodcast" href="/projects.html#podcast-generator">Batch Podcast Generator</a></nav>
+      <nav data-rail="sections">
+        <a id="railIdea" href="#idea">The idea</a>
+        <a id="railMissing" href="#does-not-exist">A section that is not here</a>
+        <a id="railHashOnly" href="#">A bare hash</a>
+      </nav>
+      <nav data-rail="projects">
+        <a id="railPodcast" href="/projects.html#podcast-generator">Batch Podcast Generator</a>
+        <a id="railClean" href="/projects#podcast-generator">Same row, cleanUrls spelling</a>
+      </nav>
     </aside>
     <div class="cs-body">
       <h1>Cache It</h1><p>The case study body.</p>
       <section id="idea"><h2>The idea</h2></section>
+      <nav class="cs-next"><a id="csNext" class="cs-next__link" href="/projects.html#podcast-generator">Next</a></nav>
     </div>
   </main>
 </body></html>`;
@@ -289,6 +297,114 @@ describe('the rail inside the overlay', () => {
     expect(event.defaultPrevented).toBe(false);
     // Nothing closed underneath the new tab the visitor just asked for.
     expect(overlay.hidden).toBe(false);
+  });
+
+  /**
+   * The address bar must describe the document the visitor is actually on.
+   *
+   * The rail's markup always spells `/projects.html`, but vercel.json sets
+   * cleanUrls, so in production that same document is served at `/projects`.
+   * Pushing the href's own path component would stamp `/projects.html#row`
+   * into the address bar of a `/projects` document — the exact dev/production
+   * split that the captured indexPath and samePage() exist to prevent.
+   *
+   * In dev and in jsdom the two spellings coincide, which is why no browser
+   * measurement could catch this. The fixture link therefore carries the
+   * OPPOSITE spelling from the running document's, which is the only way to
+   * tell "pushed the running path" apart from "pushed the href".
+   */
+  it('pushes the running document path, not the href spelling', async () => {
+    const cleanSpelling = await openWithRail('railClean');
+    const row = document.getElementById('podcast-generator')!;
+    row.scrollIntoView = vi.fn();
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    cleanSpelling.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    // The href said `/projects`; this document is served at `/projects.html`.
+    expect(window.location.pathname).toBe('/projects.html');
+    expect(window.location.hash).toBe('#podcast-generator');
+  });
+
+  /**
+   * A fragment the case study does not contain — a typo, or a section renamed
+   * out from under the rail — must not reach the browser's default.
+   *
+   * The default jump pushes /projects/cache-it#whatever, and Back from there
+   * re-enters the popstate handler, which still yields a slug and so re-fetches
+   * and re-renders the whole overlay. That is precisely the failure this case
+   * exists to prevent, so an unresolvable target has to fail closed.
+   */
+  it('swallows a fragment it cannot resolve rather than letting the browser jump', async () => {
+    const missing = await openWithRail('railMissing');
+    const overlay = document.getElementById('csOverlay')!;
+
+    const lengthBefore = history.length;
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    missing.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(history.length).toBe(lengthBefore);
+    expect(window.location.hash).toBe('');
+    expect(window.location.pathname).toBe('/projects/cache-it');
+    expect(overlay.hidden).toBe(false);
+  });
+
+  // A bare `#` is the same hazard by another spelling: chrome.ts guards it
+  // explicitly, and inside the overlay its default jump would push history too.
+  it('swallows a bare # inside the overlay', async () => {
+    const bare = await openWithRail('railHashOnly');
+    const overlay = document.getElementById('csOverlay')!;
+
+    const lengthBefore = history.length;
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    bare.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(history.length).toBe(lengthBefore);
+    expect(overlay.hidden).toBe(false);
+  });
+
+  // The handler binds the whole lifted <main>, so the end-of-article "Next"
+  // link gets the same treatment as the rail's own — correct, and asserted so
+  // the reach stays deliberate rather than incidental.
+  it('gives the end-of-article Next link the same close-and-land behaviour', async () => {
+    const next = await openWithRail('csNext');
+    const overlay = document.getElementById('csOverlay')!;
+    const row = document.getElementById('podcast-generator')!;
+    row.scrollIntoView = vi.fn();
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    next.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(overlay.hidden).toBe(true);
+    expect(window.location.hash).toBe('#podcast-generator');
+  });
+
+  /**
+   * Landing on a row moves where the index IS, so it has to move where a later
+   * close() goes back to. Otherwise: follow the rail to #podcast-generator,
+   * open that row's case study, close it — and land back at the fragment
+   * captured when the page first loaded, silently undoing the journey.
+   */
+  it('returns to the row a previous rail link landed on, not the load-time index', async () => {
+    const podcast = await openWithRail('railPodcast');
+    const row = document.getElementById('podcast-generator')!;
+    row.scrollIntoView = vi.fn();
+    podcast.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    expect(window.location.hash).toBe('#podcast-generator');
+
+    // Now open a case study again and close it the ordinary way.
+    const overlay = document.getElementById('csOverlay')!;
+    document.getElementById('go')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(overlay.hidden).toBe(false));
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await vi.waitFor(() => expect(overlay.hidden).toBe(true));
+
+    expect(window.location.pathname).toBe('/projects.html');
+    expect(window.location.hash).toBe('#podcast-generator');
   });
 
   it('ignores a rail link pointing at a row this page does not have', async () => {

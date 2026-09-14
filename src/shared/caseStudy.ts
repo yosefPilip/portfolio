@@ -34,7 +34,12 @@ export function initCaseStudyRouting(root: Document): void {
   // `/projects.html#cloudgeometry` survives a round trip through the
   // overlay — is correct in both, and it is the only place in this module
   // that would otherwise need a hardcoded path.
-  const indexPath = window.location.pathname + window.location.hash;
+  // Reassigned, not const: this is "where close() returns to", and the rail's
+  // other-projects links genuinely move it. After one of those closes the
+  // overlay onto #resell-assistant, the index IS at that row — so opening a
+  // second case study from there and closing it must come back to the row,
+  // not to the fragment captured when the page first loaded.
+  let indexPath = window.location.pathname + window.location.hash;
 
   // The same address without the arrival fragment. `indexPath` is what close()
   // restores and must keep its hash; recognising the rail's "back to the index"
@@ -105,15 +110,22 @@ export function initCaseStudyRouting(root: Document): void {
   /**
    * Wire the rail the overlay now shows.
    *
-   * Bound on the lifted <main>, not on the document, for two reasons. The rail
-   * arrives after page load, so initChrome()'s one-shot `a[href^="#"]` sweep
-   * has never seen these links and something has to supply the behaviour at
+   * Bound on the lifted <main>, not on the document, for two reasons. These
+   * links arrive after page load, so initChrome()'s one-shot `a[href^="#"]`
+   * sweep has never seen them and something has to supply the behaviour at
    * all. And scoping the listener to the lifted node is exactly what keeps the
    * cold-loaded standalone page honest: none of this module's overlay code
    * runs at /projects/cache-it, so there the identical markup stays a set of
    * ordinary links that navigate and jump the way the browser would.
+   *
+   * Named for the overlay rather than the rail because it reaches further than
+   * the rail by design: the whole lifted <main> is bound, which also catches
+   * the end-of-article `.cs-next__link` — itself a `/projects.html#slug` link,
+   * and one a reader is MORE likely to click than the rail, having just
+   * finished the piece. Treating it identically is the point; the name says so
+   * rather than leaving the extra reach to be discovered.
    */
-  function bindRailLinks(main: HTMLElement): void {
+  function bindOverlayLinks(main: HTMLElement): void {
     main.addEventListener('click', (event) => {
       const mouse = event as MouseEvent;
       // The same guard the case-study interceptor above uses: a modifier or
@@ -139,10 +151,16 @@ export function initCaseStudyRouting(root: Document): void {
       //     re-fetches and re-renders the entire overlay, dropping the reader
       //     at the top of a case study they were halfway down.
       if (href.startsWith('#')) {
-        const target = findById(href.slice(1), (el) => overlay!.contains(el));
-        if (!target) return;
+        // preventDefault BEFORE the lookup, so an id the case study does not
+        // carry — a typo, a section renamed out from under the rail, or a bare
+        // `#` — fails CLOSED. Letting one fall through to the browser is the
+        // one outcome this case cannot afford: the default jump pushes
+        // /projects/cache-it#whatever, and Back from there is the very
+        // re-render described above. A bare `#` needs no separate branch;
+        // findById returns null for an empty id and nothing happens.
         event.preventDefault();
-        scrollOverlayTo(target);
+        const target = findById(href.slice(1), (el) => overlay!.contains(el));
+        if (target) scrollOverlayTo(target);
         return;
       }
 
@@ -177,7 +195,17 @@ export function initCaseStudyRouting(root: Document): void {
       // close(false) then one push of the row's own address: close(true)
       // would push the index first, leaving two history entries for one click.
       close(false);
-      history.pushState({ cs: null }, '', href);
+
+      // The RUNNING document's path plus the incoming fragment — never the
+      // href's own path component. The rail's markup always spells
+      // `/projects.html`, but vercel.json sets cleanUrls, so in production this
+      // very document is served at `/projects`; pushing the href verbatim would
+      // stamp `/projects.html#row` into the address bar of a `/projects` page.
+      // samePage() above already accepted the two spellings as equal — this is
+      // the other half of that, and without it the module normalises for the
+      // comparison and then leaks the markup's spelling into the address.
+      indexPath = indexPagePath + href.slice(hashAt);
+      history.pushState({ cs: null }, '', indexPath);
 
       // An <article> is not focusable on its own, so the skip-link pattern:
       // a programmatic tabindex, and preventScroll so the browser's
@@ -232,9 +260,9 @@ export function initCaseStudyRouting(root: Document): void {
       closeButton.addEventListener('click', () => close(true));
       overlay!.append(closeButton, main);
 
-      // After the append, so the rail is bound while it is in this document
-      // rather than still in the DOMParser's.
-      bindRailLinks(main);
+      // After the append, so the links are bound while they are in this
+      // document rather than still in the DOMParser's.
+      bindOverlayLinks(main);
 
       overlay!.hidden = false;
       root.body.classList.add('is-overlay-open');
