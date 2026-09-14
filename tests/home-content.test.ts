@@ -28,8 +28,9 @@ describe('Home content', () => {
     expect(html).not.toContain('Apali');
   });
 
-  it('does not publish a location — the owner declined to give one', () => {
-    // A dash would imply a value is coming. There isn't one, so the row is gone.
-    expect(html).not.toMatch(/<dt[^>]*>Based<\/dt>/);
+  it('publishes the city — the owner reversed the earlier decision', () => {
+    // Owner, later: "You can add city if you want. Just say Bay Area and San
+    // Diego or something because I'm in both." The row is back, with a value.
+    expect(html).toMatch(/<dt[^>]*>Based<\/dt>\s*<dd[^>]*>Bay Area &amp; San Diego<\/dd>/);
   });
 });

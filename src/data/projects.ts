@@ -57,11 +57,10 @@ export const PROJECTS: readonly Project[] = [
   {
     slug: 'music-sorter',
     title: 'DJ Music Sorter',
-    // OPEN: owner has not supplied what it sorts or by what. Ships as a dash.
-    hook: '—',
+    hook: 'Sorts a DJ library by BPM, key and energy — then helps build the set.',
     category: 'tools',
     year: 'Being built',
-    stack: ['—'],
+    stack: ['Electron', 'React', 'Python', 'FastAPI', 'librosa', 'SQLite'],
     hasCaseStudy: false,
   },
   {
