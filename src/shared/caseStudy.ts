@@ -5,6 +5,20 @@ import { getMotion } from './motion';
 const BACKGROUND = 'header, main, footer';
 
 /**
+ * Do two paths address the same page?
+ *
+ * `/projects.html` and `/projects` are the same document: `vite dev` serves the
+ * first, Vercel's cleanUrls serves the second, and the case study's rail always
+ * spells the first in its markup. Comparing the two raw would make the rail's
+ * links close the overlay in dev and hard-navigate in production — the sort of
+ * split the captured `indexPath` below already exists to avoid.
+ */
+function samePage(a: string, b: string): boolean {
+  const normalise = (path: string): string => path.replace(/\.html$/, '').replace(/\/+$/, '') || '/';
+  return normalise(a) === normalise(b);
+}
+
+/**
  * Tier 3. A case-study link opens an animated overlay without a reload AND
  * pushes /projects/<slug> into the address bar. The same URL cold-loads as a
  * real page, so it stays shareable and indexable. Back closes the overlay.
@@ -22,6 +36,13 @@ export function initCaseStudyRouting(root: Document): void {
   // that would otherwise need a hardcoded path.
   const indexPath = window.location.pathname + window.location.hash;
 
+  // The same address without the arrival fragment. `indexPath` is what close()
+  // restores and must keep its hash; recognising the rail's "back to the index"
+  // links is a comparison of paths alone, and a visitor who arrived at
+  // `/projects.html#cloudgeometry` must not stop those links working. Derived
+  // here rather than re-read at click time so both uses come from one capture.
+  const indexPagePath = window.location.pathname;
+
   let lastFocused: HTMLElement | null = null;
 
   function close(push: boolean): void {
@@ -35,6 +56,141 @@ export function initCaseStudyRouting(root: Document): void {
     if (push) history.pushState({ cs: null }, '', indexPath);
     lastFocused?.focus();
     lastFocused = null;
+  }
+
+  /**
+   * The element carrying `rawId` that the caller is willing to accept.
+   *
+   * Not `root.getElementById`: while the overlay is open the document holds the
+   * index page AND the lifted case study, and getElementById returns only the
+   * first match in document order — so a shared id resolves to whichever half
+   * happens to come first, which is the wrong one half the time. Not
+   * `querySelector('#' + id)` either: chrome.ts documents why an id such as
+   * `2fa` makes that throw SyntaxError and take the whole handler with it.
+   * Walking a page's `[id]` elements has neither failure mode, and the
+   * predicate is how the caller says which side of the overlay it wants.
+   */
+  function findById(rawId: string, accept: (el: HTMLElement) => boolean): HTMLElement | null {
+    let id: string;
+    try {
+      id = decodeURIComponent(rawId);
+    } catch {
+      // A malformed escape such as `#%E0%A4%A`. Not a target, but not a crash.
+      return null;
+    }
+    if (!id) return null;
+    return (
+      Array.from(root.querySelectorAll<HTMLElement>('[id]')).find(
+        (el) => el.id === id && accept(el),
+      ) ?? null
+    );
+  }
+
+  /**
+   * Scroll the OVERLAY to `target` — not the window.
+   *
+   * Inside the overlay #csOverlay is the scroll container and the document
+   * behind it is deliberately stopped. scrollIntoView() would drive that
+   * stopped document too, and getMotion().scrollTo() drives the window only;
+   * neither moves the box that actually scrolls here. The smoothing comes from
+   * .cs-overlay { scroll-behavior: smooth } in projects.css, which keeps the
+   * reduced-motion preference in the one place that already honours it instead
+   * of adding a second matchMedia read to this module.
+   */
+  function scrollOverlayTo(target: HTMLElement): void {
+    overlay!.scrollTop +=
+      target.getBoundingClientRect().top - overlay!.getBoundingClientRect().top;
+  }
+
+  /**
+   * Wire the rail the overlay now shows.
+   *
+   * Bound on the lifted <main>, not on the document, for two reasons. The rail
+   * arrives after page load, so initChrome()'s one-shot `a[href^="#"]` sweep
+   * has never seen these links and something has to supply the behaviour at
+   * all. And scoping the listener to the lifted node is exactly what keeps the
+   * cold-loaded standalone page honest: none of this module's overlay code
+   * runs at /projects/cache-it, so there the identical markup stays a set of
+   * ordinary links that navigate and jump the way the browser would.
+   */
+  function bindRailLinks(main: HTMLElement): void {
+    main.addEventListener('click', (event) => {
+      const mouse = event as MouseEvent;
+      // The same guard the case-study interceptor above uses: a modifier or
+      // middle click is a request for a new tab and must stay a real link.
+      if (
+        mouse.defaultPrevented ||
+        mouse.button !== 0 ||
+        mouse.metaKey ||
+        mouse.ctrlKey ||
+        mouse.shiftKey ||
+        mouse.altKey
+      )
+        return;
+      const anchor = (event.target as HTMLElement | null)?.closest?.('a');
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      // (a) A section link. Scroll the overlay's own container and push
+      //     nothing. Left to the browser, the fragment jump would add
+      //     /projects/cache-it#idea to history — and a later Back lands on
+      //     the popstate handler below, which still yields a slug and so
+      //     re-fetches and re-renders the entire overlay, dropping the reader
+      //     at the top of a case study they were halfway down.
+      if (href.startsWith('#')) {
+        const target = findById(href.slice(1), (el) => overlay!.contains(el));
+        if (!target) return;
+        event.preventDefault();
+        scrollOverlayTo(target);
+        return;
+      }
+
+      const clean = href.split('#')[0].split('?')[0];
+      if (!samePage(clean, indexPagePath)) return;
+
+      const hashAt = href.indexOf('#');
+      const rowId = hashAt === -1 ? '' : href.slice(hashAt + 1);
+
+      // (b) ← All projects. The index is already underneath the overlay, so
+      //     closing IS the navigation; letting the link run would re-download
+      //     a page the visitor is standing on. close(true) is what the ✕ and
+      //     Escape already do, focus restore included.
+      if (!rowId) {
+        event.preventDefault();
+        close(true);
+        return;
+      }
+
+      // (c) Another project. Close onto the index and land on that row.
+      //     Resolved BEFORE closing, and explicitly outside the overlay: if
+      //     this page does not actually carry the row, the link is left alone
+      //     to navigate rather than closing onto a page missing its target.
+      const row = findById(rowId, (el) => !overlay!.contains(el));
+      if (!row) return;
+      event.preventDefault();
+
+      // close()'s focus restore would send focus back to the "Read the case
+      // study" anchor and scroll the page to it, undoing the scroll below.
+      // This click is going somewhere else, so focus goes with it instead.
+      lastFocused = null;
+      // close(false) then one push of the row's own address: close(true)
+      // would push the index first, leaving two history entries for one click.
+      close(false);
+      history.pushState({ cs: null }, '', href);
+
+      // An <article> is not focusable on its own, so the skip-link pattern:
+      // a programmatic tabindex, and preventScroll so the browser's
+      // scroll-on-focus does not pre-empt the smooth scroll that follows.
+      if (!row.hasAttribute('tabindex')) row.setAttribute('tabindex', '-1');
+      row.focus({ preventScroll: true });
+
+      // Back on the page proper, so this one goes through the motion layer
+      // the rest of the site's in-page links use.
+      const motion = getMotion();
+      if (motion) motion.scrollTo(row);
+      else row.scrollIntoView({ behavior: 'smooth' });
+    });
   }
 
   async function open(slug: string, push: boolean): Promise<void> {
@@ -75,6 +231,10 @@ export function initCaseStudyRouting(root: Document): void {
       closeButton.textContent = '✕';
       closeButton.addEventListener('click', () => close(true));
       overlay!.append(closeButton, main);
+
+      // After the append, so the rail is bound while it is in this document
+      // rather than still in the DOMParser's.
+      bindRailLinks(main);
 
       overlay!.hidden = false;
       root.body.classList.add('is-overlay-open');

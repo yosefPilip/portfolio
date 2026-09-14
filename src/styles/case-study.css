@@ -47,9 +47,16 @@
 .cs-next__go { grid-row: 1 / -1; grid-column: 2; color: var(--accent); font-size: 26px; }
 .cs-next__link:hover .cs-next__name { color: var(--accent-2); }
 
-/* Inside the overlay the rail is redundant — the overlay has its own close. */
-.cs-overlay .cs-rail { display: none; }
-.cs-overlay .cs { grid-template-columns: 1fr; }
+/* The rail used to be hidden in the overlay, on the reasoning that the overlay
+   has its own close button. The owner asked for the opposite — the overlay
+   should read "like its own page", with a side bar that moves between sections
+   AND out to the other projects — so those two rules are gone and the overlay
+   simply inherits the grid above.
+   Deleting them also fixes a second bug they caused: grid-template-columns: 1fr
+   removed the rail's column while .cs-body { margin-inline: 0 } from line 17
+   still applied, so an 860px body sat hard against the left edge of a
+   full-width overlay with ~500px of dead space beside it. Overlay and
+   standalone page now lay out identically, which is the whole point. */
 
 /* initMotion() collects its .stack list once, at page load, so the .stack
    lifted into the overlay is never driven: --p stays unset and the plates sit

@@ -80,9 +80,15 @@
   overflow-y: auto;
   background: var(--bg);
   animation: cs-in 0.32s ease both;
+  /* The rail's section links scroll THIS element, not the window, so the
+     smoothing that chrome.ts gets from Lenis has to come from somewhere else.
+     Declaring it here keeps caseStudy.ts to a plain scrollTop assignment and
+     lets the reduced-motion override below be the single place the preference
+     is honoured, rather than a second matchMedia read in TypeScript. */
+  scroll-behavior: smooth;
 }
 @keyframes cs-in { from { opacity: 0; transform: translate3d(0, 18px, 0); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .cs-overlay { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cs-overlay { animation: none; scroll-behavior: auto; } }
 
 .cs-close {
   position: fixed;

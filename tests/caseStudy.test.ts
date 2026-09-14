@@ -1,8 +1,23 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { initCaseStudyRouting } from '../src/shared/caseStudy';
 
+// The rail is part of the fetched page, and since it is now SHOWN in the
+// overlay rather than hidden by CSS, its three link shapes — an in-page
+// section link, "← All projects", and a link to another project's row on the
+// index — are the fixture's whole point. All three arrive after page load, so
+// nothing bound at load time has ever seen them.
 const PAGE = `<!DOCTYPE html><html><body>
-  <main><h1>Cache It</h1><p>The case study body.</p></main>
+  <main class="cs">
+    <aside class="cs-rail">
+      <a id="railBack" class="cs-rail__back" href="/projects.html">&larr; All projects</a>
+      <nav data-rail="sections"><a id="railIdea" href="#idea">The idea</a></nav>
+      <nav data-rail="projects"><a id="railPodcast" href="/projects.html#podcast-generator">Batch Podcast Generator</a></nav>
+    </aside>
+    <div class="cs-body">
+      <h1>Cache It</h1><p>The case study body.</p>
+      <section id="idea"><h2>The idea</h2></section>
+    </div>
+  </main>
 </body></html>`;
 
 // initCaseStudyRouting delegates click/keydown on `document` and popstate on
@@ -32,7 +47,10 @@ beforeAll(() => {
   // against them always returns an empty list either way.
   document.body.innerHTML = `
     <header id="siteHeader"><a id="go" href="/projects/cache-it">Read the case study</a></header>
-    <main id="siteMain"><a id="ext" href="https://cache-it-one.vercel.app">Live</a></main>
+    <main id="siteMain">
+      <a id="ext" href="https://cache-it-one.vercel.app">Live</a>
+      <article id="podcast-generator">Batch Podcast Generator</article>
+    </main>
     <footer id="siteFooter"></footer>
     <div class="cs-overlay" id="csOverlay" hidden></div>`;
   initCaseStudyRouting(document);
@@ -177,5 +195,114 @@ describe('case study overlay', () => {
     expect(window.location.pathname).toBe('/');
     const overlay = document.getElementById('csOverlay')!;
     expect(overlay.hidden).toBe(true);
+  });
+});
+
+/**
+ * The rail now shows inside the overlay, so its links have to behave.
+ *
+ * jsdom implements no layout — getBoundingClientRect is all zeros and there is
+ * no scrollIntoView on Element at all — so the scrolling ITSELF is proved in a
+ * real browser, not here. What these assert is the observable contract around
+ * it: which clicks are intercepted, what the history stack looks like
+ * afterwards, and whether the overlay is still open. Those are exactly the
+ * parts that were wrong in the shipped build.
+ */
+describe('the rail inside the overlay', () => {
+  /** Open the overlay and hand back the anchor with this id inside it. */
+  async function openWithRail(id: string): Promise<HTMLAnchorElement> {
+    document.getElementById('go')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    const overlay = document.getElementById('csOverlay')!;
+    await vi.waitFor(() => expect(overlay.hidden).toBe(false));
+    const anchor = overlay.querySelector<HTMLAnchorElement>(`#${id}`);
+    expect(anchor, `rail link #${id} is in the overlay`).not.toBeNull();
+    return anchor!;
+  }
+
+  it('scrolls within the overlay for a section link instead of pushing history', async () => {
+    const idea = await openWithRail('railIdea');
+    const overlay = document.getElementById('csOverlay')!;
+
+    const lengthBefore = history.length;
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    idea.dispatchEvent(event);
+
+    // Intercepted: the browser's own fragment jump would put
+    // /projects/cache-it#idea on the stack, and Back from there re-enters the
+    // popstate handler, which still yields a slug and re-renders the whole
+    // overlay — losing the reader's place in the case study.
+    expect(event.defaultPrevented).toBe(true);
+    expect(history.length).toBe(lengthBefore);
+    expect(window.location.hash).toBe('');
+    expect(window.location.pathname).toBe('/projects/cache-it');
+
+    // And the reader stays in the case study rather than being navigated out.
+    expect(overlay.hidden).toBe(false);
+  });
+
+  it('closes the overlay for an other-projects link instead of navigating', async () => {
+    const podcast = await openWithRail('railPodcast');
+    const overlay = document.getElementById('csOverlay')!;
+    const row = document.getElementById('podcast-generator')!;
+    // jsdom ships no Element.scrollIntoView; getMotion() is null in this file,
+    // so this is the branch that runs. Stubbed the way chrome.test.ts does.
+    row.scrollIntoView = vi.fn();
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    podcast.dispatchEvent(event);
+
+    // Intercepted, not navigated: the index is already underneath.
+    expect(event.defaultPrevented).toBe(true);
+    expect(overlay.hidden).toBe(true);
+    expect(window.location.pathname).toBe('/projects.html');
+    expect(window.location.hash).toBe('#podcast-generator');
+
+    // The reader is taken to that row, and focus goes with them.
+    expect(row.scrollIntoView).toHaveBeenCalled();
+    expect(document.activeElement).toBe(row);
+
+    // Closing still has to hand the page back to keyboard and assistive tech.
+    expect(document.getElementById('siteHeader')!.hasAttribute('inert')).toBe(false);
+    expect(document.getElementById('siteMain')!.hasAttribute('inert')).toBe(false);
+  });
+
+  it('closes the overlay for the back link', async () => {
+    const back = await openWithRail('railBack');
+    const overlay = document.getElementById('csOverlay')!;
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    back.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(overlay.hidden).toBe(true);
+    expect(window.location.pathname).toBe('/projects.html');
+    expect(document.getElementById('siteHeader')!.hasAttribute('inert')).toBe(false);
+  });
+
+  it('leaves a modifier-click on a rail link alone, so it can open a new tab', async () => {
+    const podcast = await openWithRail('railPodcast');
+    const overlay = document.getElementById('csOverlay')!;
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true });
+    podcast.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    // Nothing closed underneath the new tab the visitor just asked for.
+    expect(overlay.hidden).toBe(false);
+  });
+
+  it('ignores a rail link pointing at a row this page does not have', async () => {
+    const podcast = await openWithRail('railPodcast');
+    const overlay = document.getElementById('csOverlay')!;
+    podcast.setAttribute('href', '/projects.html#not-a-real-row');
+
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+    podcast.dispatchEvent(event);
+
+    // Left as an ordinary link: closing onto an index that cannot show what
+    // was asked for is worse than letting the browser navigate to it.
+    expect(event.defaultPrevented).toBe(false);
+    expect(overlay.hidden).toBe(false);
+    podcast.setAttribute('href', '/projects.html#podcast-generator');
   });
 });
