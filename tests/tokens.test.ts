@@ -61,6 +61,20 @@ describe('tokens.css', () => {
     }
   });
 
+  // .pill.is-active is the one place --accent-2 is sanctioned as a FILL, and it
+  // puts --bg-deep on top of it. Asserted for every room, not just projects, so
+  // the music and workshop rooms inherit the gate instead of re-deriving it the
+  // first time they grow a filter bar.
+  it('keeps the active filter pill legible in every room', () => {
+    for (const room of ROOMS) {
+      const block = `\\[data-room="${room}"\\]`;
+      expect(
+        contrastRatio(token(block, 'bg-deep'), token(block, 'accent-2')),
+        `--bg-deep on --accent-2 in ${room}`,
+      ).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   it('keeps dark text on a filled clay button above 5:1', () => {
     expect(contrastRatio(token(':root', 'on-accent'), token(':root', 'accent')))
       .toBeGreaterThanOrEqual(5);

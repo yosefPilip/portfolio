@@ -5,6 +5,50 @@ import { findForbiddenCopy } from '../src/lib/guards';
 
 const html = readFileSync('projects.html', 'utf8');
 
+/**
+ * The data module holds literal typographic characters (’ – — ·) while the
+ * hand-written markup spells them as named entities, so the two sides cannot
+ * be compared raw. Decoding the markup is the honest direction: stripping the
+ * punctuation from both instead would let a real copy change slip through.
+ */
+const ENTITIES: Record<string, string> = {
+  '&rsquo;': '’',
+  '&lsquo;': '‘',
+  '&ldquo;': '“',
+  '&rdquo;': '”',
+  '&ndash;': '–',
+  '&mdash;': '—',
+  '&hellip;': '…',
+  '&middot;': '·',
+  '&nbsp;': ' ',
+  '&amp;': '&',
+};
+
+function decodeEntities(source: string): string {
+  return source
+    .replace(/&[a-z]+;/gi, (entity) => {
+      const glyph = ENTITIES[entity.toLowerCase()];
+      if (glyph === undefined) throw new Error(`Unmapped entity in projects.html: ${entity}`);
+      return glyph;
+    })
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)));
+}
+
+/** One project's `<article>`, from its data-slug to the tag that closes it. */
+function rowFor(slug: string): string {
+  const start = html.indexOf(`data-slug="${slug}"`);
+  if (start < 0) throw new Error(`No row for ${slug}`);
+  const end = html.indexOf('</article>', start);
+  return html.slice(start, end);
+}
+
+/** The decoded text of the one `<span class="<cls> …">` inside a row. */
+function cellText(row: string, cls: string): string {
+  const match = row.match(new RegExp(`<span class="${cls}[^"]*">([\\s\\S]*?)</span>`));
+  if (!match) throw new Error(`No .${cls} in row`);
+  return decodeEntities(match[1]).replace(/\s+/g, ' ').trim();
+}
+
 describe('projects.html', () => {
   it('declares the projects room', () => {
     expect(html).toMatch(/<body[^>]*data-room="projects"/);
@@ -22,6 +66,22 @@ describe('projects.html', () => {
     }
   });
 
+  /**
+   * title, hook and year are hand-duplicated from src/data/projects.ts into
+   * this markup with nothing reconciling them. Compared cell by cell rather
+   * than as "the row contains the string somewhere", because a bare
+   * containment check passes trivially for a year like "2026" or a hook that
+   * is a single em dash, and so could not catch the drift it exists to catch.
+   */
+  it('repeats the data module\'s title, hook and year exactly, in every row', () => {
+    for (const p of PROJECTS) {
+      const row = rowFor(p.slug);
+      expect(cellText(row, 'work-row__name'), `${p.slug} title`).toBe(p.title);
+      expect(cellText(row, 'work-row__hook'), `${p.slug} hook`).toBe(p.hook);
+      expect(cellText(row, 'work-row__year'), `${p.slug} year`).toBe(p.year);
+    }
+  });
+
   it('does not repeat the six-layer hero', () => {
     for (const layer of ['plate--canopy', 'plate--trunks', 'plate--name']) {
       expect(html).not.toContain(layer);
@@ -30,6 +90,20 @@ describe('projects.html', () => {
 
   it('carries no banned copy', () => {
     expect(findForbiddenCopy(html)).toEqual([]);
+  });
+
+  /**
+   * The no-JS contract. Tier 2 lives inside .work-detail, and the only in-page
+   * link to the Cache It case study lives inside one of them — shipping those
+   * `hidden` behind buttons that do nothing without scripting sealed them off
+   * entirely. The filter pills are the mirror image: useless without JS, so
+   * they ship hidden and the enhancer reveals them.
+   */
+  it('ships every detail open and the filters hidden, for the no-JS visitor', () => {
+    const details = html.match(/<div class="work-detail"[^>]*>/g) ?? [];
+    expect(details).toHaveLength(PROJECTS.length);
+    for (const detail of details) expect(detail).not.toContain('hidden');
+    expect(html).toMatch(/<div class="filters"[^>]*\shidden[\s>]/);
   });
 
   it('offers all four filters', () => {
