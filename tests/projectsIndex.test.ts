@@ -3,7 +3,7 @@ import { initProjectsIndex } from '../src/shared/projectsIndex';
 
 function build(): void {
   document.body.innerHTML = `
-    <div class="filters">
+    <div class="filters" hidden>
       <button class="pill is-active" data-filter="all" aria-pressed="true">All</button>
       <button class="pill" data-filter="ai" aria-pressed="false">AI</button>
       <button class="pill" data-filter="fullstack" aria-pressed="false">Full-stack</button>
@@ -12,15 +12,15 @@ function build(): void {
     <div class="work-list" id="projectList">
       <article class="work-item" data-slug="a" data-category="ai">
         <button class="work-row--button" aria-expanded="false"></button>
-        <div class="work-detail" hidden></div>
+        <div class="work-detail"></div>
       </article>
       <article class="work-item" data-slug="b" data-category="fullstack">
         <button class="work-row--button" aria-expanded="false"></button>
-        <div class="work-detail" hidden></div>
+        <div class="work-detail"></div>
       </article>
       <article class="work-item" data-slug="c" data-category="ai">
         <button class="work-row--button" aria-expanded="false"></button>
-        <div class="work-detail" hidden></div>
+        <div class="work-detail"></div>
       </article>
     </div>`;
 }
@@ -29,6 +29,24 @@ const items = () => Array.from(document.querySelectorAll<HTMLElement>('.work-ite
 const visible = () => items().filter((el) => !el.hidden);
 
 beforeEach(() => { build(); initProjectsIndex(document); });
+
+// The fixture is deliberately the no-JS shape of projects.html: details open,
+// filters hidden. That is the state the page ships in so that a visitor
+// without JavaScript gets every paragraph and every link and no dead pills.
+describe('progressive enhancement', () => {
+  it('collapses every detail at init, so the rows become expandable', () => {
+    for (const detail of document.querySelectorAll<HTMLElement>('.work-detail')) {
+      expect(detail.hidden).toBe(true);
+    }
+    for (const button of document.querySelectorAll('.work-row--button')) {
+      expect(button.getAttribute('aria-expanded')).toBe('false');
+    }
+  });
+
+  it('reveals the filters, which only mean anything now', () => {
+    expect(document.querySelector<HTMLElement>('.filters')!.hidden).toBe(false);
+  });
+});
 
 describe('expand in place', () => {
   it('opens a row on click', () => {

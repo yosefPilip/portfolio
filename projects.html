@@ -64,12 +64,12 @@
     <section class="section" id="index">
       <div class="container">
 
-        <div class="filters" role="group" aria-label="Filter projects">
+        <div class="filters" role="group" aria-label="Filter projects" hidden>
           <button class="pill is-active" data-filter="all" aria-pressed="true">All</button>
           <button class="pill" data-filter="ai" aria-pressed="false">AI &amp; automation</button>
           <button class="pill" data-filter="fullstack" aria-pressed="false">Full-stack</button>
           <button class="pill" data-filter="tools" aria-pressed="false">Tools</button>
-          <span class="meta" id="filterCount">6 projects</span>
+          <span class="meta" id="filterCount" role="status">6 projects</span>
         </div>
 
         <div class="work-list" id="projectList">
@@ -81,7 +81,7 @@
               <span class="work-row__hook">Hidden art around a city. Find it, tap it, keep it.</span>
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
-            <div class="work-detail" hidden>
+            <div class="work-detail">
               <p>A geocaching-style hunt for street art. An artist hides a piece somewhere in the city, you go and find it, and you tap your phone against it to collect it into your own portfolio. I designed and built the whole thing — React and Vite on the front, FastAPI behind it.</p>
               <p class="meta">React &middot; Vite &middot; FastAPI &middot; NFC &middot; NTAG 424 DNA</p>
               <p class="work-detail__links">
@@ -98,7 +98,7 @@
               <span class="work-row__hook">100-episode runs from a prompt, without melting the API.</span>
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
-            <div class="work-detail" hidden>
+            <div class="work-detail">
               <p>Give it a prompt, get back a whole batch of podcast episodes. Scripts come from the Anthropic API; the voices come from a pluggable TTS adapter layer, so swapping Fish Audio for ElevenLabs is a config change rather than a rewrite. The interesting part is the concurrency — a 100-episode run is bounded by an asyncio semaphore so it saturates without falling over. SQLite behind it, deployed on Vercel.</p>
               <p class="meta">Python &middot; Anthropic API &middot; SQLite &middot; Vercel</p>
             </div>
@@ -111,7 +111,7 @@
               <span class="work-row__hook">Ask what a thing is worth. It answers, then updates the books.</span>
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
-            <div class="work-detail" hidden>
+            <div class="work-detail">
               <p>A custom MCP server for my own reselling. You ask it a pricing question in plain language and it answers, then keeps a live financial and inventory tracker in Google Sheets up to date without me touching it. Auth is per-user OAuth rather than one shared credential, so it can be handed to someone else without handing over my account.</p>
               <p class="meta">MCP &middot; Google Sheets API &middot; OAuth 2.0</p>
               <p class="work-detail__links"><a class="link" href="/workshop.html">Why it exists &rarr;</a></p>
@@ -125,7 +125,7 @@
               <span class="work-row__hook">The Slack bot, the HR platform, and the thing that audits everyone&rsquo;s account.</span>
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
-            <div class="work-detail" hidden>
+            <div class="work-detail">
               <p><strong>The Slack bot.</strong> Nobody should have to write a formal email to say they&rsquo;re sick. Now they tell Slack in whatever words they&rsquo;d actually use, and the bot works out what they meant, files it as a real record, and routes it to their manager. Three days became same-day, for about 100 people.</p>
               <p><strong>The HR platform.</strong> A four-tier permission model, and an internal HR app built on top of it. It replaced a paid third-party tool and saves $8,000 a year.</p>
               <p><strong>The auditor.</strong> A scheduled Apps Script service that checks every account for 2FA, recovery info and profile photos, then logs what it finds. It replaced 40 hours a month of manual review across ~100 accounts.</p>
@@ -141,7 +141,7 @@
               <span class="work-row__hook">&mdash;</span>
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
-            <div class="work-detail" hidden>
+            <div class="work-detail">
               <!-- OPEN: one line on what it sorts and by what -->
               <p>&mdash;</p>
               <p class="meta">In progress</p>
@@ -155,10 +155,10 @@
               <span class="work-row__hook">Four rooms, one building. Scroll-linked depth, hand-built.</span>
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
-            <div class="work-detail" hidden>
+            <div class="work-detail">
               <p>A Vite multi-page build, no framework driving the layout. The green lives in the photography and the interface stays out of its way. Every page is a different setting, and one scroll-progress value drives the layers on all of them — so the hero&rsquo;s trunks can slide across my name instead of sitting on top of it.</p>
               <p class="meta">Vite &middot; TypeScript &middot; React &middot; Lenis</p>
-              <p class="work-detail__links"><a class="link" href="https://github.com/yosefPilip" target="_blank" rel="noopener">Source &#8599;</a></p>
+              <p class="work-detail__links"><a class="link" href="https://github.com/yosefPilip" target="_blank" rel="noopener">GitHub &#8599;</a></p>
             </div>
           </article>
 

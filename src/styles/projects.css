@@ -11,6 +11,10 @@
 
 /* ── filters ── */
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: clamp(24px, 3vw, 44px); }
+/* The filters ship `hidden` and are revealed by the enhancer, because pills
+   that filter nothing are worse than no pills at all. An author `display`
+   beats the UA's `[hidden] { display: none }`, so it has to be restated. */
+.filters[hidden] { display: none; }
 .pill {
   font-family: var(--font-body);
   font-size: 14px;
