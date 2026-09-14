@@ -111,4 +111,20 @@ describe('projects.html', () => {
       expect(html).toContain(`data-filter="${value}"`);
     }
   });
+
+  /**
+   * The one thing keeping the flagship case study readable, and the only
+   * behaviour on this page that no TypeScript signature can protect.
+   *
+   * open() stops Lenis so the index cannot scroll behind the overlay, and a
+   * stopped Lenis preventDefault()s every wheel event in the document — the
+   * overlay's own overflow-y: auto then never receives one and the case study
+   * can only be read by dragging the scrollbar, which is exactly what shipped.
+   * This attribute is Lenis's documented escape hatch and it is checked BEFORE
+   * the stopped branch, so losing it silently restores the bug. jsdom has no
+   * layout and no Lenis, so the markup is the only place this can be caught.
+   */
+  it('keeps the wheel escape hatch on the case-study overlay', () => {
+    expect(html).toMatch(/<div class="cs-overlay"[^>]*\sdata-lenis-prevent[\s>]/);
+  });
 });

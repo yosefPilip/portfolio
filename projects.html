@@ -173,7 +173,15 @@
     </div>
   </footer>
 
-  <div class="cs-overlay" id="csOverlay" hidden aria-modal="true" role="dialog" aria-label="Case study"></div>
+  <!-- data-lenis-prevent is load-bearing, not decoration. caseStudy.ts's open()
+       calls getMotion()?.stop() so the index cannot scroll behind the overlay,
+       and a stopped Lenis calls preventDefault() on every wheel event in the
+       DOCUMENT (lenis.mjs 1.3.26, onVirtualScroll line 613) — so this element's
+       own overflow-y: auto never saw one and the case study could only be read
+       by dragging the scrollbar. Lenis tests this attribute at line 609, before
+       that branch, and returns early: wheel and trackpad go native inside here
+       while .lenis-stopped { overflow: clip } still holds the page behind still. -->
+  <div class="cs-overlay" id="csOverlay" hidden aria-modal="true" role="dialog" aria-label="Case study" data-lenis-prevent></div>
 
   <script type="module" src="/src/entries/projects.ts" id="projects-entry"></script>
 
