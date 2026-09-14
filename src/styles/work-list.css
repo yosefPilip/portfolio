@@ -1,0 +1,58 @@
+/* Shared row structure for the project lists on Home and Projects. Content,
+   not chrome — chrome.css stays scoped to header/nav/footer.
+
+   Both rows already carry the plain .work-row class (Home's <a>, and
+   Projects' <button class="work-row work-row--button">), so the shared
+   rules below target that one class and reach both pages with no markup
+   change and no new class to invent.
+
+   What stays page-specific instead, and why:
+   - grid-template-columns (5rem vs 7rem first column, and its ≤700px
+     collapse): duplicated by value on purpose, not flattened here. Home
+     sets it on .work-row and Projects on .work-row--button, and those two
+     selectors carry different specificity (0,1,0 vs 0,2,0) — sharing the
+     ≤700px override at .work-row alone would lose to Projects' own
+     .work-row--button base rule and silently stop the grid from
+     collapsing on that page. Same value, selector forced apart by cascade
+     math, not a real difference to flatten.
+   - the border (Home: on .work-row itself; Projects: on the .work-item
+     wrapper, since a hidden filtered-out .work-item needs the border to
+     disappear with it, not just the button inside).
+   - the button reset (background/border/text-align/color/font/cursor) and
+     width: 100% — an <a> needs none of it.
+   - :focus-visible, the [aria-expanded='true'] rotate, and .work-detail —
+     Projects-only, no Home equivalent.
+   - .work-row__go's font-size (20px vs 22px), and the line-height +
+     rotate transition that only matter to the button's rotating mark.
+   Expects base.css (and therefore tokens.css) to be loaded first. */
+
+.work-list { border-top: 1px solid var(--border); }
+
+.work-row {
+  display: grid;
+  gap: 6px 24px;
+  align-items: baseline;
+  padding-block: clamp(20px, 2.4vw, 32px);
+  transition: background-color 0.2s ease;
+}
+.work-row:hover { background: color-mix(in oklab, var(--fg) 4%, transparent); }
+.work-row:hover .work-row__year { color: var(--accent-2); }
+/* .work-row__name takes its type from .title-h2 in base.css */
+.work-row__hook { grid-column: 2; color: var(--fg-dim); }
+.work-row__go {
+  /* Pinned to the first row, last column, top-aligned rather than
+     baseline — see the projects.css/home.css commit that introduced this:
+     the mark reads as an affordance only when it sits level with the
+     project name it points at, not sunk to a two-row row's bottom. -2 is
+     always the last explicit column line, so this holds at both the
+     3-column desktop grid and the 2-column ≤700px collapse. */
+  grid-area: 1 / -2;
+  align-self: start;
+  color: var(--accent);
+}
+
+@media (max-width: 700px) {
+  .work-row__year { grid-column: 1; }
+  .work-row__hook { grid-column: 1 / -1; }
+  .work-row__name { grid-column: 1 / -1; }
+}

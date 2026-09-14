@@ -2,6 +2,7 @@
 @import './stack.css';
 @import './chrome.css';
 @import './case-study.css';
+@import './work-list.css';
 
 /* Page heroes are three layers. Six belongs to Home alone. */
 .page-hero { --stack-h: 180vh; }
@@ -34,44 +35,29 @@
 .pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .filters .meta { margin-left: auto; }
 
-/* ── rows ── */
-.work-list { border-top: 1px solid var(--border); }
+/* ── rows ──
+   Shared grid shape, hover, and .work-row__go position/colour live in
+   work-list.css. What's left here is genuinely Projects-specific: the
+   wider first column (year strings like "Being built" run longer than
+   Home's "2026"), the border living on the .work-item wrapper instead of
+   the row (so a filtered-out, hidden item's border disappears with it),
+   the button reset an <a> doesn't need, focus-visible, the expand rotate,
+   .work-detail, and the go mark's own font-size/line-height/transition. */
 .work-item { border-bottom: 1px solid var(--border); }
 .work-item[hidden] { display: none; }
 
 .work-row--button {
-  display: grid;
   grid-template-columns: 7rem 1fr auto;
-  gap: 6px 24px;
-  align-items: baseline;
   width: 100%;
-  padding-block: clamp(20px, 2.4vw, 32px);
   background: none;
   border: 0;
   text-align: left;
   color: inherit;
   font: inherit;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 }
-.work-row--button:hover { background: color-mix(in oklab, var(--fg) 4%, transparent); }
-.work-row--button:hover .work-row__year { color: var(--accent-2); }
 .work-row--button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-/* .work-row__name takes its type from .title-h2 in base.css */
-.work-row__hook { grid-column: 2; color: var(--fg-dim); }
-.work-row__go {
-  /* Pinned to the first grid row, last column, top-aligned instead of
-     baseline — so the mark reads level with the project name it expands,
-     not sunk to the bottom of a two-row grid. -2 is the last explicit
-     column line in both the 3-column desktop grid and the 2-column
-     ≤700px collapse, so no media-query override is needed. */
-  grid-area: 1 / -2;
-  align-self: start;
-  color: var(--accent);
-  font-size: 22px;
-  line-height: 1;
-  transition: transform 0.2s ease;
-}
+.work-row__go { font-size: 22px; line-height: 1; transition: transform 0.2s ease; }
 .work-row--button[aria-expanded='true'] .work-row__go { transform: rotate(45deg); }
 
 .work-detail { padding-bottom: clamp(24px, 3vw, 40px); max-width: 62ch; }
@@ -79,10 +65,10 @@
 .work-detail__links { display: flex; gap: 22px; margin-top: 16px; }
 
 @media (max-width: 700px) {
+  /* Same value as Home's collapse, kept page-specific for the same
+     specificity reason documented in work-list.css: this has to target
+     .work-row--button so it beats this page's own base rule above. */
   .work-row--button { grid-template-columns: 1fr auto; }
-  .work-row__year { grid-column: 1; }
-  .work-row__hook { grid-column: 1 / -1; }
-  .work-row__name { grid-column: 1 / -1; }
 }
 
 .cs-overlay {

@@ -1,40 +1,24 @@
 @import './base.css';
 @import './stack.css';
 @import './chrome.css';
+@import './work-list.css';
 
-/* ── selected work rows ── */
-.work-list { margin-block: clamp(28px, 4vw, 56px); border-top: 1px solid var(--border); }
-.work-row {
-  display: grid;
-  grid-template-columns: 5rem 1fr auto;
-  gap: 6px 24px;
-  align-items: baseline;
-  padding-block: clamp(20px, 2.4vw, 32px);
-  border-bottom: 1px solid var(--border);
-  transition: background-color 0.2s ease;
-}
-.work-row:hover { background: color-mix(in oklab, var(--fg) 4%, transparent); }
-.work-row:hover .work-row__year { color: var(--accent-2); }
-/* .work-row__name takes its type from .title-h2 in base.css */
-.work-row__hook { grid-column: 2; color: var(--fg-dim); }
-.work-row__go {
-  /* Same fix as Projects' expand mark: pinned to the first row, last
-     column, top-aligned instead of baseline. Home's row is a plain link
-     rather than an expand toggle, but it shares the same grid mechanics
-     (and the same class) so it sinks into the identical dead corner for
-     the identical reason — consistency between the two lists, which are
-     the same visual component, wins here since nothing the owner liked
-     (colour, size) is touched. */
-  grid-area: 1 / -2;
-  align-self: start;
-  color: var(--accent);
-  font-size: 20px;
-}
+/* ── selected work rows ──
+   Shared grid shape, hover, and .work-row__go position live in
+   work-list.css. What's left here is genuinely Home-specific: the wider
+   top margin (Projects gets its spacing from .filters instead), the
+   narrower first column (Home's years are short — "2026", not "Being
+   built"), the border on .work-row itself (Home has no wrapper to hang it
+   on), and the go mark's font-size (20px here, 22px on Projects). */
+.work-list { margin-block: clamp(28px, 4vw, 56px); }
+.work-row { grid-template-columns: 5rem 1fr auto; border-bottom: 1px solid var(--border); }
+.work-row__go { font-size: 20px; }
 @media (max-width: 700px) {
+  /* Same value as Projects' collapse, but kept page-specific: it has to
+     target .work-row here so its specificity matches this page's own
+     base rule above, the same reason Projects keeps its own copy at
+     .work-row--button (see work-list.css's header comment). */
   .work-row { grid-template-columns: 1fr auto; }
-  .work-row__year { grid-column: 1; }
-  .work-row__name { grid-column: 1 / -1; }
-  .work-row__hook { grid-column: 1 / -1; }
 }
 
 /* ── experience ── */
