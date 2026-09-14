@@ -1,0 +1,14 @@
+@import './base.css';
+@import './stack.css';
+@import './chrome.css';
+@import './coverflow.css';
+
+.page-hero { --stack-h: 180vh; }
+.page-hero .plate--copy { text-align: center; }
+.page-hero .lede { margin-inline: auto; }
+
+#mixes .meta { margin-top: 8px; margin-bottom: clamp(24px, 3vw, 40px); }
+.contact__links { display: flex; gap: 20px; margin-top: 22px; }
+
+/* .spec and .link live in chrome.css (moved there in Plan 2 Task 2 Step 6).
+   Do not redefine them here — four pages share them. */

@@ -1,10 +1,8 @@
 import { createRoot } from 'react-dom/client';
 import { IntroAnimation } from './components/IntroAnimation';
 import { NameFlipBoard } from './components/NameFlipBoard';
-import { Coverflow } from './components/Coverflow';
 import './styles/intro.css';
 import './styles/nameFlip.css';
-import './styles/coverflow.css';
 import { initChrome } from './shared/chrome';
 import { initMotion } from './shared/motion';
 
@@ -20,18 +18,9 @@ if (nameFlipRoot) {
   createRoot(nameFlipRoot).render(<NameFlipBoard />);
 }
 
-const coverflowRoot = document.getElementById('coverflow-root');
-
-if (coverflowRoot) {
-  createRoot(coverflowRoot).render(<Coverflow />);
-}
-
-// Only a migrated page opts into the new runtime. music.html still loads the
-// site.ts shim and has no data-room, so without this guard Lenis would
-// install on a page whose stylesheet was deleted, chrome.ts would hijack its
-// in-page anchors, and it would fall back to the home palette. Plan 3 adds
-// data-room to music.html as it is rebuilt.
-if (document.body.dataset.room) {
-  initChrome();
-  initMotion();
-}
+// main.tsx is Home's entry only — index.html is its sole loader and always
+// carries data-room="home" — so the old "only a migrated page opts in" guard
+// here was dead code as of this file no longer being shared with music.html.
+// Home always has a .stack (the hero), so both calls are unconditional.
+initChrome();
+initMotion();

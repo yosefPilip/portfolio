@@ -4,152 +4,108 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DJ &amp; Music — Yosef Pilip</title>
+  <meta name="description" content="I play as Recursion — tech house, summer and dub-leaning sets." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/src/styles/site.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/music.css" />
 </head>
-<body>
+<body data-room="music">
 
-  <div class="grain"></div>
+  <div class="grain" aria-hidden="true"></div>
 
-  <header>
-    <div class="container">
-      <a class="wordmark" href="/"><span class="wordmark-chevron">&gt;</span> <span>Yosef Pilip</span></a>
-      <nav class="nav-desktop">
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="wordmark" href="/">Yosef Pilip</a>
+      <nav class="nav-desktop" aria-label="Primary">
         <a href="/">Home</a>
         <a href="/projects.html">Projects</a>
-        <a href="/music.html" class="active">DJ &amp; Music</a>
+        <a href="/music.html" aria-current="page">DJ &amp; Music</a>
+        <a href="/workshop.html">Workshop</a>
       </nav>
-      <div class="header-status">
-        <div class="eq-bars" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-        <button class="menu-toggle" id="menuOpen" aria-label="Open menu">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-      </div>
+      <button class="menu-toggle" id="menuOpen" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+      </button>
     </div>
   </header>
 
-  <div class="mobile-menu" id="mobileMenu">
-    <button class="mobile-close" id="menuClose" aria-label="Close menu">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+  <div class="mobile-menu title-h2" id="mobileMenu">
+    <button class="mobile-menu__close" id="menuClose" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
     </button>
     <a href="/">Home</a>
     <a href="/projects.html">Projects</a>
-    <a href="/music.html" class="active">DJ &amp; Music</a>
+    <a href="/music.html">DJ &amp; Music</a>
+    <a href="/workshop.html">Workshop</a>
   </div>
-
-  <aside class="rail">
-    <div class="rail-id">
-      <div class="rail-monogram">YP</div>
-      <div class="rail-id-text">
-        <div class="l1">NODE_YP</div>
-        <div class="l2">STATUS: ONLINE</div>
-      </div>
-    </div>
-    <nav class="rail-nav">
-      <a class="rail-link" href="#overview">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-        <span class="label">Overview</span>
-      </a>
-      <a class="rail-link" href="#mixes">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        <span class="label">Mixes</span>
-      </a>
-      <a class="rail-link" href="#connect">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20v-6"/><path d="M9 20V10"/><path d="M14 20V6"/><path d="M19 20V3"/></svg>
-        <span class="label">Connect</span>
-      </a>
-    </nav>
-    <a class="rail-cta" href="/#contact">CONTACT_ME</a>
-  </aside>
 
   <main>
 
-    <!-- OVERVIEW -->
-    <section id="overview" class="page-intro">
-      <div class="container">
-        <div class="section-head reveal">
-          <div>
-            <p class="eyebrow">Sector_06 // Frequency_Log</p>
-            <h2 class="section-heading">DJ &amp; Music</h2>
-          </div>
+    <section class="stack page-hero">
+      <div class="stack-view">
+        <div class="plate plate--back">
+          <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Music L1 — cave-far">
+            <img src="/assets/img/cave-far.webp" alt="" loading="eager" />
+          </figure>
         </div>
-
-        <div class="music-panel glass reveal">
-          <p>
-            Outside of tech, I DJ and produce under the name <strong>Recursion</strong> —
-            mostly tech house and summer/dub-leaning sets. I also play guitar and piano.
-          </p>
+        <div class="plate plate--copy">
+          <h1 class="display">Recursion</h1>
+          <p class="lede">Tech house, summer and dub-leaning. A room either moves or it doesn&rsquo;t, and you know inside eight bars.</p>
+        </div>
+        <div class="plate plate--front">
+          <figure class="frame" style="--ar: 3 / 2; height: 100%;" data-label="Music L3 — cave-near">
+            <img src="/assets/img/cave-near.webp" alt="" loading="eager" />
+          </figure>
         </div>
       </div>
     </section>
 
-    <!-- MIXES -->
-    <section id="mixes">
-      <div class="container">
-        <div class="section-head reveal">
-          <div>
-            <p class="eyebrow">Sector_06b // Mix_Reel</p>
-            <h2 class="section-heading">Mixes</h2>
-          </div>
-          <p class="section-note mono">Use the arrows, swipe, or click a cover — the centered mix opens on SoundCloud.</p>
-        </div>
-
+    <section class="section section--tight" id="about-music">
+      <div class="container split-7-5">
         <div class="reveal">
-          <div id="coverflow-root"></div>
+          <h2>The fastest feedback loop I have.</h2>
+          <p>Writing software, you find out whether you were right in a week. Playing a room, you find out in eight bars. I like both, but only one of them argues back in real time.</p>
+          <p>I play as <strong>Recursion</strong> &mdash; mostly tech house, leaning summery and dubby. I also play guitar and piano, which is where most of this started.</p>
         </div>
+        <dl class="spec reveal">
+          <dt>Alias</dt><dd>Recursion</dd>
+          <dt>Sound</dt><dd>Tech house &middot; summer &middot; dub</dd>
+          <dt>Also</dt><dd>Guitar, piano</dd>
+        </dl>
       </div>
     </section>
 
-    <!-- CONNECT -->
-    <section id="connect" style="border-bottom: none;">
+    <section class="section" id="mixes">
       <div class="container">
-        <div class="section-head reveal" style="margin-bottom: 32px;">
-          <div>
-            <p class="eyebrow">Sector_06c // Signal_Channels</p>
-            <h2 class="section-heading">Connect</h2>
-          </div>
-        </div>
+        <h2 class="reveal">Mixes</h2>
+        <p class="meta reveal">Use the arrows, swipe, or click a cover &mdash; the centred mix opens on SoundCloud.</p>
+      </div>
+      <div class="reveal"><div id="coverflow-root"></div></div>
+    </section>
 
-        <div class="contact-panel glass reveal">
-          <div class="contact-status">
-            <span class="dot"></span>
-            <span class="mono" style="font-size: 11px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase;">Channel Open</span>
-          </div>
-
-          <a class="contact-row" href="https://soundcloud.com/recursion-mp3" target="_blank" rel="noopener">
-            <div class="contact-row-left">
-              <span class="contact-label">SoundCloud</span>
-              <span class="contact-value">soundcloud.com/recursion-mp3</span>
-            </div>
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
-          </a>
-
-          <a class="contact-row" href="https://www.instagram.com/recursion.mp3/" target="_blank" rel="noopener">
-            <div class="contact-row-left">
-              <span class="contact-label">Instagram</span>
-              <span class="contact-value">@recursion.mp3</span>
-            </div>
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg>
-          </a>
-
-          <div class="contact-footline">SIGNAL_LIVE<span class="cursor-blink"></span></div>
+    <section class="section section--tight" id="connect">
+      <div class="container">
+        <div class="panel panel--tint reveal">
+          <h2>Come find the set.</h2>
+          <p class="lede">Everything lives on SoundCloud. Dates and the occasional clip go up on Instagram.</p>
+          <p><a class="btn btn--primary" href="https://soundcloud.com/recursion-mp3" target="_blank" rel="noopener">Listen on SoundCloud</a></p>
+          <p class="meta contact__links">
+            <a class="link" href="https://www.instagram.com/recursion.mp3/" target="_blank" rel="noopener">@recursion.mp3</a>
+          </p>
         </div>
       </div>
     </section>
 
   </main>
 
-  <footer>
-    <div class="container">
-      <div class="footer-copy">© 2026 Yosef Pilip</div>
-      <div class="footer-status">BUILD_STATIC // NO_FRAMEWORK</div>
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <span class="meta">&copy; 2026 Yosef Pilip</span>
+      <span class="meta">Built by hand</span>
     </div>
   </footer>
 
-  <script type="module" src="/src/shared/site.ts"></script>
-  <script type="module" src="/src/main.tsx"></script>
+  <script type="module" src="/src/entries/music.tsx"></script>
 
 </body>
 </html>
