@@ -50,3 +50,14 @@
 /* Inside the overlay the rail is redundant — the overlay has its own close. */
 .cs-overlay .cs-rail { display: none; }
 .cs-overlay .cs { grid-template-columns: 1fr; }
+
+/* initMotion() collects its .stack list once, at page load, so the .stack
+   lifted into the overlay is never driven: --p stays unset and the plates sit
+   frozen for the whole 150vh runway — 1.5 screens of scrolling past a still
+   image. Rather than teach motion.ts about a second document, the overlay
+   borrows the presentation the reduced-motion path already uses: drop the
+   scroll runway and let the sticky viewport become a plain 72svh band. No
+   parallax in the overlay, no dead scroll, and the standalone page — which
+   IS driven, because its stack exists at load — keeps its animation. */
+.cs-overlay .stack { height: auto; }
+.cs-overlay .stack-view { position: relative; height: 72svh; }
