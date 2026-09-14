@@ -43,6 +43,11 @@ beforeEach(() => {
   overlay.hidden = true;
   overlay.innerHTML = '';
   document.body.classList.remove('is-overlay-open');
+  // The DOM is shared across every test in this file, so a test that opens
+  // the overlay without closing it would leave the landmarks inert for
+  // everything after it — and an inert assertion that is already true before
+  // the code under test runs proves nothing.
+  document.querySelectorAll('[inert]').forEach((el) => el.removeAttribute('inert'));
   history.replaceState(null, '', '/projects.html');
   vi.stubGlobal('fetch', vi.fn(async () => new Response(PAGE, { status: 200 })));
 });
@@ -94,9 +99,20 @@ describe('case study overlay', () => {
     document.getElementById('go')!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
     const overlay = document.getElementById('csOverlay')!;
     await vi.waitFor(() => expect(overlay.hidden).toBe(false));
+    // Inert has to be ON first, or "no longer inert" after close is vacuous.
+    expect(document.getElementById('siteHeader')!.hasAttribute('inert')).toBe(true);
+
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     await vi.waitFor(() => expect(overlay.hidden).toBe(true));
     expect(window.location.pathname).toBe('/projects.html');
+
+    // The close direction is the one that strands a visitor: a background
+    // left inert after the overlay goes away is a page nothing can be
+    // clicked or read on, and jsdom renders nothing so it is invisible here
+    // unless it is asserted outright.
+    expect(document.getElementById('siteHeader')!.hasAttribute('inert')).toBe(false);
+    expect(document.getElementById('siteMain')!.hasAttribute('inert')).toBe(false);
+    expect(document.getElementById('siteFooter')!.hasAttribute('inert')).toBe(false);
   });
 
   it('falls back to a normal navigation when the fetch fails', async () => {
@@ -112,12 +128,20 @@ describe('case study overlay', () => {
     const overlay = document.getElementById('csOverlay')!;
     await vi.waitFor(() => expect(overlay.hidden).toBe(false));
 
+    expect(document.getElementById('siteHeader')!.hasAttribute('inert')).toBe(true);
+
     const lengthBeforeBack = history.length;
     history.replaceState(null, '', '/projects.html');
     window.dispatchEvent(new PopStateEvent('popstate'));
 
     expect(overlay.hidden).toBe(true);
     expect(history.length).toBe(lengthBeforeBack);
+
+    // Same contract on the Back path: closing without pushing still has to
+    // hand the page back to the keyboard and to assistive tech.
+    expect(document.getElementById('siteHeader')!.hasAttribute('inert')).toBe(false);
+    expect(document.getElementById('siteMain')!.hasAttribute('inert')).toBe(false);
+    expect(document.getElementById('siteFooter')!.hasAttribute('inert')).toBe(false);
   });
 
   it('a forward navigation via popstate opens the overlay for that slug', async () => {
