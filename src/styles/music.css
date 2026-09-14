@@ -7,6 +7,16 @@
 .page-hero .plate--copy { text-align: center; }
 .page-hero .lede { margin-inline: auto; }
 
+/* The coverflow's off-center covers sit outside .cf-stage's own box by design
+   (that's the fanned "peek" of the neighbours) and .cf-stage has no overflow
+   clip of its own, so below 1024px — where the peek's absolute offset exceeds
+   the viewport width — those covers pushed document.documentElement.scrollWidth
+   past clientWidth. body { overflow-x: hidden } (base.css) already stops any
+   actual scroll or visible artifact at that same edge, so this is invisible to
+   users; it only fixes the measurement by containing the overflow one level
+   up instead of letting it reach the document root. */
+#mixes { overflow-x: hidden; }
+
 #mixes .meta { margin-top: 8px; margin-bottom: clamp(24px, 3vw, 40px); }
 .contact__links { display: flex; gap: 20px; margin-top: 22px; }
 
