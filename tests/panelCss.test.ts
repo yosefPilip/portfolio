@@ -81,4 +81,72 @@ describe('generateCss', () => {
     const b = generateCss({ images: { a: { x: 2, y: 2, zoom: 1 }, b: { x: 1, y: 1, zoom: 1 } }, styles: {} });
     expect(a).toBe(b);
   });
+
+  it('skips colour tokens that are not in the valid set (Finding 1 — runtime validation)', () => {
+    // A crafted value attempting to inject CSS should not escape the var() call
+    const css = generateCss({
+      images: {},
+      styles: { test: { color: 'x); } body{background:#000} /*' as any } },
+    });
+    // The invalid color key should be skipped, so no color declaration at all
+    expect(css).not.toContain('color:');
+    expect(css).not.toContain('background:');
+    expect(findHardcodedHex(css)).toEqual([]);
+  });
+
+  it('skips font tokens that are not in the valid set', () => {
+    const css = generateCss({
+      images: {},
+      styles: { test: { font: 'invalid-font' as any } },
+    });
+    // The invalid font key should be skipped
+    expect(css).not.toContain('font-family:');
+  });
+
+  it('skips step tokens that are not in the valid set', () => {
+    const css = generateCss({
+      images: {},
+      styles: { test: { step: 'invalid-step' as any } },
+    });
+    // The invalid step key should be skipped
+    expect(css).not.toContain('font-size:');
+  });
+
+  it('re-clamps non-finite framing values from storage (Finding 1 — number validation)', () => {
+    // Non-finite numbers should be re-clamped to valid range
+    const css = generateCss({
+      images: { test: { x: NaN, y: Infinity, zoom: -Infinity } },
+      styles: {},
+    });
+    // Should produce a valid rule with clamped values
+    expect(css).toContain('object-position:');
+    expect(css).not.toContain('NaN');
+    expect(css).not.toContain('Infinity');
+  });
+
+  it('escapes newlines in slot labels to produce valid CSS (Finding 2)', () => {
+    const css = generateCss({
+      images: { 'Line1\nLine2': { x: 0, y: 0, zoom: 1 } },
+      styles: {},
+    });
+    // Newline should be escaped as \a (CSS hex escape for LF)
+    expect(css).toContain('\\a');
+    // Should not contain unescaped newline in the selector
+    const selectorMatch = css.match(/\[data-label="[^"]*"\]/);
+    expect(selectorMatch).toBeTruthy();
+    // The selector should be valid CSS (no actual newline breaks it)
+    expect(css).not.toMatch(/\[data-label="[^"]*\n[^"]*"\]/);
+  });
+
+  it('escapes carriage returns in slot labels', () => {
+    const css = generateCss({
+      images: { 'Line1\rLine2': { x: 0, y: 0, zoom: 1 } },
+      styles: {},
+    });
+    // Carriage return should be escaped as \d (CSS hex escape for CR)
+    expect(css).toContain('\\d');
+    // Should not contain unescaped CR in the selector
+    const selectorMatch = css.match(/\[data-label="[^"]*"\]/);
+    expect(selectorMatch).toBeTruthy();
+  });
 });
