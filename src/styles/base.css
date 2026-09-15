@@ -92,6 +92,10 @@ strong { font-weight: 600; }
 .eyebrow { color: var(--accent-2); font-weight: 600; }
 .meta    { color: var(--muted); }
 
+/* Inline emphasis in the room's own colour. Not a link — clay is the only
+   colour that means "clickable". Use sparingly: a phrase, not a sentence. */
+.hl { color: var(--accent-2); }
+
 /* ── buttons: solid fill, dark text, 2px press travel ── */
 .btn {
   display: inline-block;

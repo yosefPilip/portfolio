@@ -633,7 +633,9 @@ routing needs `history.pushState` and a small route table.
 
 - [ ] Every color literal lives in `:root` or a `[data-room]` block. Zero
       hardcoded hex elsewhere.
-- [ ] Clay appears only on clickable things. ≤2 visible uses of each color per screen.
+- [ ] Clay appears only on clickable things, and stays rare — ≤2 visible uses per screen. The
+      room's `--accent-2` is an identity colour, not a signal, and is not counted; it should
+      appear a few times per screen rather than once.
 - [ ] Ochre vs clay checked visually wherever both appear (§3.2).
 - [ ] All-caps ≥ `0.06em` tracking; display ≥32px has negative tracking.
 - [ ] Hero wordmark fits on one line at 1440px **in the Georgia fallback too**.

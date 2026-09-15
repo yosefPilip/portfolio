@@ -34,6 +34,9 @@
 .pill.is-active { background: var(--accent-2); border-color: var(--accent-2); color: var(--bg-deep); }
 .pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .filters .meta { margin-left: auto; }
+/* The status line is a label, not a signal — same family as .spec dt, so it
+   gets the room's identity colour rather than --muted. */
+#filterCount { color: var(--accent-2); }
 
 /* ── rows ──
    Shared grid shape, hover, and .work-row__go position/colour live in
@@ -62,6 +65,8 @@
 
 .work-detail { padding-bottom: clamp(24px, 3vw, 40px); max-width: 62ch; }
 .work-detail p + p { margin-top: 0.9em; }
+/* Tech-stack line, same label/value family as .spec dt and #filterCount. */
+.work-detail .meta { color: var(--accent-2); }
 .work-detail__links { display: flex; gap: 22px; margin-top: 16px; }
 
 @media (max-width: 700px) {
