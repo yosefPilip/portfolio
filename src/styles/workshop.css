@@ -11,6 +11,18 @@
    content is backwards. Precedent: .cs .stack in case-study.css. */
 #inside { --stack-h: 150vh; }
 
+/* Task 4 proof: the front plate is a dark subject shot on a flat white
+   background; multiply removes the white arithmetically instead of relying
+   on an AI alpha cutout (which haloes on fine edges like needles). Scoped to
+   this one slot on purpose — a sitewide .plate--front rule would silently
+   turn on white-removal for every other front plate on the site, including
+   ones with no image yet that may not be shot on white. Must target .plate
+   itself, not .frame inside it: .plate sets will-change: transform, which
+   creates a stacking context, and a blend mode on a descendant only
+   composites against other descendants of that same plate — never against
+   the plates behind it. */
+#arrive .plate--front { mix-blend-mode: multiply; }
+
 /* ── the RE— device: one word repeating, only the suffix resolving ── */
 .act { border-top: 1px solid var(--border); }
 .act__word {
