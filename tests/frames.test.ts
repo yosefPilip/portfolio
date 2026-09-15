@@ -20,7 +20,18 @@ describe('full-bleed plate frames', () => {
     // The plate defines the box; object-fit: cover on the img does the fitting.
     expect(stackCss).toMatch(/\.plate\s*>\s*\.frame\s*\{[^}]*aspect-ratio:\s*auto/);
     expect(stackCss).toMatch(/\.plate\s*>\s*\.frame\s*\{[^}]*width:\s*100%/);
-    expect(stackCss).toMatch(/\.plate\s*>\s*\.frame\s*\{[^}]*height:\s*100%/);
+    // Height is no longer a bare 100%: .plate's inset: -12% -3% overscan is a
+    // PERCENTAGE of viewport height, but parallax travel (--p * --rate * 1px)
+    // is in PIXELS, so any plate whose |--rate| exceeds the overscan (108px
+    // at 900px viewport — fog/mid/name/near/low on the hero all do) rides its
+    // bottom edge into the viewport, exposing a bare strip below the frame.
+    // The frame's painted surface is extended downward by the travel via
+    // `calc(100% - var(--rate, 0) * 1px)` (--rate is negative, so subtracting
+    // it adds height) while the PLATE's own layout box is left untouched —
+    // growing the plate itself would drop plate--name/plate--copy's
+    // grid-centred content ~125px below viewport centre. See
+    // tests/plate-coverage.test.ts for the fuller invariant and arithmetic.
+    expect(stackCss).toMatch(/\.plate\s*>\s*\.frame\s*\{[^}]*height:\s*calc\(100%\s*-\s*var\(--rate,\s*0\)\s*\*\s*1px\)/);
   });
 
   describe.each(PAGES)('%s', (page) => {
