@@ -3,8 +3,8 @@ import { markMissing, sweepLoadedImages, installImageFallback } from '../src/lib
 
 function frameWithImage(): HTMLImageElement {
   document.body.innerHTML = `
-    <figure class="frame" data-label="Hero — trees-back">
-      <img src="/assets/img/trees-back.webp" alt="" />
+    <figure class="frame" data-label="Hero L3 — jungle-mid">
+      <img src="/assets/img/jungle-mid.webp" alt="" />
     </figure>`;
   return document.querySelector('img')!;
 }

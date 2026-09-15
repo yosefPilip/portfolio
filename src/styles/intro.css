@@ -21,7 +21,10 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url('/assets/img/canopy-far.webp');
+  /* Tracks the hero's opaque back plate (.hero .plate--far in stack.css) so
+     the intro stays coherent with whatever fills that slot. Degrades to the
+     same no-image fallback as the hero until a later task generates it. */
+  background-image: url('/assets/img/jungle-far.webp');
   background-size: cover;
   background-position: center;
   opacity: 0.22;
