@@ -4,9 +4,54 @@ import { findForbiddenCopy } from '../src/lib/guards';
 
 const html = readFileSync('workshop.html', 'utf8');
 
+// Pulls one <section id="X">...</section> block out of the page so the
+// stack-shape assertions below can look inside just that stack, not the
+// whole document. workshop.html never nests one <section> inside another,
+// so a non-greedy match to the first closing tag is safe.
+function sectionById(id: string): string {
+  const match = html.match(new RegExp(`<section[^>]*\\bid="${id}"[^>]*>[\\s\\S]*?<\\/section>`));
+  expect(match, `expected a <section id="${id}"> in workshop.html`).not.toBeNull();
+  return match![0];
+}
+
 describe('workshop.html', () => {
   it('declares the workshop room', () => {
     expect(html).toMatch(/<body[^>]*data-room="workshop"/);
+  });
+
+  // ADDED for the exterior-then-interior restructure (Task 3). The old
+  // single-hero shape had no assertions of its own in this file — see
+  // CONTROLLER RULING 3 — so nothing above or below this block is being
+  // replaced, only added to.
+  it('opens on two stacks, exterior arrival then interior, in that order', () => {
+    const arriveIndex = html.indexOf('id="arrive"');
+    const insideIndex = html.indexOf('id="inside"');
+    expect(arriveIndex).toBeGreaterThan(-1);
+    expect(insideIndex).toBeGreaterThan(-1);
+    expect(arriveIndex).toBeLessThan(insideIndex);
+  });
+
+  it('gives the exterior stack the page\'s single <h1> and the interior stack an <h2>', () => {
+    const arrive = sectionById('arrive');
+    const inside = sectionById('inside');
+    expect(arrive).toMatch(/<h1[\s>]/);
+    expect(inside).not.toMatch(/<h1[\s>]/);
+    expect(inside).toMatch(/<h2[\s>]/);
+  });
+
+  it('gives both stacks exactly three plates — back, copy, front — never a fourth', () => {
+    const arrive = sectionById('arrive');
+    const inside = sectionById('inside');
+    [arrive, inside].forEach((stack) => {
+      const plates = Array.from(stack.matchAll(/class="plate plate--(back|copy|front)"/g)).map((m) => m[1]);
+      expect(plates).toEqual(['back', 'copy', 'front']);
+    });
+  });
+
+  it('references all four arrival image slots', () => {
+    ['cottage-far', 'needles-near', 'bench-far', 'bench-near'].forEach((slug) => {
+      expect(html).toContain(`/assets/img/${slug}.webp`);
+    });
   });
 
   it('runs the three RE— acts in order', () => {

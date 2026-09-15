@@ -6,6 +6,11 @@
 .page-hero .plate--copy { text-align: center; }
 .page-hero .lede { margin-inline: auto; }
 
+/* The exterior hero is the page's signature and keeps the full runway. The
+   interior stack carries one line, so it gets less — more scroll for less
+   content is backwards. Precedent: .cs .stack in case-study.css. */
+#inside { --stack-h: 150vh; }
+
 /* ── the RE— device: one word repeating, only the suffix resolving ── */
 .act { border-top: 1px solid var(--border); }
 .act__word {

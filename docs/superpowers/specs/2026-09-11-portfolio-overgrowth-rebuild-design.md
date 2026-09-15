@@ -345,11 +345,45 @@ the new palette, then Connect (`soundcloud.com/recursion-mp3`,
 
 The coverflow is working code and is not rebuilt.
 
-### 8.4 Workshop — `data-room="workshop"`, the workbench, ochre
+### 8.4 Workshop — `data-room="workshop"`, spruce forest & workbench, ochre
 
 The fourth room, in launch scope. Subject: **making and remaking physical
 things** — thrifting, refurbishing, repairing, and reselling across Depop, eBay
 and Mercari.
+
+#### The arrival: exterior, then interior
+
+The page used to open straight onto an interior workbench — the one room on the
+site with no landscape in it, breaking the concept the other three share. It now
+opens on two three-layer stacks instead of one: you arrive at a cottage in a
+northern spruce forest (`#arrive`, carrying the page's `<h1>`), then go inside to
+the workbench (`#inside`, `<h2>`), earning the interior rather than starting
+in it.
+
+> *"Instead of doing a workshop, kinda have a little cottage or something in
+> some nature place… I still wanted to be stuck with the theme of nature. And
+> once you go inside the little cottage, you see everything set up: a little
+> workshop."*
+
+The cottage is painted into the exterior stack's back plate (`cottage-far`)
+rather than given its own layer — a fourth plate is reserved for Home's
+six-layer hero — so depth on approach comes from the `needles-near` front plate
+instead. Upgrade path, if it reads flat once real images exist: promote the
+cottage to its own plate between back and copy; a building's hard edges make it
+the one subject on this site where an alpha cutout is reasonable. `#inside`
+mirrors Home's `#thesis` stack (§8.1): an `h2` copy plate between two image
+plates, absorbing the one line that used to run as its own section under the
+old single hero.
+
+The biome is the deliberate opposite of Home's, because the contrast is the
+point:
+
+| | Home (§8.1) | Workshop (§8.4) |
+|---|---|---|
+| Biome | jungle / rainforest | northern spruce |
+| Structure | tangled, horizontal, dense understory | vertical, tall straight trunks, clear floor |
+| Light | diffuse green gloom | shafts through a high canopy |
+| Colour temp | warm green, yellower | cold blue-green, greyer |
 
 #### The organising device: `RE—`
 
@@ -388,8 +422,9 @@ Supporting sections, after the three acts:
 
 Two categories, and they must not blur:
 
-- **Generated: atmosphere only.** The workbench hero scene (`bench-far`,
-  `bench-near`). These make no claim about any specific object.
+- **Generated: atmosphere only.** The arrival scenes — exterior (`cottage-far`,
+  `needles-near`) and interior (`bench-far`, `bench-near`). These make no claim
+  about any specific object.
 - **The owner's own: all before/after work.** A generated photo of a
   "refurbished chair" would be a fabricated portfolio piece, which is the one
   thing this site does not do. Until real photos exist these slots render
