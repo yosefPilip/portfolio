@@ -36,15 +36,15 @@ const COLOR_KEYS = {
 } as const satisfies Record<ColorKey, true>;
 
 function isFontKey(key: unknown): key is FontKey {
-  return typeof key === 'string' && key in FONT_KEYS;
+  return typeof key === 'string' && Object.prototype.hasOwnProperty.call(FONT_KEYS, key);
 }
 
 function isStepKey(key: unknown): key is StepKey {
-  return typeof key === 'string' && key in STEP_KEYS;
+  return typeof key === 'string' && Object.prototype.hasOwnProperty.call(STEP_KEYS, key);
 }
 
 function isColorKey(key: unknown): key is ColorKey {
-  return typeof key === 'string' && key in COLOR_KEYS;
+  return typeof key === 'string' && Object.prototype.hasOwnProperty.call(COLOR_KEYS, key);
 }
 
 function round2(n: number): number {
@@ -79,8 +79,8 @@ function cssAttrValue(raw: string): string {
   return raw
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
-    .replace(/\n/g, '\\a')
-    .replace(/\r/g, '\\d');
+    .replace(/\n/g, '\\a ')
+    .replace(/\r/g, '\\d ');
 }
 
 export function generateCss(state: PanelState): string {
