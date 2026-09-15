@@ -2,6 +2,7 @@
 @import './stack.css';
 @import './chrome.css';
 @import './work-list.css';
+@import './layout.generated.css';
 
 /* ── selected work rows ──
    Shared grid shape, hover, and .work-row__go position live in

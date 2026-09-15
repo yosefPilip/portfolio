@@ -2,6 +2,7 @@
 @import './stack.css';
 @import './chrome.css';
 @import './coverflow.css';
+@import './layout.generated.css';
 
 .page-hero { --stack-h: 180vh; }
 .page-hero .plate--copy { text-align: center; }

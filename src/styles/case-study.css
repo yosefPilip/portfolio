@@ -1,6 +1,7 @@
 @import './base.css';
 @import './stack.css';
 @import './chrome.css';
+@import './layout.generated.css';
 
 .cs { display: block; padding-block: clamp(40px, 6vw, 96px); }
 .cs-body { width: min(860px, 100% - 2 * var(--gutter)); margin-inline: auto; }

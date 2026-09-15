@@ -3,6 +3,7 @@
 @import './chrome.css';
 @import './case-study.css';
 @import './work-list.css';
+@import './layout.generated.css';
 
 /* Page heroes are three layers. Six belongs to Home alone. */
 .page-hero { --stack-h: 180vh; }

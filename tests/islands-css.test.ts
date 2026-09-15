@@ -22,9 +22,9 @@ describe.each(STYLESHEETS)('%s', (path) => {
   });
 
   it('references no custom property the project never defines', () => {
-    // --ar, --p, --intro-fade-ms and --flip-board-columns are set from markup or
-    // JS at runtime, so they are legitimately absent from the stylesheets.
-    const RUNTIME_SET = new Set(['--ar', '--p', '--intro-fade-ms', '--flip-board-columns']);
+    // --ar, --p, --intro-fade-ms, --flip-board-columns, and --img-zoom are set from markup, JS, or
+    // generated CSS at runtime, so they are legitimately absent from the stylesheets.
+    const RUNTIME_SET = new Set(['--ar', '--p', '--intro-fade-ms', '--flip-board-columns', '--img-zoom']);
     const defined = new Set(
       STYLESHEETS.concat('src/styles/tokens.css')
         .flatMap((f) => [...readFileSync(f, 'utf8').matchAll(/(--[a-zA-Z0-9-]+)\s*:/g)])

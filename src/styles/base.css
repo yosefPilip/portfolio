@@ -133,7 +133,16 @@ strong { font-weight: 600; }
   background: var(--bg-deep);
   aspect-ratio: var(--ar, 3 / 2);
 }
-.frame img { width: 100%; height: 100%; object-fit: cover; }
+/* object-position and --img-zoom are written per slot by the visual editing
+   panel into layout.generated.css. Defaults here keep an unedited frame
+   identical to its pre-panel rendering. .frame already clips (overflow:
+   hidden), so a zoom above 1 crops rather than overflowing. */
+.frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(var(--img-zoom, 1));
+}
 .frame.is-missing img { display: none; }
 .frame.is-missing::after {
   content: attr(data-label);
