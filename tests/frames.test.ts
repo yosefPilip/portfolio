@@ -9,7 +9,7 @@ const stackCss = readFileSync('src/styles/stack.css', 'utf8');
  *
  * `[^>]*` for the div's attributes, NOT `[^"]*"` — the hero plates carry
  * `aria-hidden="true"` after their class, and a pattern that stops at the
- * closing class quote silently skipped three of index.html's four plate
+ * closing class quote silently skipped three of index.html's plate
  * figures, including both hero layers. A guard that passes on a broken home
  * hero is worse than no guard, so the count is asserted below.
  */
@@ -48,8 +48,11 @@ describe('full-bleed plate frames', () => {
 describe('the guard actually reaches the pages it claims to', () => {
   // index.html is the page that had the worst measured misalignment AND the
   // most aria-hidden plates, so it is the one a loose pattern fails on.
-  it('sees all four of index.html plate figures, not just the one without aria-hidden', () => {
+  it('sees all five of index.html plate figures, not just the one without aria-hidden', () => {
     const html = readFileSync('index.html', 'utf8');
-    expect(html.match(PLATE_FIGURE) ?? []).toHaveLength(4);
+    // Five: the hero's three photograph plates (plate--far, plate--mid,
+    // plate--near — plate--fog and plate--low carry no frame) plus the
+    // thesis stack's two.
+    expect(html.match(PLATE_FIGURE) ?? []).toHaveLength(5);
   });
 });

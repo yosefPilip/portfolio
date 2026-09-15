@@ -21,13 +21,9 @@ describe('Home hero', () => {
   });
 
   it('builds the six hero layers', () => {
-    for (const layer of ['canopy', 'fog', 'trees', 'name', 'trunks', 'low']) {
+    for (const layer of ['far', 'fog', 'mid', 'name', 'near', 'low']) {
       expect(html).toContain(`plate--${layer}`);
     }
-  });
-
-  it('draws seven front trunks', () => {
-    expect(html.match(/class="trunk trunk--\d"/g) ?? []).toHaveLength(7);
   });
 
   it('carries no banned copy', () => {
@@ -43,16 +39,13 @@ describe('Home hero', () => {
     frames.forEach((frame) => expect(frame).toContain('data-label='));
   });
 
-  it('gives the seven trunks at least five distinct crown heights, so the forest cannot flatten back into a barcode', () => {
+  it('keeps the front plate above the wordmark but composited, not opaque', () => {
+    // The front layer is meant to cross the name and show the forest through
+    // the gaps. It does that by multiply, not by an alpha channel: a cutout
+    // of fronds halos, and the previous one measured +24 RGB at the edges.
     const stack = readFileSync('src/styles/stack.css', 'utf8');
-    const tops = new Set<string>();
-    for (let n = 1; n <= 7; n++) {
-      const rule = stack.match(new RegExp(`\\.trunk--${n}\\s*\\{([^}]*)\\}`));
-      expect(rule).not.toBeNull();
-      const top = rule![1].match(/--top:\s*([^;]+);/);
-      expect(top).not.toBeNull();
-      tops.add(top![1].trim());
-    }
-    expect(tops.size).toBeGreaterThanOrEqual(5);
+    expect(stack).toMatch(/\.hero \.plate--near \{[^}]*z-index:\s*5/);
+    expect(stack).toMatch(/\.hero \.plate--near \{[^}]*--rate:\s*-350/);
+    expect(stack).toMatch(/mix-blend-mode: multiply/);
   });
 });

@@ -26,10 +26,6 @@
    bare plate with the image shoved against the left edge. */
 .plate > .frame { width: 100%; height: 100%; aspect-ratio: auto; }
 
-/* Blur lives on a child, never on the transformed parent, or the browser
-   re-rasterises it every frame. */
-.plate > .blurred { filter: blur(var(--blur, 0)); width: 100%; height: 100%; }
-
 /* Body stacks: three plates. */
 .plate--back  { z-index: 1; --rate: -90; }
 .plate--copy  { z-index: 2; --rate: -260; display: grid; place-content: center; padding-inline: var(--gutter); }
@@ -39,14 +35,46 @@
    The real image is a sparse alpha overlay; its opaque placeholder is not. */
 .plate--front .frame.is-missing { opacity: 0.25; }
 
-/* ── the hero: six layers, Home only ── */
+/* ── the hero: six layers, Home only ──
+   Names encode DEPTH, not species. The previous names did not, and that is
+   how a canopy — the nearest thing in frame, directly overhead — ended up
+   assigned the slowest rate in the stack with nothing to make the
+   contradiction visible. far/mid/near cannot drift from their rates without
+   reading as obviously wrong. Guarded by tests/stack-depth.test.ts. */
 .hero { --stack-h: 260vh; }
-.hero .plate--canopy { z-index: 1; --rate: -60; }
-.hero .plate--fog    { z-index: 2; --rate: -120; }
-.hero .plate--trees  { z-index: 3; --rate: -190; }
-.hero .plate--name   { z-index: 4; --rate: -250; display: grid; place-content: center; }
-.hero .plate--trunks { z-index: 5; --rate: -350; }
-.hero .plate--low    { z-index: 6; --rate: -440; }
+.hero .plate--far  { z-index: 1; --rate: -60; }
+.hero .plate--fog  { z-index: 2; --rate: -120; }
+.hero .plate--mid  { z-index: 3; --rate: -190; }
+.hero .plate--name { z-index: 4; --rate: -250; display: grid; place-content: center; }
+.hero .plate--near { z-index: 5; --rate: -350; }
+.hero .plate--low  { z-index: 6; --rate: -440; }
+
+/* Only .plate--far is an opaque photograph. Everything above it ships opaque
+   on pure white and is composited arithmetically: result = backdrop x source,
+   so white vanishes and darks stay. No alpha channel exists, therefore no
+   matte and no halo — which matters because the subjects here are fronds and
+   mist, thousands of thin semi-transparent edges, the exact case alpha
+   matting handles worst and multiply handles best. The previous cutout
+   arrived haloed at +24 RGB and needed hand un-matting; see spec §3.1.
+
+   The blend goes on the PLATE, never the .frame inside it: .plate sets
+   will-change: transform, which creates a stacking context, so a blend on the
+   frame would composite only against its own plate and do nothing. Same
+   pattern as the working precedent at workshop.css:24. */
+.hero .plate--mid,
+.hero .plate--near { mix-blend-mode: multiply; }
+
+/* .frame paints var(--bg-deep) so a missing image reads as a dark labelled
+   placeholder. Under multiply an opaque dark ground would crush the whole
+   hero to black, so these two frames stay transparent. */
+.hero .plate--mid .frame,
+.hero .plate--near .frame { background: transparent; }
+
+/* While a slot is still empty the labelled placeholder must stay legible, so
+   the blend switches off for that plate rather than multiplying a dashed
+   border into the forest. Restores itself the moment a real file lands. */
+.hero .plate--mid:has(.frame.is-missing),
+.hero .plate--near:has(.frame.is-missing) { mix-blend-mode: normal; }
 
 .hero-wordmark {
   font-family: var(--font-display);
@@ -76,30 +104,6 @@
 }
 .hero .plate--low::after { opacity: 0.8; }
 
-/* ── the seven front trunks: CSS, not an image ──
-   Alpha cutouts from image models halo; out-of-focus trunks in fog are just
-   soft vertical shapes. Positions are deliberately irregular — evenly spaced
-   bars read as a barcode, not a forest. Spec §7. */
-.trunk {
-  position: absolute;
-  top: var(--top);
-  height: var(--h);
-  background: linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--surface) var(--haze), var(--bg-deep)) 0%,
-    color-mix(in oklab, var(--surface) var(--haze-mid), var(--bg-deep)) 55%,
-    color-mix(in oklab, var(--surface) var(--haze), var(--bg-deep)) 100%
-  );
-  filter: blur(var(--blur));
-}
-.trunk--1 { left: 12.5%; width: clamp(10px, 2.6vw, 62px); --blur: 5px; --top: -6%;  --h: 116%; --haze: 32%; --haze-mid: 46%; }
-.trunk--2 { left: 24%;   width: clamp(10px, 1.7vw, 62px); --blur: 3px; --top: 14%;  --h: 98%;  --haze: 56%; --haze-mid: 70%; }
-.trunk--3 { left: 35.5%; width: clamp(10px, 3.1vw, 62px); --blur: 7px; --top: -10%; --h: 120%; --haze: 26%; --haze-mid: 40%; }
-.trunk--4 { left: 48%;   width: clamp(10px, 1.5vw, 62px); --blur: 2px; --top: 19%;  --h: 94%;  --haze: 64%; --haze-mid: 78%; }
-.trunk--5 { left: 59%;   width: clamp(10px, 2.3vw, 62px); --blur: 5px; --top: 2%;   --h: 110%; --haze: 40%; --haze-mid: 54%; }
-.trunk--6 { left: 74%;   width: clamp(10px, 1.9vw, 62px); --blur: 4px; --top: 9%;   --h: 103%; --haze: 48%; --haze-mid: 62%; }
-.trunk--7 { left: 88%;   width: clamp(10px, 3.4vw, 62px); --blur: 8px; --top: -12%; --h: 124%; --haze: 20%; --haze-mid: 34%; }
-
 /* Hero intro copy: z-index 7, bottom-left, deliberately NOT parallaxed. */
 .hero-intro {
   position: absolute;
@@ -127,14 +131,12 @@
 
 @media (max-width: 744px) {
   .hero-wordmark { font-size: 22vw; white-space: normal; max-width: 7ch; text-align: left; }
-  .hero .plate--canopy { --rate: -36; }
-  .hero .plate--fog    { --rate: -70; }
-  .hero .plate--trees  { --rate: -110; }
-  .hero .plate--name   { --rate: -150; place-content: center start; padding-inline: var(--gutter); }
-  .hero .plate--trunks { --rate: -215; }
-  .hero .plate--low    { --rate: -270; }
-  /* Bars 3 and 6 hide so the name still reads. */
-  .trunk--3, .trunk--6 { display: none; }
+  .hero .plate--far  { --rate: -36; }
+  .hero .plate--fog  { --rate: -70; }
+  .hero .plate--mid  { --rate: -110; }
+  .hero .plate--name { --rate: -150; place-content: center start; padding-inline: var(--gutter); }
+  .hero .plate--near { --rate: -215; }
+  .hero .plate--low  { --rate: -270; }
 }
 
 @media (prefers-reduced-motion: reduce) {
