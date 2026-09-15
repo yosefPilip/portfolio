@@ -28,6 +28,16 @@ for (const vp of VIEWPORTS) {
     viewport: { width: vp.width, height: vp.height },
     deviceScaleFactor: 1,
   });
+  // Skip the flip-board intro so frames capture the scroll-linked hero, not the
+  // overlay — the intro's own timing (SCREEN_HOLD_MS etc. in IntroAnimation.tsx)
+  // otherwise eats several of the 8 frames. This sets the same sessionStorage key
+  // IntroAnimation.tsx checks (hasSeenIntroThisSession), via addInitScript so it
+  // runs before the page's own scripts. NOT prefers-reduced-motion: that path also
+  // collapses the parallax runway in stack.css (`.stack { height: auto; }`), which
+  // would hide the exact motion this tool exists to capture.
+  await page.addInitScript(() => {
+    try { sessionStorage.setItem('yp-intro-shown', '1'); } catch { /* private mode */ }
+  });
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.waitForTimeout(600); // let the intro island settle
 
