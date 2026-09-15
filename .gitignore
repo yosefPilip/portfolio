@@ -25,3 +25,6 @@ dist-ssr
 
 # Brainstorming companion
 .superpowers/
+
+# Throwaway output (e.g. filmstrip captures)
+scratchpad/
