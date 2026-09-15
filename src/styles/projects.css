@@ -65,8 +65,17 @@
 
 .work-detail { padding-bottom: clamp(24px, 3vw, 40px); max-width: 62ch; }
 .work-detail p + p { margin-top: 0.9em; }
-/* Tech-stack line, same label/value family as .spec dt and #filterCount. */
-.work-detail .meta { color: var(--accent-2); }
+/* Tech-stack line, same label/value family as .spec dt and #filterCount —
+   but scoped to the row a visitor actually opened. The no-JS state ships all
+   six .work-detail blocks unhidden at once (projectsIndex.ts documents that
+   as the complete fallback), and with JS several rows can be open
+   simultaneously since there's no accordion, so an unscoped .work-detail
+   .meta would colour every tech-stack line on the page — over the "a little
+   tiny bit more" cap this task is bound by. Keying off the button's
+   aria-expanded (flipped alongside `hidden` in projectsIndex.ts) means only
+   a deliberately opened row goes slate; with no JS, aria-expanded never
+   flips and the line falls back to --muted, i.e. the pre-task look. */
+.work-row--button[aria-expanded='true'] + .work-detail .meta { color: var(--accent-2); }
 .work-detail__links { display: flex; gap: 22px; margin-top: 16px; }
 
 @media (max-width: 700px) {
