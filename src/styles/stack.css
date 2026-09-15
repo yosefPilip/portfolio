@@ -18,6 +18,14 @@
 }
 .plate img { width: 100%; height: 100%; object-fit: cover; }
 
+/* A frame used as a full-bleed plate background fills the plate. --ar sizes
+   inline content frames; a background has no shape of its own, because the
+   plate already defines the box and object-fit: cover does the fitting.
+   Without this the frame derives width from the plate's HEIGHT via
+   aspect-ratio and anchors left — at 1920x1080 the thesis stack left 948px of
+   bare plate with the image shoved against the left edge. */
+.plate > .frame { width: 100%; height: 100%; aspect-ratio: auto; }
+
 /* Blur lives on a child, never on the transformed parent, or the browser
    re-rasterises it every frame. */
 .plate > .blurred { filter: blur(var(--blur, 0)); width: 100%; height: 100%; }
