@@ -154,14 +154,213 @@ being desktop-only below 1100px.
 
 ---
 
-## 8. Stack and gate
+## 8. Stack, commands, and the gate
 
-Vite multi-page, static HTML/CSS with React islands (Coverflow, intro animation).
-Lenis for scroll. Any new page must be added to `vite.config.ts`'s
-`rollupOptions.input` or it never builds while every test still passes.
+Vite multi-page. Static hand-written HTML + CSS, with React only as islands
+(intro animation, name flip-board, Coverflow). Lenis for scroll. TypeScript with
+`noUnusedLocals` / `noUnusedParameters` / `erasableSyntaxOnly`. oxlint, no config
+file — defaults.
 
 ```
 npm test && npx tsc -b --noEmit && npm run lint && npm run build
 ```
 
-All four, green, before calling anything done.
+All four, green, before calling anything done. The suite is 25 files / ~320 tests
+and finishes in about 4 seconds — there is never a reason to skip it.
+
+| Need | Command |
+|---|---|
+| One test file | `npx vitest run tests/motion.test.ts` |
+| One test by name | `npx vitest run -t "moves nearer layers faster"` |
+| Watch | `npm run test:watch` |
+| Dev server | `npm run dev -- --port 5174 --strictPort` (check `devservers list` first) |
+| Judge a scroll stack | `npm run filmstrip -- http://localhost:5174/ "#hero"` |
+
+`tools/filmstrip.mjs` drives the page with **real** `page.mouse.wheel()` events —
+Lenis's virtual scroll ignores programmatic `scrollTo`, and that gap is what let
+an unscrollable overlay ship once. It captures 8 frames across a stack's runway at
+1440×900 and 390×844 and tiles them into one PNG under `scratchpad/`. Use it
+instead of asking Yosef to scroll and describe what he sees.
+
+`tools/grade.py` and `tools/checkplate.py` (numpy + Pillow) are the image pipeline:
+every generated image gets the same `grade()` so the set reads as one shoot, and
+`checkplate.py` gates a multiply plate on corner RGB (must be pure white) and
+wordmark-band coverage (≤25%). Never eyeball either.
+
+---
+
+## 9. Architecture — read this instead of the source
+
+### A page is six registrations, not one file
+
+Adding or renaming a page touches six places, and missing one fails quietly —
+the page ships unstyled, or the tests pass while the page never builds at all:
+
+1. `<page>.html` at the repo root — or under `projects/` for a case study.
+2. `vite.config.ts` → `rollupOptions.input`.
+3. `src/styles/<page>.css` — the page's **one** stylesheet (see below).
+4. `src/entries/<page>.ts` — the page's **one** module entry.
+5. `tests/sitewide.test.ts` — both the `PAGES` array and the `known` internal-link
+   set, or every other page's link sweep fails.
+6. `src/panel/server/paths.ts` → `ALLOWED`, only if the panel may write it.
+
+### CSS: one stylesheet per page, everything else is a partial
+
+Each HTML page links exactly one `<link rel="stylesheet">`. That file `@import`s
+the partials it needs. Nothing is imported from JS — importing in both places
+ships the CSS twice.
+
+```
+tokens.css      ← the ONLY file allowed to contain a colour literal
+  └ base.css    ← reset, type scale, .btn / .panel / .frame / .reveal
+      ├ stack.css              parallax plates
+      ├ chrome.css             header, mobile menu, footer, .spec, .link
+      ├ work-list.css          the project row list (home + projects)
+      ├ coverflow.css          music only
+      ├ case-study.css         imported by projects.css — the overlay lives on the index
+      └ layout.generated.css   ← GENERATED. Never hand-edit.
+
+home.css · projects.css · music.css · workshop.css · case-study.css
+```
+
+Every page stylesheet must end its imports with `layout.generated.css`.
+
+### Palette: tokens or nothing
+
+`tokens.css` holds the fixed sitewide values in `:root` and swaps `--bg`,
+`--bg-deep`, `--surface`, `--surface-tint`, `--accent-2` per
+`[data-room="home|projects|music|workshop"]`. Everything else uses `var()` or
+`color-mix(in oklab, …)`.
+
+`tests/base-css.test.ts` enumerates `src/styles/*.css` **from the directory**, not
+from a list — so a new stylesheet falls under every sweep the moment the file
+exists. Those sweeps, all sourced from spec §4 and §15:
+
+- Zero hex literals outside `:root` / `[data-room=…]` blocks.
+- No `#000` / `#fff` in any form.
+- Any rule that can render at **≥32px** carries `letter-spacing` — negative for
+  normal case, **≥0.06em positive** for `text-transform: uppercase`. The scanner
+  resolves `var(--step-*)` against `tokens.css`, so `font-size: var(--step-h2)` is
+  seen for the 44px it can reach. Reach for `.title-h2` rather than redeclaring
+  family + size on a new selector; it carries the tracking with it.
+- Only `transform` and `opacity` may animate. `top` / `left` / `right` / `bottom` /
+  `width` / `height` / `background-position` are banned from `transition`,
+  `animation` and every `@keyframes` stop.
+
+This applies to `layout.generated.css` too, which is why `src/panel/cssGenerator.ts`
+emits token keys and never a literal.
+
+### Scroll: one rAF loop, one custom property
+
+`src/shared/motion.ts` owns everything scroll-linked. It starts Lenis, runs a
+single `requestAnimationFrame` loop, and each frame writes one number — `--p`,
+0→1 — onto every on-screen `.stack`. CSS does the rest:
+
+```css
+.plate { transform: translate3d(0, calc(var(--p, 0) * var(--rate, 0) * 1px), 0); }
+```
+
+No other module may start a rAF loop or a reveal observer. Call `getMotion()` and
+cooperate with the handle instead.
+
+- **`handle.lenis` is `null` under `prefers-reduced-motion`.** No instance is ever
+  constructed. `stop()` / `start()` / `scrollTo()` stay safe to call and degrade to
+  native — never branch on "did motion initialise".
+- Anything that opens over the page (mobile menu, case-study overlay) must call
+  `getMotion()?.stop()`. Lenis's virtual scroll ignores `body { overflow }`; the
+  `.is-menu-open` body class is only the reduced-motion fallback.
+- Depth is encoded in plate **names**, and `tests/stack-depth.test.ts` enforces that
+  nearer layers (higher `z-index`) always carry a larger `|--rate|`, desktop and
+  mobile. `tests/plate-coverage.test.ts` enforces that the painted surface is
+  extended by `--rate` (`height: calc(100% - var(--rate) * 1px)`), because the
+  plate's `-12%` overscan is a percentage while the travel is pixels — a bare
+  `height: 100%` exposes a bare strip at the bottom of the hero.
+- The hero composites with `mix-blend-mode: multiply` on the **plate**, never the
+  inner `.frame`: `.plate` sets `will-change: transform`, which creates a stacking
+  context and silently kills a blend on a child.
+
+### Images: the frame contract
+
+Every image slot is a real `<img>` at its final path inside
+`<figure class="frame" data-label="…">`. While the file is missing, `imageFrame.ts`
+marks the frame `.is-missing` and CSS renders a labelled dashed box at the exact
+aspect ratio. **That is the designed state, not a failure** — drop the file in and
+it works with no code change. `--ar` sets the ratio inline; `--img-zoom` and
+`object-position` are written per slot by the panel.
+
+`data-label` is mandatory — `tests/sitewide.test.ts` fails a page without it, and
+it is also the key the panel stores framing under.
+
+`assets/img/workshop/` holds nine photographs Yosef took of furniture he actually
+refurbished. **Never generate, replace, re-export or grade these.**
+
+**`docs/image-slots.md` is the per-slot ledger — update it in the same commit as
+any render.** It records tier, status, spend and why each roll was accepted or
+rejected, and it is what stops the next session re-buying an image that exists.
+`docs/image-rooms-queue.md` is the settled creative direction and the sitting
+order; it is deliberately not planned further in advance.
+
+### Projects: three tiers, one data module
+
+`src/data/projects.ts` exports `PROJECTS` and is the source of truth for slug,
+title, hook, category, year and stack. `tests/projects-page.test.ts` compares
+`projects.html` cell-by-cell against it (decoding HTML entities first), so the two
+must be edited together. **Row order is fixed by the spec.**
+
+- **Tier 1/2** — `src/shared/projectsIndex.ts`. Filter pills and expand-in-place.
+- **Tier 3** — `src/shared/caseStudy.ts` + `src/lib/caseStudyRoute.ts`. A case-study
+  link opens an animated overlay with no reload *and* pushes `/projects/<slug>`;
+  the same URL cold-loads as a real page, so it stays shareable and indexable. Back
+  closes the overlay. `hasCaseStudy` on the project is what makes a slug routable.
+
+**Progressive enhancement here is inverted on purpose — do not "fix" it.** The HTML
+ships every `.work-detail` **open** and `.filters` **hidden**, so the no-JS page is
+the complete one and pills that filter nothing never render. `initProjectsIndex`
+collapses the details it is about to make expandable and reveals the filters it is
+about to make work.
+
+Paths: `/projects.html` (vite dev) and `/projects` (Vercel `cleanUrls`) are the same
+document. `caseStudy.ts` captures the real path at init rather than hardcoding
+either.
+
+### The overlay / menu focus pattern
+
+Both the mobile menu and the case-study overlay set `inert` on
+`header, main, footer` — that is the focus trap, and it hides the background from
+assistive tech in the same stroke. **Un-inert before restoring focus**, or the focus
+call lands on an inert element.
+
+Two footguns already paid for, documented in `shared/chrome.ts` and
+`shared/caseStudy.ts`: `querySelector('#' + id)` throws `SyntaxError` on an id like
+`2fa` and takes the whole handler with it (use `getElementById`, or walk `[id]`
+elements when an open overlay means the document holds two matches), and
+`decodeURIComponent` throws `URIError` on a malformed fragment.
+
+### The visual editing panel (`src/panel/`) — in progress
+
+A dev-only in-page editor for image framing and type/colour tokens, built from
+[the nine-task plan](docs/superpowers/plans/2026-09-15-visual-editing-panel.md).
+
+**Do not guess how far it got — read the ledger.**
+`.superpowers/sdd/2026-09-15-visual-editing-panel/progress.md` carries per-task
+status, every review finding, and the rulings behind each deferral. It is
+gitignored, so it is local-only and will not survive a clone, but while it exists
+it is more current than this file and more honest than the commit log. The
+`task-N-brief.md` / `task-N-report.md` pairs beside it are the dispatch record: a
+brief with no matching report is a task still in flight.
+
+- `cssGenerator.ts` is pure and token-only: `PanelState` → CSS text. It validates
+  every key against runtime allowlists that `satisfies` the types.
+- `server/plugin.ts` is `apply: 'serve'`, so the write endpoint structurally cannot
+  exist in a production build. `server/paths.ts` is an **allowlist**, not a traversal
+  check — a traversal check has to be right about every trick, an allowlist has to
+  be right once.
+- `src/styles/layout.generated.css` is rewritten wholesale on every Save. Safe to
+  `git checkout` at any time; never hand-edit it expecting the edit to survive.
+
+### Sitewide HTML invariants (`tests/sitewide.test.ts`)
+
+Every page: a `data-room` on `<body>`, exactly one `<h1>`, `data-label` on every
+`.frame`, `rel="noopener"` on every `target="_blank"`, no banned copy from the old
+bio-terminal design (`src/lib/guards.ts`), no invented metrics, and no internal link
+to a page outside the known set.
