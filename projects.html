@@ -50,8 +50,8 @@
           </figure>
         </div>
         <div class="plate plate--copy">
-          <h1 class="display">Projects</h1>
-          <p class="lede">Six things, roughly in the order I care about them.</p>
+          <h1 class="display" data-edit="page.title">Projects</h1>
+          <p class="lede" data-edit="page.lede">Six things, roughly in the order I care about them.</p>
         </div>
         <div class="plate plate--front">
           <figure class="frame" data-label="Projects L3 — ridge-near">
@@ -82,8 +82,8 @@
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
             <div class="work-detail">
-              <p>A geocaching-style hunt for street art. An artist hides a piece somewhere in the city, you go and find it, and you tap your phone against it to collect it into your own portfolio. I designed and built the whole thing — React and Vite on the front, FastAPI behind it.</p>
-              <p class="meta">React &middot; Vite &middot; FastAPI &middot; NFC &middot; NTAG 424 DNA</p>
+              <p data-edit="index.body1">A geocaching-style hunt for street art. An artist hides a piece somewhere in the city, you go and find it, and you tap your phone against it to collect it into your own portfolio. I designed and built the whole thing — React and Vite on the front, FastAPI behind it.</p>
+              <p class="meta" data-edit="index.meta1">React &middot; Vite &middot; FastAPI &middot; NFC &middot; NTAG 424 DNA</p>
               <p class="work-detail__links">
                 <a class="link" href="/projects/cache-it">Read the case study &rarr;</a>
                 <a class="link" href="https://cache-it-one.vercel.app" target="_blank" rel="noopener">Live site &#8599;</a>
@@ -99,8 +99,8 @@
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
             <div class="work-detail">
-              <p>Give it a prompt, get back a whole batch of podcast episodes. Scripts come from the Anthropic API; the voices come from a pluggable TTS adapter layer, so swapping Fish Audio for ElevenLabs is a config change rather than a rewrite. The interesting part is the concurrency — a 100-episode run is bounded by an asyncio semaphore so it saturates without falling over. SQLite behind it, deployed on Vercel.</p>
-              <p class="meta">Python &middot; Anthropic API &middot; SQLite &middot; Vercel</p>
+              <p data-edit="index.body2">Give it a prompt, get back a whole batch of podcast episodes. Scripts come from the Anthropic API; the voices come from a pluggable TTS adapter layer, so swapping Fish Audio for ElevenLabs is a config change rather than a rewrite. The interesting part is the concurrency — a 100-episode run is bounded by an asyncio semaphore so it saturates without falling over. SQLite behind it, deployed on Vercel.</p>
+              <p class="meta" data-edit="index.meta2">Python &middot; Anthropic API &middot; SQLite &middot; Vercel</p>
             </div>
           </article>
 
@@ -112,8 +112,8 @@
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
             <div class="work-detail">
-              <p>A custom MCP server for my own reselling. You ask it a pricing question in plain language and it answers, then keeps a live financial and inventory tracker in Google Sheets up to date without me touching it. Auth is per-user OAuth rather than one shared credential, so it can be handed to someone else without handing over my account.</p>
-              <p class="meta">MCP &middot; Google Sheets API &middot; OAuth 2.0</p>
+              <p data-edit="index.body3">A custom MCP server for my own reselling. You ask it a pricing question in plain language and it answers, then keeps a live financial and inventory tracker in Google Sheets up to date without me touching it. Auth is per-user OAuth rather than one shared credential, so it can be handed to someone else without handing over my account.</p>
+              <p class="meta" data-edit="index.meta3">MCP &middot; Google Sheets API &middot; OAuth 2.0</p>
               <p class="work-detail__links"><a class="link" href="/workshop.html">Why it exists &rarr;</a></p>
             </div>
           </article>
@@ -129,7 +129,7 @@
               <p><strong>The Slack bot.</strong> Nobody should have to write a formal email to say they&rsquo;re sick. Now they tell Slack in whatever words they&rsquo;d actually use, and the bot works out what they meant, files it as a real record, and routes it to their manager. Three days became same-day, for about 100 people.</p>
               <p><strong>The HR platform.</strong> A four-tier permission model, and an internal HR app built on top of it. It replaced a paid third-party tool and saves $8,000 a year.</p>
               <p><strong>The auditor.</strong> A scheduled Apps Script service that checks every account for 2FA, recovery info and profile photos, then logs what it finds. It replaced 40 hours a month of manual review across ~100 accounts.</p>
-              <p class="meta">Python &middot; Gemini API &middot; Apps Script &middot; AppSheet &middot; Admin SDK</p>
+              <p class="meta" data-edit="index.meta4">Python &middot; Gemini API &middot; Apps Script &middot; AppSheet &middot; Admin SDK</p>
             </div>
           </article>
 
@@ -141,8 +141,8 @@
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
             <div class="work-detail">
-              <p>A DJ library gets messy fast, and the mess is a sorting problem. I&rsquo;m building two pieces that work together: a gamified Sorting Deck that previews a track on hover, guesses its category from BPM and energy, and lets me confirm or correct it with a keystroke; and a drag-and-drop Set Builder that assembles a tracklist and flags jarring BPM jumps between tracks. It works on whatever is already in my folders &mdash; a scan picks up new files and queues them for sorting. Audio analysis runs on librosa for BPM, key and energy, with mutagen reading the ID3 tags.</p>
-              <p class="meta">Electron &middot; React &middot; Vite &middot; Python &middot; FastAPI &middot; librosa &middot; SQLite</p>
+              <p data-edit="index.body4">A DJ library gets messy fast, and the mess is a sorting problem. I&rsquo;m building two pieces that work together: a gamified Sorting Deck that previews a track on hover, guesses its category from BPM and energy, and lets me confirm or correct it with a keystroke; and a drag-and-drop Set Builder that assembles a tracklist and flags jarring BPM jumps between tracks. It works on whatever is already in my folders &mdash; a scan picks up new files and queues them for sorting. Audio analysis runs on librosa for BPM, key and energy, with mutagen reading the ID3 tags.</p>
+              <p class="meta" data-edit="index.meta5">Electron &middot; React &middot; Vite &middot; Python &middot; FastAPI &middot; librosa &middot; SQLite</p>
             </div>
           </article>
 
@@ -154,8 +154,8 @@
               <span class="work-row__go" aria-hidden="true">+</span>
             </button>
             <div class="work-detail">
-              <p>A Vite multi-page build, no framework driving the layout. The green lives in the photography and the interface stays out of its way. Every page is a different setting, and one scroll-progress value drives the layers on all of them — so the hero&rsquo;s trunks can slide across my name instead of sitting on top of it.</p>
-              <p class="meta">Vite &middot; TypeScript &middot; React &middot; Lenis</p>
+              <p data-edit="index.body5">A Vite multi-page build, no framework driving the layout. The green lives in the photography and the interface stays out of its way. Every page is a different setting, and one scroll-progress value drives the layers on all of them — so the hero&rsquo;s trunks can slide across my name instead of sitting on top of it.</p>
+              <p class="meta" data-edit="index.meta6">Vite &middot; TypeScript &middot; React &middot; Lenis</p>
               <p class="work-detail__links"><a class="link" href="https://github.com/yosefPilip" target="_blank" rel="noopener">GitHub &#8599;</a></p>
             </div>
           </article>
