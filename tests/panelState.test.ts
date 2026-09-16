@@ -331,3 +331,130 @@ describe('dropText — the only exit from a stale-file wedge', () => {
     expect(s.dirtyCount()).toBe(1);
   });
 });
+
+describe('undo — the only way back from a mistake', () => {
+  it('is a safe no-op on an empty stack', () => {
+    const s = createStore();
+    expect(s.canUndo()).toBe(false);
+    expect(s.undo()).toBeNull();
+    expect(s.dirtyCount()).toBe(0);
+  });
+
+  it('undoes a pending change, restoring the previous drag', () => {
+    const s = createStore();
+    s.setImage('A', { x: 10, y: 10, zoom: 1 });
+    s.setImage('A', { x: 20, y: 20, zoom: 1 });
+    expect(s.canUndo()).toBe(true);
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.get().images.A).toEqual({ x: 10, y: 10, zoom: 1 });
+  });
+
+  it('undoing the very first edit to a slot removes it — it did not exist before', () => {
+    const s = createStore();
+    s.setImage('A', { x: 10, y: 10, zoom: 1 });
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.get().images.A).toBeUndefined();
+    expect(s.dirtyCount()).toBe(0);
+    expect(s.canUndo()).toBe(false);
+  });
+
+  it('undoing an already-saved change makes it pending again, so the next Save corrects the file', () => {
+    const s = createStore();
+    s.setImage('A', { x: 42, y: 61, zoom: 1.12 });
+    s.commit();
+    expect(s.dirtyCount()).toBe(0);
+    s.setImage('A', { x: 10, y: 20, zoom: 1 });
+    expect(s.dirtyCount()).toBe(1);
+
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    // The committed value is back immediately...
+    expect(s.get().images.A).toEqual({ x: 42, y: 61, zoom: 1.12 });
+    // ...but as a PENDING correction, not silently reabsorbed into `saved` —
+    // undo after a Save is exactly when it matters that the next Save writes
+    // the fix to disk.
+    expect(s.dirtyCount()).toBe(1);
+  });
+
+  it('walks back through several image changes in order', () => {
+    const s = createStore();
+    s.setImage('A', { x: 1, y: 1, zoom: 1 });
+    s.setImage('A', { x: 2, y: 2, zoom: 1 });
+    s.setImage('A', { x: 3, y: 3, zoom: 1 });
+
+    s.undo();
+    expect(s.get().images.A).toEqual({ x: 2, y: 2, zoom: 1 });
+    s.undo();
+    expect(s.get().images.A).toEqual({ x: 1, y: 1, zoom: 1 });
+    s.undo();
+    expect(s.get().images.A).toBeUndefined();
+    expect(s.undo()).toBeNull();
+  });
+
+  it('walks back across different kinds of edits in the order they were made', () => {
+    const s = createStore();
+    s.setImage('A', { x: 5, y: 5, zoom: 1 });
+    s.setStyle('hero.intro', { font: 'mono' });
+    s.setText('index.html', 'hero.intro', 'Old', 'New');
+
+    expect(s.undo()).toEqual({ kind: 'text', file: 'index.html', id: 'hero.intro', text: 'Old' });
+    expect(s.get().text).toEqual({});
+
+    expect(s.undo()).toEqual({ kind: 'style', id: 'hero.intro' });
+    expect(s.get().styles['hero.intro']).toBeUndefined();
+
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.get().images.A).toBeUndefined();
+
+    expect(s.canUndo()).toBe(false);
+  });
+
+  it('undoing a second text edit restores the FIRST edit, not the original', () => {
+    const s = createStore();
+    s.setText('index.html', 'hero.intro', 'Original', 'First edit');
+    s.setText('index.html', 'hero.intro', 'Original', 'Second edit');
+
+    expect(s.undo()).toEqual({ kind: 'text', file: 'index.html', id: 'hero.intro', text: 'First edit' });
+    expect(s.get().text['index.html::hero.intro']).toEqual({
+      file: 'index.html',
+      id: 'hero.intro',
+      before: 'Original',
+      after: 'First edit',
+    });
+  });
+
+  it('undoing a style field addition leaves an earlier field on the same id intact', () => {
+    // setStyle only ever MERGES a patch in; a naive undo that also merged the
+    // restored value back in would leave the newer field behind instead of
+    // removing it, since {font:'mono', ...{font:'mono'}} still has `color`.
+    const s = createStore();
+    s.setStyle('hero.intro', { font: 'mono' });
+    s.setStyle('hero.intro', { color: 'muted' });
+    expect(s.undo()).toEqual({ kind: 'style', id: 'hero.intro' });
+    expect(s.get().styles['hero.intro']).toEqual({ font: 'mono' });
+  });
+
+  it('caps history at 50 — the oldest entry falls off and cannot be undone back to', () => {
+    const s = createStore();
+    for (let i = 1; i <= 51; i++) {
+      s.setImage('A', { x: i, y: i, zoom: 1 });
+    }
+    for (let i = 0; i < 50; i++) {
+      expect(s.undo(), `undo #${i + 1}`).not.toBeNull();
+    }
+    // The 50 kept entries walk the value back down to what call #1 set
+    // (x:1,y:1) — call #1's OWN entry (prev: undefined, i.e. "did not exist")
+    // is the one entry the cap dropped, so the slot freezes here instead of
+    // disappearing on a 51st undo.
+    expect(s.get().images.A).toEqual({ x: 1, y: 1, zoom: 1 });
+    expect(s.undo()).toBeNull();
+    expect(s.canUndo()).toBe(false);
+  });
+
+  it('clear() empties the undo stack along with everything else', () => {
+    const s = createStore();
+    s.setImage('A', { x: 1, y: 2, zoom: 1 });
+    s.clear();
+    expect(s.canUndo()).toBe(false);
+    expect(s.undo()).toBeNull();
+  });
+});

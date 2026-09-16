@@ -2,14 +2,18 @@
    src/panel/, which no production bundle contains. Deliberately plain — it is
    a tool, and must never be mistaken for part of the site. */
 
+/* top-right, clear of the sticky site-header (64px) — bottom-left is where
+   every room's hero copy lives (see .hero-intro in stack.css), which is
+   exactly what this bar used to sit on top of. */
 .panel-bar {
   position: fixed;
   z-index: 9999;
-  left: 16px;
-  bottom: 16px;
+  top: 80px;
+  right: 16px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 260px;
   padding: 8px 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--r);
@@ -25,6 +29,8 @@
    above wins and `bar.hidden = true` has no visual effect. */
 .panel-bar[hidden] { display: none; }
 
+.panel-bar__row { display: flex; align-items: center; gap: 12px; }
+
 .panel-bar__badge {
   letter-spacing: 0.12em;
   color: var(--accent);
@@ -32,6 +38,7 @@
 
 .panel-bar__count { color: var(--muted); }
 
+.panel-bar__undo,
 .panel-bar__save {
   border: 1px solid var(--border-strong);
   border-radius: var(--r);
@@ -42,13 +49,60 @@
   cursor: pointer;
 }
 
+.panel-bar__undo:disabled,
 .panel-bar__save:disabled { color: var(--muted); cursor: default; }
+
+/* The layer list. Scrolls within itself once it outgrows this cap (Workshop
+   has 9 frames) rather than growing the bar without limit; the wheel listener
+   installed on this element in overlay.ts is what keeps that scroll from also
+   reaching the page underneath. */
+.panel-bar__layers {
+  display: grid;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.panel-bar__layer {
+  display: block;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  padding: 3px 6px;
+  background: transparent;
+  color: var(--fg-dim);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.panel-bar__layer:hover { color: var(--fg); border-color: var(--border); }
+
+.panel-bar__layer--selected {
+  border-color: var(--border-strong);
+  background: var(--bg-deep);
+  color: var(--fg);
+}
 
 /* Edit mode marks every editable surface so nothing is hidden from the user. */
 .panel-active figure.frame { outline: 1px dashed var(--accent); outline-offset: 2px; }
 
 .panel-active figure.frame[data-panel-preview] {
   outline: 1px solid var(--accent);
+}
+
+/* The frame the layer list has selected — deliberately a third look, not a
+   second copy of either existing marker: solid rather than the clay frame
+   outline's dashed or the muted text outline's dotted, and --fg rather than
+   either of their tokens, so the one you are about to drag is unambiguous
+   even with every other frame's dashed outline also showing. Never
+   --accent-2: that resolves to green on Home, and green in this project
+   lives only in the photography. */
+.panel-active figure.frame.panel-frame-selected {
+  outline: 2px solid var(--fg);
+  outline-offset: 4px;
 }
 
 .panel-active figure.frame[data-panel-preview]::before {

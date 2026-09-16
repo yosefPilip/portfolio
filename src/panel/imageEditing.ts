@@ -1,6 +1,6 @@
 import type { Store } from './state';
 import { MANIFEST } from './manifest';
-import { isActive, refreshPanel } from './overlay';
+import { isActive, refreshPanel, onUndo, getSelectedFrame, isPanelChrome } from './overlay';
 
 /** Live values while dragging, before they are committed to the store. */
 interface Live { x: number; y: number; zoom: number }
@@ -23,20 +23,51 @@ function readLive(img: HTMLImageElement): Live {
   };
 }
 
-function paint(img: HTMLImageElement, v: Live): void {
+export function paint(img: HTMLImageElement, v: Live): void {
   // Written inline for instant feedback; the store holds the truth, and Save
   // turns the store into the generated stylesheet.
   img.style.objectPosition = `${v.x}% ${v.y}%`;
   img.style.setProperty('--img-zoom', String(v.zoom));
 }
 
+/** Find the frame + its <img> for a given `data-label`, if either exists on
+    the current page. Shared by the initial pending-edit repaint below and by
+    the undo repaint. */
+function findSlot(label: string): { frame: HTMLElement; img: HTMLImageElement } | null {
+  const frame = document.querySelector(`${MANIFEST.slotSelector}[${MANIFEST.slotKeyAttr}="${CSS.escape(label)}"]`);
+  const img = frame?.querySelector('img');
+  return frame && img ? { frame: frame as HTMLElement, img: img as HTMLImageElement } : null;
+}
+
+/** Repaint one image slot straight from the store, for undo: applies the
+    restored framing if the slot still has one, or clears the inline override
+    entirely (back to the stylesheet default) if undo reverted it to "did not
+    exist". A no-op if the label is not on the current page. */
+export function repaintImageFromStore(store: Store, label: string): void {
+  const slot = findSlot(label);
+  if (!slot) return;
+  const edit = store.get().images[label];
+  if (edit) {
+    paint(slot.img, edit);
+  } else {
+    slot.img.style.removeProperty('object-position');
+    slot.img.style.removeProperty('--img-zoom');
+  }
+}
+
 export function installImageEditing(store: Store): void {
   // Apply anything already pending so a reload does not lose an unsaved drag.
   for (const [label, edit] of Object.entries(store.get().images)) {
-    const frame = document.querySelector(`${MANIFEST.slotSelector}[${MANIFEST.slotKeyAttr}="${CSS.escape(label)}"]`);
-    const img = frame?.querySelector('img');
-    if (img) paint(img as HTMLImageElement, edit);
+    const slot = findSlot(label);
+    if (slot) paint(slot.img, edit);
   }
+
+  onUndo((result) => {
+    if (result.kind !== 'image') return;
+    repaintImageFromStore(store, result.label);
+    // dirtyCount/Save-button state changed too — see overlay.ts's own
+    // refreshPanel() call right after this fires, which handles that half.
+  });
 
   let dragging: { img: HTMLImageElement; label: string; startX: number; startY: number; from: Live } | null = null;
 
@@ -50,9 +81,27 @@ export function installImageEditing(store: Store): void {
     dragging = null;
   }
 
+  /**
+   * The frame an interaction at this target should act on.
+   *
+   * With nothing selected, this is exactly today's hit-test — the topmost
+   * frame under the pointer. With a frame selected, that selection wins
+   * outright: the pointer only has to be somewhere over SOME frame (still
+   * ruling out clicks on ordinary page content and on the panel's own UI),
+   * and the selected frame is used regardless of which frame is actually on
+   * top there. That is what makes a layer buried under others reachable —
+   * the entire point of the layer list.
+   */
+  function resolveTargetFrame(target: Element): HTMLElement | null {
+    if (isPanelChrome(target)) return null;
+    const hit = target.closest?.(MANIFEST.slotSelector) as HTMLElement | null;
+    if (!hit) return null;
+    return getSelectedFrame() ?? hit;
+  }
+
   document.addEventListener('pointerdown', (e) => {
     if (!isActive()) return;
-    const frame = (e.target as Element).closest?.(MANIFEST.slotSelector) as HTMLElement | null;
+    const frame = resolveTargetFrame(e.target as Element);
     const img = frame?.querySelector('img') as HTMLImageElement | null;
     const label = frame?.getAttribute(MANIFEST.slotKeyAttr);
     if (!frame || !img || !label) return;
@@ -111,7 +160,7 @@ export function installImageEditing(store: Store): void {
   // scrolling keeps working.
   document.addEventListener('wheel', (e) => {
     if (!isActive()) return;
-    const frame = (e.target as Element).closest?.(MANIFEST.slotSelector) as HTMLElement | null;
+    const frame = resolveTargetFrame(e.target as Element);
     const img = frame?.querySelector('img') as HTMLImageElement | null;
     const label = frame?.getAttribute(MANIFEST.slotKeyAttr);
     if (!frame || !img || !label) return;

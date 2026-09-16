@@ -1,7 +1,7 @@
 import type { StepKey, ColorKey } from './types';
 import type { Store } from './state';
 import { MANIFEST } from './manifest';
-import { isActive, refreshPanel, onEditModeOff } from './overlay';
+import { isActive, refreshPanel, onEditModeOff, onUndo } from './overlay';
 import { contrastRatio } from '../lib/contrast';
 
 /**
@@ -69,6 +69,20 @@ export function colorAllowed(color: ColorKey, room: string): boolean {
  * change, and passing the wrong one is a compile error rather than a no-op.
  */
 type ControlKind = 'font' | 'step' | 'color';
+
+/** Repaint one editable text block's inline style straight from the store,
+    for undo: applies whatever the store now holds for `id`, or clears every
+    inline override entirely (back to the stylesheet default) if undo
+    reverted it to "did not exist". A no-op if the id is not on the current
+    page. */
+export function repaintStyleFromStore(store: Store, id: string): void {
+  const el = document.querySelector<HTMLElement>(`[${MANIFEST.editAttr}="${CSS.escape(id)}"]`);
+  if (!el) return;
+  const s = store.get().styles[id];
+  el.style.fontFamily = s?.font ? `var(--font-${s.font})` : '';
+  el.style.fontSize = s?.step ? `var(--step-${s.step})` : '';
+  el.style.color = s?.color ? `var(--${s.color})` : '';
+}
 
 export function installStyleControls(store: Store): void {
   const room = document.body.dataset.room ?? 'home';
@@ -162,5 +176,10 @@ export function installStyleControls(store: Store): void {
   onEditModeOff(() => {
     box.hidden = true;
     target = null;
+  });
+
+  onUndo((result) => {
+    if (result.kind !== 'style') return;
+    repaintStyleFromStore(store, result.id);
   });
 }

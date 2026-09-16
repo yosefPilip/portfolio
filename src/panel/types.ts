@@ -46,3 +46,17 @@ export interface PanelState {
   styles: Record<string, TextStyleEdit>;
   text: Record<string, TextEdit>;
 }
+
+/**
+ * What changed as a result of `Store.undo()`, handed to every interaction
+ * module so each can repaint exactly the DOM it owns.
+ *
+ * `text` carries the ready-to-display string directly rather than a key to
+ * look up: a text edit undone back to "did not exist" leaves nothing in the
+ * store to read that string from — `undo()` is the only place that still has
+ * it (the `before` of the pending entry it is about to remove).
+ */
+export type UndoResult =
+  | { kind: 'image'; label: string }
+  | { kind: 'style'; id: string }
+  | { kind: 'text'; file: string; id: string; text: string };

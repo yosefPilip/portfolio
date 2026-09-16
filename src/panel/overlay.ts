@@ -1,5 +1,5 @@
 import type { Store } from './state';
-import type { PanelState } from './types';
+import type { PanelState, UndoResult } from './types';
 import { generateCss } from './cssGenerator';
 import { MANIFEST } from './manifest';
 import { save, isSaveError } from './saveClient';
@@ -12,6 +12,16 @@ let refreshFn: (() => void) | null = null;
 let deactivateFns: Array<() => void> = [];
 let beforeDeactivateFns: Array<() => void> = [];
 let saveSuccessFns: Array<(state: PanelState) => void> = [];
+let undoFns: Array<(result: UndoResult) => void> = [];
+
+/** The frame the layer list has selected, or null when hit-testing should
+    behave exactly as before (topmost frame under the pointer wins). Module
+    state, not per-mount: imageEditing.ts reads it through getSelectedFrame()
+    on every pointerdown/wheel, same shape as isActive(). */
+let selectedFrame: HTMLElement | null = null;
+/** Layer-list row for each frame, kept so selection changes can toggle the
+    right row's highlight without rebuilding the whole list. */
+let frameRows = new Map<HTMLElement, HTMLButtonElement>();
 
 /** Takes the store rather than creating one: the interaction modules added in
     later tasks must share this exact instance, not a second copy. */
@@ -23,6 +33,9 @@ export function mountPanel(store: Store): void {
   bar.className = 'panel-bar';
   bar.hidden = true;
 
+  const row = document.createElement('div');
+  row.className = 'panel-bar__row';
+
   const badge = document.createElement('span');
   badge.className = 'panel-bar__badge';
   badge.textContent = 'EDIT';
@@ -30,20 +43,94 @@ export function mountPanel(store: Store): void {
   const count = document.createElement('span');
   count.className = 'panel-bar__count';
 
+  const undoBtn = document.createElement('button');
+  undoBtn.className = 'panel-bar__undo';
+  undoBtn.type = 'button';
+  undoBtn.textContent = 'Undo';
+
   const saveBtn = document.createElement('button');
   saveBtn.className = 'panel-bar__save';
   saveBtn.type = 'button';
   saveBtn.textContent = 'Save';
 
-  bar.append(badge, count, saveBtn);
+  row.append(badge, count, undoBtn, saveBtn);
+
+  const layerList = document.createElement('div');
+  layerList.className = 'panel-bar__layers';
+  // Scroll the list itself, not the page: stopPropagation in the capture
+  // phase keeps this wheel from ever reaching Lenis's window-level bubble
+  // listener (same reasoning as imageEditing.ts's own wheel handler), while
+  // leaving the browser's native scrolling of this overflowing list untouched
+  // — only propagation is stopped here, never the default action.
+  layerList.addEventListener('wheel', (e) => { e.stopPropagation(); }, { capture: true });
+
+  bar.append(row, layerList);
   document.body.appendChild(bar);
+
+  function clearSelection(): void {
+    if (!selectedFrame) return;
+    selectedFrame.classList.remove('panel-frame-selected');
+    frameRows.get(selectedFrame)?.classList.remove('panel-bar__layer--selected');
+    selectedFrame = null;
+  }
+
+  function selectFrame(frame: HTMLElement): void {
+    // Clicking the already-selected row clears it, per spec.
+    if (selectedFrame === frame) {
+      clearSelection();
+      return;
+    }
+    clearSelection();
+    selectedFrame = frame;
+    frame.classList.add('panel-frame-selected');
+    frameRows.get(frame)?.classList.add('panel-bar__layer--selected');
+  }
+
+  /**
+   * Rebuild the layer list from every `figure.frame` on THIS page, in
+   * document order, labelled by its `data-label` and flagged `[empty]` when
+   * its image is missing (`is-missing`).
+   *
+   * Called each time edit mode switches on rather than once at mount: mount
+   * runs off a dynamic `import()` that can resolve before every <img> on the
+   * page has fired its own load/error event, so `is-missing` may not be
+   * settled yet. By the time a human actually presses the hotkey, it always is.
+   */
+  function buildLayerList(): void {
+    layerList.innerHTML = '';
+    frameRows = new Map();
+    const frames = Array.from(document.querySelectorAll<HTMLElement>(MANIFEST.slotSelector));
+    for (const frame of frames) {
+      const label = frame.getAttribute(MANIFEST.slotKeyAttr) ?? '(unlabeled)';
+      const empty = frame.classList.contains('is-missing');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'panel-bar__layer';
+      btn.textContent = empty ? `${label} [empty]` : label;
+      btn.addEventListener('click', () => selectFrame(frame));
+      frameRows.set(frame, btn);
+      layerList.appendChild(btn);
+    }
+  }
 
   function refresh(): void {
     const n = store.dirtyCount();
     count.textContent = n === 0 ? 'no changes' : `${n} pending`;
     saveBtn.disabled = n === 0;
+    undoBtn.disabled = !store.canUndo();
   }
   refreshFn = refresh;
+
+  function performUndo(): void {
+    const result = store.undo();
+    // A safe no-op on an empty stack: nothing to repaint, and refresh() below
+    // would just confirm what refresh() already showed.
+    if (!result) return;
+    undoFns.forEach((fn) => fn(result));
+    refresh();
+  }
+
+  undoBtn.addEventListener('click', performUndo);
 
   saveBtn.addEventListener('click', async () => {
     saveBtn.disabled = true;
@@ -98,21 +185,39 @@ export function mountPanel(store: Store): void {
     // e.code names the physical key, not the character it produces, so this
     // still fires under a non-QWERTY layout (e.g. Cyrillic) where e.key would
     // never be 'e' even with the physical E key held under Ctrl+Shift.
-    if (!(e.ctrlKey && e.shiftKey && e.code === 'KeyE')) return;
-    e.preventDefault();
-    // BEFORE the flag flips: a module holding an edit that only exists in the
-    // DOM (text typed into a still-focused contentEditable) has to commit it
-    // to the store while edit mode is still on. Every downstream recorder is
-    // gated on isActive(), so anything flushed after the flip is dropped —
-    // which is exactly how typing then hotkeying out lost the edit.
-    if (active) beforeDeactivateFns.forEach((fn) => fn());
-    active = !active;
-    bar.hidden = !active;
-    document.documentElement.classList.toggle('panel-active', active);
-    refresh();
-    // Interaction modules with their own persistent UI (the typography/colour
-    // control box) must not linger with a stale target once edit mode is off.
-    if (!active) deactivateFns.forEach((fn) => fn());
+    if (e.ctrlKey && e.shiftKey && e.code === 'KeyE') {
+      e.preventDefault();
+      // BEFORE the flag flips: a module holding an edit that only exists in the
+      // DOM (text typed into a still-focused contentEditable) has to commit it
+      // to the store while edit mode is still on. Every downstream recorder is
+      // gated on isActive(), so anything flushed after the flip is dropped —
+      // which is exactly how typing then hotkeying out lost the edit.
+      if (active) beforeDeactivateFns.forEach((fn) => fn());
+      active = !active;
+      bar.hidden = !active;
+      document.documentElement.classList.toggle('panel-active', active);
+      if (active) buildLayerList();
+      refresh();
+      if (!active) {
+        // Interaction modules with their own persistent UI (the
+        // typography/colour control box) must not linger with a stale target
+        // once edit mode is off — and neither should a selected frame.
+        deactivateFns.forEach((fn) => fn());
+        clearSelection();
+      }
+      return;
+    }
+    if (!active) return;
+    // Same e.code reasoning as above. Not shifted, so a real Ctrl+Shift+Z
+    // (browser redo in some apps) is left alone.
+    if (e.ctrlKey && !e.shiftKey && e.code === 'KeyZ') {
+      e.preventDefault();
+      performUndo();
+      return;
+    }
+    if (e.key === 'Escape') {
+      clearSelection();
+    }
   });
 
   refresh();
@@ -121,6 +226,22 @@ export function mountPanel(store: Store): void {
 /** Whether edit mode is currently on. Read by the interaction modules. */
 export function isActive(): boolean {
   return active;
+}
+
+/** The frame the layer list currently has selected, or null. Read by
+    imageEditing.ts on every pointerdown/wheel: a selection overrides normal
+    hit-testing so a layer buried under others in the stack stays reachable. */
+export function getSelectedFrame(): HTMLElement | null {
+  return selectedFrame;
+}
+
+/** True when `el` sits inside the panel's own on-screen chrome (the bar,
+    including its layer list, or the style-controls box) rather than page
+    content. imageEditing.ts checks this before honouring a selection, so
+    clicking a layer-list row or scrolling it is never reinterpreted as a drag
+    or a zoom on the selected frame. */
+export function isPanelChrome(el: Element | null): boolean {
+  return !!el?.closest?.('.panel-bar, .panel-controls');
 }
 
 /** Called by the interaction modules after they write to the store, so the
@@ -157,4 +278,13 @@ export function onBeforeEditModeOff(fn: () => void): void {
     is cleared. A list for the same reason `onEditModeOff` is. */
 export function onSaveSuccess(fn: (state: PanelState) => void): void {
   saveSuccessFns.push(fn);
+}
+
+/** Registered by an interaction module that owns a kind of edit (image, style
+    or text), so it can repaint exactly the DOM it owns after Ctrl+Z or the
+    Undo button pops the store's history. Called with what changed; every
+    registrant checks `result.kind` and ignores the calls meant for the
+    others. A list, for the same reason `onEditModeOff` is. */
+export function onUndo(fn: (result: UndoResult) => void): void {
+  undoFns.push(fn);
 }

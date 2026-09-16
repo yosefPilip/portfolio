@@ -1,7 +1,7 @@
 import type { PanelState } from './types';
 import type { Store } from './state';
 import { MANIFEST } from './manifest';
-import { isActive, refreshPanel, onSaveSuccess, onBeforeEditModeOff } from './overlay';
+import { isActive, refreshPanel, onSaveSuccess, onBeforeEditModeOff, onUndo } from './overlay';
 
 /**
  * Mirrors the RAWTEXT denylist in server/htmlPatcher.ts. Duplicated rather
@@ -170,5 +170,18 @@ export function installTextEditing(store: Store): void {
       const el = document.querySelector<HTMLElement>(`[${MANIFEST.editAttr}="${CSS.escape(t.id)}"]`);
       if (el) originals.set(el, t.after);
     }
+  });
+
+  // Undo repaints the DOM straight from the result's own `text`, not from
+  // `store.get().text` — a text edit undone back to "did not exist" leaves
+  // nothing in the store to read, so undo() hands the restored string over
+  // directly (see state.ts). `originals` is deliberately left untouched: it
+  // tracks what is actually on disk, which undo never changes, so the next
+  // edit's `before` still compares against reality rather than this reverted
+  // on-screen value.
+  onUndo((result) => {
+    if (result.kind !== 'text' || result.file !== file) return;
+    const el = document.querySelector<HTMLElement>(`[${MANIFEST.editAttr}="${CSS.escape(result.id)}"]`);
+    if (el) el.textContent = result.text;
   });
 }

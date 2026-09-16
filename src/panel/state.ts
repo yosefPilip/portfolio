@@ -1,7 +1,21 @@
-import type { PanelState, ImageEdit, TextStyleEdit, TextEdit, FontKey, StepKey, ColorKey } from './types';
+import type { PanelState, ImageEdit, TextStyleEdit, TextEdit, FontKey, StepKey, ColorKey, UndoResult } from './types';
 import { clampFraming } from './cssGenerator';
 
 const KEY = 'panel:state';
+
+/** 50 is plenty for a dev tool's session-local undo — see the design note on
+    `history` inside `createStore`. */
+const HISTORY_CAP = 50;
+
+/**
+ * One undo-able change, holding what the slot/id read as BEFORE the edit that
+ * pushed this entry — `undefined` means it did not exist before that edit.
+ * `undo()` pops the most recent entry and restores exactly this.
+ */
+type HistoryEntry =
+  | { kind: 'image'; label: string; prev: ImageEdit | undefined }
+  | { kind: 'style'; id: string; prev: TextStyleEdit | undefined }
+  | { kind: 'text'; file: string; id: string; prev: TextEdit | undefined };
 
 /**
  * The half of the panel's state that has ALREADY been written to
@@ -143,6 +157,17 @@ export interface Store {
   dropText(file: string, id: string): void;
   /** Unsaved changes only. The badge means "pending", never "total edits ever". */
   dirtyCount(): number;
+  /** Whether there is at least one change `undo()` can act on. Drives the
+      Undo button's disabled state. */
+  canUndo(): boolean;
+  /**
+   * Undo the most recent image, style or text change, restoring it through
+   * the same setters an ordinary edit would use — so clamping and persistence
+   * still apply, and an undone value that was already Saved becomes pending
+   * again rather than silently reverting only on screen. A safe no-op,
+   * returning null, when there is nothing to undo.
+   */
+  undo(): UndoResult | null;
   /**
    * Promote the pending framing/typography edits into the saved half and drop
    * the pending text edits. Called after a successful Save: the CSS rules are
@@ -160,6 +185,12 @@ export function createStore(initial?: PanelState): Store {
   // yet written, which is what a caller handing in a state means by it.
   let pending: PanelState = initial ?? loaded.pending;
   let saved: SavedState = initial ? { images: {}, styles: {} } : loaded.saved;
+
+  // Session-local only — not mirrored to localStorage. A reload losing undo
+  // history is an acceptable trade for not doubling every persisted write;
+  // nothing in the spec asks undo to survive a reload. Capped at HISTORY_CAP
+  // so an unbounded editing session cannot grow this forever.
+  let history: HistoryEntry[] = [];
 
   function persist(): void {
     try {
@@ -186,6 +217,65 @@ export function createStore(initial?: PanelState): Store {
     return out;
   }
 
+  /** The merged (saved ∪ pending) value for one image slot, or undefined if
+      neither half has ever set it — exactly what "did not exist before"
+      means for an undo entry. */
+  function currentImage(label: string): ImageEdit | undefined {
+    const v = pending.images[label] ?? saved.images[label];
+    return v ? { ...v } : undefined;
+  }
+
+  /** The merged style object for one id, or undefined if it has no fields at
+      all — same "did not exist before" meaning as currentImage. */
+  function currentStyle(id: string): TextStyleEdit | undefined {
+    const merged: TextStyleEdit = { ...saved.styles[id], ...pending.styles[id] };
+    return Object.keys(merged).length > 0 ? merged : undefined;
+  }
+
+  function pushHistory(entry: HistoryEntry): void {
+    history.push(entry);
+    if (history.length > HISTORY_CAP) history.shift();
+  }
+
+  // The actual mutations, shared between the public setters (which record
+  // history first) and undo() (which must NOT — recording undo's own action
+  // would just make Ctrl+Z toggle between two states instead of walking back
+  // through the stack).
+  function applyImage(label: string, edit: ImageEdit): void {
+    pending.images[label] = clampFraming(edit.x, edit.y, edit.zoom);
+    persist();
+  }
+
+  function removeImage(label: string): void {
+    delete pending.images[label];
+    persist();
+  }
+
+  function applyStyleMerge(id: string, patch: TextStyleEdit): void {
+    pending.styles[id] = { ...pending.styles[id], ...patch };
+    persist();
+  }
+
+  /** Full replace rather than merge — the only way to make a style id forget
+      a field, which undoing a single style click can require (e.g. undoing
+      the colour pick must not leave the colour behind because setStyle only
+      ever merges keys in). */
+  function applyStyleReplace(id: string, style: TextStyleEdit | undefined): void {
+    if (style === undefined) delete pending.styles[id];
+    else pending.styles[id] = { ...style };
+    persist();
+  }
+
+  function applyText(file: string, id: string, before: string, after: string): void {
+    pending.text[`${file}::${id}`] = { file, id, before, after };
+    persist();
+  }
+
+  function removeText(key: string): void {
+    delete pending.text[key];
+    persist();
+  }
+
   return {
     get() {
       // A deep copy: callers must not be able to bypass the setters (and
@@ -199,20 +289,23 @@ export function createStore(initial?: PanelState): Store {
       };
     },
     setImage(label, edit) {
-      pending.images[label] = clampFraming(edit.x, edit.y, edit.zoom);
-      persist();
+      pushHistory({ kind: 'image', label, prev: currentImage(label) });
+      applyImage(label, edit);
     },
     setStyle(id, patch) {
-      pending.styles[id] = { ...pending.styles[id], ...patch };
-      persist();
+      pushHistory({ kind: 'style', id, prev: currentStyle(id) });
+      applyStyleMerge(id, patch);
     },
     setText(file, id, before, after) {
-      pending.text[`${file}::${id}`] = { file, id, before, after };
-      persist();
+      const key = `${file}::${id}`;
+      const prev = pending.text[key] ? { ...pending.text[key] } : undefined;
+      pushHistory({ kind: 'text', file, id, prev });
+      applyText(file, id, before, after);
     },
     dropText(file, id) {
-      delete pending.text[`${file}::${id}`];
-      persist();
+      // Not recorded in undo history: this is the stale-save escape hatch,
+      // not a normal editing action a user would expect Ctrl+Z to reach.
+      removeText(`${file}::${id}`);
     },
     dirtyCount() {
       return (
@@ -220,6 +313,34 @@ export function createStore(initial?: PanelState): Store {
         Object.keys(pending.styles).length +
         Object.keys(pending.text).length
       );
+    },
+    canUndo() {
+      return history.length > 0;
+    },
+    undo() {
+      const h = history.pop();
+      if (!h) return null;
+      if (h.kind === 'image') {
+        if (h.prev) applyImage(h.label, h.prev);
+        else removeImage(h.label);
+        return { kind: 'image', label: h.label };
+      }
+      if (h.kind === 'style') {
+        applyStyleReplace(h.id, h.prev);
+        return { kind: 'style', id: h.id };
+      }
+      // Text: read what is about to be overwritten/removed BEFORE mutating —
+      // when there is no earlier pending entry to restore (h.prev undefined),
+      // that current entry's `before` is the only place the original,
+      // pre-edit text still lives.
+      const key = `${h.file}::${h.id}`;
+      const curBefore = pending.text[key]?.before ?? '';
+      if (h.prev) {
+        applyText(h.prev.file, h.prev.id, h.prev.before, h.prev.after);
+        return { kind: 'text', file: h.file, id: h.id, text: h.prev.after };
+      }
+      removeText(key);
+      return { kind: 'text', file: h.file, id: h.id, text: curBefore };
     },
     commit() {
       saved = { images: unionImages(), styles: unionStyles() };
@@ -229,6 +350,7 @@ export function createStore(initial?: PanelState): Store {
     clear() {
       pending = emptyPanelState();
       saved = { images: {}, styles: {} };
+      history = [];
       try { localStorage.removeItem(KEY); } catch { /* see persist() */ }
     },
   };
