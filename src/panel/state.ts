@@ -23,7 +23,21 @@ function load(): PanelState {
     ) {
       return { images: {}, styles: {} };
     }
-    return parsed;
+    // Strip __proto__ keys that JSON.parse may have created as own enumerable
+    // properties, ensuring they never enter state.
+    const images: Record<string, ImageEdit> = {};
+    for (const [k, v] of Object.entries(parsed.images)) {
+      if (k !== '__proto__') {
+        images[k] = v;
+      }
+    }
+    const styles: Record<string, TextStyleEdit> = {};
+    for (const [k, v] of Object.entries(parsed.styles)) {
+      if (k !== '__proto__') {
+        styles[k] = v;
+      }
+    }
+    return { images, styles };
   } catch {
     return { images: {}, styles: {} };
   }
@@ -51,15 +65,17 @@ export function createStore(initial?: PanelState): Store {
 
   return {
     get() {
-      // Return a copy of the state rather than the live object. This prevents
-      // callers from bypassing setImage/setStyle/persist() by mutating the
-      // returned reference, and makes clear() unobservable to captured snapshots.
-      // Only the outer object and its immediate records are copied; the leaves
-      // (ImageEdit/TextStyleEdit values) are replaced wholesale by the setters,
-      // so they do not need deep cloning.
+      // Return a deep copy of the state. This prevents callers from bypassing
+      // setImage/setStyle/persist() by mutating the returned reference, and makes
+      // clear() unobservable to captured snapshots. The leaves (ImageEdit/TextStyleEdit
+      // values) are flat objects of primitives, so a spread per entry is sufficient.
       return {
-        images: { ...state.images },
-        styles: { ...state.styles },
+        images: Object.fromEntries(
+          Object.entries(state.images).map(([k, v]) => [k, { ...v }])
+        ),
+        styles: Object.fromEntries(
+          Object.entries(state.styles).map(([k, v]) => [k, { ...v }])
+        ),
       };
     },
     setImage(label, edit) {

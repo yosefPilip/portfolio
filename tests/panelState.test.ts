@@ -83,7 +83,7 @@ describe('createStore', () => {
     expect(createStore().get().images.A).toBeDefined();
   });
 
-  it('mutating the object returned by get() does NOT change what the store returns next time (Finding 3)', () => {
+  it('mutating a key ON the returned copy does NOT affect the store (Finding 3 part 1)', () => {
     const s = createStore();
     s.setImage('A', { x: 1, y: 2, zoom: 1 });
     const snapshot = s.get();
@@ -92,10 +92,32 @@ describe('createStore', () => {
     expect(s.get().images.A).toEqual({ x: 1, y: 2, zoom: 1 });
   });
 
-  it('does not count __proto__ as a dirty slot (Finding 5)', () => {
+  it('mutating a leaf property does NOT affect the store (Finding 3 part 2)', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1 });
+
+    // Get the snapshot and mutate a leaf's property directly (bypasses clampFraming)
+    const snapshot = s.get();
+    snapshot.images.A.x = 99999;
+
+    // The store should be unaffected
+    expect(s.get().images.A.x).toBe(50);
+
+    // And the persisted value should be untouched
+    expect(createStore().get().images.A.x).toBe(50);
+  });
+
+  it('does not count __proto__ as a dirty slot (Finding 5 part 1)', () => {
     // JSON.parse can create __proto__ as an own enumerable property
     localStorage.setItem('panel:state', '{"images":{"__proto__":{}},"styles":{}}');
     const s = createStore();
     expect(s.dirtyCount()).toBe(0);
+  });
+
+  it('strips __proto__ on load so it never enters state (Finding 5 part 2)', () => {
+    localStorage.setItem('panel:state', '{"images":{"__proto__":{},"A":{"x":1,"y":2,"zoom":1}},"styles":{}}');
+    const s = createStore();
+    // Check that __proto__ is not an own property of the images object
+    expect(Object.prototype.hasOwnProperty.call(s.get().images, '__proto__')).toBe(false);
   });
 });
