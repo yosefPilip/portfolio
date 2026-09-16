@@ -19,6 +19,12 @@
   color: var(--fg);
 }
 
+/* An author-origin `display` always beats the UA stylesheet's `[hidden] {
+   display: none }` rule, regardless of specificity — origin outranks
+   specificity in the cascade. Without this, `.panel-bar { display: flex }`
+   above wins and `bar.hidden = true` has no visual effect. */
+.panel-bar[hidden] { display: none; }
+
 .panel-bar__badge {
   letter-spacing: 0.12em;
   color: var(--accent);
