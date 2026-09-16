@@ -64,4 +64,38 @@ describe('createStore', () => {
     expect(() => createStore()).not.toThrow();
     expect(createStore().dirtyCount()).toBe(0);
   });
+
+  it('discards wrong-typed persisted shape (Finding 1)', () => {
+    // strings, numbers, etc for images or styles should not be trusted
+    localStorage.setItem('panel:state', '{"images":"x","styles":1}');
+    const s = createStore();
+    expect(s.get()).toEqual({ images: {}, styles: {} });
+  });
+
+  it('discards array-shaped persisted state (Finding 2)', () => {
+    // arrays can pass the truthy check but JSON.stringify drops non-index properties,
+    // causing silent work loss on reload
+    localStorage.setItem('panel:state', '{"images":[],"styles":[]}');
+    const s = createStore();
+    s.setImage('A', { x: 1, y: 2, zoom: 1 });
+    // Without the fix, this would persist as [] and be lost on reload.
+    // With the fix, arrays are rejected and the slot edit is stored in a proper object.
+    expect(createStore().get().images.A).toBeDefined();
+  });
+
+  it('mutating the object returned by get() does NOT change what the store returns next time (Finding 3)', () => {
+    const s = createStore();
+    s.setImage('A', { x: 1, y: 2, zoom: 1 });
+    const snapshot = s.get();
+    snapshot.images.A = { x: 99, y: 99, zoom: 99 };
+    // The store should be unaffected by the mutation
+    expect(s.get().images.A).toEqual({ x: 1, y: 2, zoom: 1 });
+  });
+
+  it('does not count __proto__ as a dirty slot (Finding 5)', () => {
+    // JSON.parse can create __proto__ as an own enumerable property
+    localStorage.setItem('panel:state', '{"images":{"__proto__":{}},"styles":{}}');
+    const s = createStore();
+    expect(s.dirtyCount()).toBe(0);
+  });
 });
