@@ -66,19 +66,29 @@ export function installImageEditing(store: Store): void {
     dragging = null;
   });
 
+  // Lenis (src/shared/motion.ts) listens for 'wheel' in the bubble phase on
+  // window and does not consult event.defaultPrevented before scrolling, so
+  // preventDefault() alone never stops it. Registering here in the CAPTURE
+  // phase means this handler runs on the way down, before the event ever
+  // reaches target/bubble phase — so stopPropagation() (once we know we are
+  // actually handling the event) keeps it from ever reaching Lenis's
+  // window-level listener at all. Only stop propagation when a frame is
+  // actually under the pointer and edit mode is on; every other wheel event
+  // — panel off, or over empty page — must reach Lenis untouched so normal
+  // scrolling keeps working.
   document.addEventListener('wheel', (e) => {
     if (!isActive()) return;
     const frame = (e.target as Element).closest?.(MANIFEST.slotSelector) as HTMLElement | null;
     const img = frame?.querySelector('img') as HTMLImageElement | null;
     const label = frame?.getAttribute(MANIFEST.slotKeyAttr);
     if (!frame || !img || !label) return;
-    // Stops Lenis from scrolling the page while zooming a slot.
     e.preventDefault();
+    e.stopPropagation();
     const live = readLive(img);
     store.setImage(label, { ...live, zoom: live.zoom - e.deltaY * 0.001 });
     paint(img, store.get().images[label]);
     refreshPanel();
-  }, { passive: false });
+  }, { capture: true, passive: false });
 
   // Drag a local file onto a slot to preview it. Never written to the repo:
   // the point is judging composition before spending on a generation.
