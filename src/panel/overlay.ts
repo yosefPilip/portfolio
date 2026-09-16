@@ -6,6 +6,7 @@ import { save } from './saveClient';
 let mounted = false;
 let active = false;
 let refreshFn: (() => void) | null = null;
+let deactivateFn: (() => void) | null = null;
 
 /** Takes the store rather than creating one: the interaction modules added in
     later tasks must share this exact instance, not a second copy. */
@@ -43,7 +44,11 @@ export function mountPanel(store: Store): void {
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving…';
     try {
-      await save([{ path: MANIFEST.generatedCssPath, contents: generateCss(store.get()) }]);
+      const state = store.get();
+      await save(
+        [{ path: MANIFEST.generatedCssPath, contents: generateCss(state) }],
+        Object.values(state.text).map((t) => ({ path: t.file, id: t.id, before: t.before, after: t.after })),
+      );
       store.clear();
       saveBtn.textContent = 'Saved';
     } catch (err) {
@@ -66,6 +71,9 @@ export function mountPanel(store: Store): void {
     bar.hidden = !active;
     document.documentElement.classList.toggle('panel-active', active);
     refresh();
+    // Interaction modules with their own persistent UI (the typography/colour
+    // control box) must not linger with a stale target once edit mode is off.
+    if (!active) deactivateFn?.();
   });
 
   refresh();
@@ -82,4 +90,14 @@ export function isActive(): boolean {
     before the panel has mounted. */
 export function refreshPanel(): void {
   refreshFn?.();
+}
+
+/** Registered by an interaction module that keeps its own on-screen state
+    (a selected element, an open control box) alive independent of the bar.
+    Called once edit mode is switched off, so that state is cleared rather
+    than left showing a target no longer being edited. Only the most recent
+    registration is kept, same as `refreshFn` above — today only one module
+    (styleControls.ts) needs this. */
+export function onEditModeOff(fn: () => void): void {
+  deactivateFn = fn;
 }

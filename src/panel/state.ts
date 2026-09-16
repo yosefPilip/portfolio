@@ -1,4 +1,4 @@
-import type { PanelState, ImageEdit, TextStyleEdit } from './types';
+import type { PanelState, ImageEdit, TextStyleEdit, TextEdit } from './types';
 import { clampFraming } from './cssGenerator';
 
 const KEY = 'panel:state';
@@ -6,7 +6,7 @@ const KEY = 'panel:state';
 function load(): PanelState {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return { images: {}, styles: {} };
+    if (!raw) return { images: {}, styles: {}, text: {} };
     const parsed = JSON.parse(raw) as PanelState;
     // Corrupt or stale shapes are discarded rather than trusted: an unsaved
     // session is cheap to lose, a mangled save is not.
@@ -19,9 +19,12 @@ function load(): PanelState {
       parsed.images === null ||
       typeof parsed.styles !== 'object' ||
       Array.isArray(parsed.styles) ||
-      parsed.styles === null
+      parsed.styles === null ||
+      typeof parsed.text !== 'object' ||
+      Array.isArray(parsed.text) ||
+      parsed.text === null
     ) {
-      return { images: {}, styles: {} };
+      return { images: {}, styles: {}, text: {} };
     }
     // Strip __proto__ keys that JSON.parse may have created as own enumerable
     // properties, ensuring they never enter state.
@@ -37,9 +40,15 @@ function load(): PanelState {
         styles[k] = v;
       }
     }
-    return { images, styles };
+    const text: Record<string, TextEdit> = {};
+    for (const [k, v] of Object.entries(parsed.text)) {
+      if (k !== '__proto__') {
+        text[k] = v;
+      }
+    }
+    return { images, styles, text };
   } catch {
-    return { images: {}, styles: {} };
+    return { images: {}, styles: {}, text: {} };
   }
 }
 
@@ -47,6 +56,7 @@ export interface Store {
   get(): PanelState;
   setImage(label: string, edit: ImageEdit): void;
   setStyle(id: string, patch: TextStyleEdit): void;
+  setText(file: string, id: string, before: string, after: string): void;
   dirtyCount(): number;
   clear(): void;
 }
@@ -66,15 +76,19 @@ export function createStore(initial?: PanelState): Store {
   return {
     get() {
       // Return a deep copy of the state. This prevents callers from bypassing
-      // setImage/setStyle/persist() by mutating the returned reference, and makes
-      // clear() unobservable to captured snapshots. The leaves (ImageEdit/TextStyleEdit
-      // values) are flat objects of primitives, so a spread per entry is sufficient.
+      // setImage/setStyle/setText/persist() by mutating the returned reference, and
+      // makes clear() unobservable to captured snapshots. The leaves (ImageEdit/
+      // TextStyleEdit/TextEdit values) are flat objects of primitives, so a spread
+      // per entry is sufficient.
       return {
         images: Object.fromEntries(
           Object.entries(state.images).map(([k, v]) => [k, { ...v }])
         ),
         styles: Object.fromEntries(
           Object.entries(state.styles).map(([k, v]) => [k, { ...v }])
+        ),
+        text: Object.fromEntries(
+          Object.entries(state.text).map(([k, v]) => [k, { ...v }])
         ),
       };
     },
@@ -86,15 +100,20 @@ export function createStore(initial?: PanelState): Store {
       state.styles[id] = { ...state.styles[id], ...patch };
       persist();
     },
+    setText(file, id, before, after) {
+      state.text[`${file}::${id}`] = { file, id, before, after };
+      persist();
+    },
     dirtyCount() {
       // Count edited slots, filtering out __proto__ which JSON.parse can create
       // as an own enumerable property but is not a legitimate slot.
       const imageCount = Object.keys(state.images).filter(k => k !== '__proto__').length;
       const styleCount = Object.keys(state.styles).filter(k => k !== '__proto__').length;
-      return imageCount + styleCount;
+      const textCount = Object.keys(state.text).filter(k => k !== '__proto__').length;
+      return imageCount + styleCount + textCount;
     },
     clear() {
-      state = { images: {}, styles: {} };
+      state = { images: {}, styles: {}, text: {} };
       try { localStorage.removeItem(KEY); } catch { /* see persist() */ }
     },
   };

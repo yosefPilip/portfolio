@@ -1,7 +1,7 @@
 import type { StepKey, ColorKey } from './types';
 import type { Store } from './state';
 import { MANIFEST } from './manifest';
-import { isActive, refreshPanel } from './overlay';
+import { isActive, refreshPanel, onEditModeOff } from './overlay';
 import { contrastRatio } from '../lib/contrast';
 
 /**
@@ -147,5 +147,14 @@ export function installStyleControls(store: Store): void {
     const el = (e.target as Element).closest?.(`[${MANIFEST.editAttr}]`) as HTMLElement | null;
     if (!el) return;
     select(el);
+  });
+
+  // Leaving edit mode must hide the box and drop the stale target — otherwise
+  // it stays on screen pointing at an element nobody is editing anymore, and
+  // (since `select` no-ops when `target === el`) re-entering edit mode and
+  // clicking the same element again would silently fail to reopen it.
+  onEditModeOff(() => {
+    box.hidden = true;
+    target = null;
   });
 }

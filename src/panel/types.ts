@@ -24,14 +24,25 @@ export interface TextStyleEdit {
   color?: ColorKey;
 }
 
+/** Pending text edits, keyed "<file>::<data-edit id>". */
+export interface TextEdit {
+  file: string;
+  id: string;
+  before: string;
+  after: string;
+}
+
 /**
- * Everything the panel can express as CSS.
+ * Everything the panel can express as CSS, plus pending text edits.
  *
- * `images` is keyed by the frame's `data-label`; `styles` by the element's
- * `data-edit` id. Text *content* is deliberately absent — it travels the other
- * write path and never touches this file.
+ * `images` is keyed by the frame's `data-label`; `styles` and `text` by the
+ * element's `data-edit` id (`text` additionally namespaced by file, since the
+ * same id could in principle appear on two different pages). `generateCss`
+ * ignores `text` entirely — it travels the other write path, the HTML patcher,
+ * never the generated stylesheet.
  */
 export interface PanelState {
   images: Record<string, ImageEdit>;
   styles: Record<string, TextStyleEdit>;
+  text: Record<string, TextEdit>;
 }

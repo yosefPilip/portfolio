@@ -3,7 +3,7 @@ import { findHardcodedHex } from '../src/lib/guards';
 import { clampFraming, generateCss } from '../src/panel/cssGenerator';
 import type { PanelState } from '../src/panel/types';
 
-const empty: PanelState = { images: {}, styles: {} };
+const empty: PanelState = { images: {}, styles: {}, text: {} };
 
 describe('clampFraming', () => {
   it('keeps in-range values untouched', () => {
@@ -38,6 +38,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: { 'Hero L1 — jungle-far': { x: 42, y: 61, zoom: 1.12 } },
       styles: {},
+      text: {},
     });
     expect(css).toContain('.frame[data-label="Hero L1 — jungle-far"] img');
     expect(css).toContain('object-position: 42% 61%;');
@@ -45,13 +46,13 @@ describe('generateCss', () => {
   });
 
   it('omits a zoom declaration when zoom is exactly 1', () => {
-    const css = generateCss({ images: { A: { x: 10, y: 20, zoom: 1 } }, styles: {} });
+    const css = generateCss({ images: { A: { x: 10, y: 20, zoom: 1 } }, styles: {}, text: {} });
     expect(css).toContain('object-position: 10% 20%;');
     expect(css).not.toContain('--img-zoom');
   });
 
   it('escapes quotes and backslashes in a slot label', () => {
-    const css = generateCss({ images: { 'He said "hi" \\ bye': { x: 0, y: 0, zoom: 1 } }, styles: {} });
+    const css = generateCss({ images: { 'He said "hi" \\ bye': { x: 0, y: 0, zoom: 1 } }, styles: {}, text: {} });
     expect(css).toContain('[data-label="He said \\"hi\\" \\\\ bye"]');
   });
 
@@ -59,6 +60,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: {},
       styles: { 'hero.intro': { font: 'body', step: 'lede', color: 'fg-dim' } },
+      text: {},
     });
     expect(css).toContain('[data-edit="hero.intro"]');
     expect(css).toContain('font-family: var(--font-body);');
@@ -70,6 +72,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: { A: { x: 1, y: 2, zoom: 1.5 } },
       styles: { b: { font: 'display', step: 'h1', color: 'accent' } },
+      text: {},
     });
     expect(findHardcodedHex(css)).toEqual([]);
     expect(css).not.toMatch(/#[0-9a-f]{3,8}\b/i);
@@ -77,8 +80,8 @@ describe('generateCss', () => {
   });
 
   it('sorts keys so two identical states produce byte-identical files', () => {
-    const a = generateCss({ images: { b: { x: 1, y: 1, zoom: 1 }, a: { x: 2, y: 2, zoom: 1 } }, styles: {} });
-    const b = generateCss({ images: { a: { x: 2, y: 2, zoom: 1 }, b: { x: 1, y: 1, zoom: 1 } }, styles: {} });
+    const a = generateCss({ images: { b: { x: 1, y: 1, zoom: 1 }, a: { x: 2, y: 2, zoom: 1 } }, styles: {}, text: {} });
+    const b = generateCss({ images: { a: { x: 2, y: 2, zoom: 1 }, b: { x: 1, y: 1, zoom: 1 } }, styles: {}, text: {} });
     expect(a).toBe(b);
   });
 
@@ -87,6 +90,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: {},
       styles: { test: { color: 'x); } body{background:#000} /*' as any } },
+      text: {},
     });
     // The invalid color key should be skipped, so no color declaration at all
     expect(css).not.toContain('color:');
@@ -98,6 +102,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: {},
       styles: { test: { font: 'invalid-font' as any } },
+      text: {},
     });
     // The invalid font key should be skipped
     expect(css).not.toContain('font-family:');
@@ -107,6 +112,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: {},
       styles: { test: { step: 'invalid-step' as any } },
+      text: {},
     });
     // The invalid step key should be skipped
     expect(css).not.toContain('font-size:');
@@ -117,6 +123,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: { test: { x: NaN, y: Infinity, zoom: -Infinity } },
       styles: {},
+      text: {},
     });
     // Should produce a valid rule with clamped values
     expect(css).toContain('object-position:');
@@ -128,6 +135,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: { 'A\nBeef': { x: 0, y: 0, zoom: 1 } },
       styles: {},
+      text: {},
     });
     // Newline should be escaped as \a SPACE (with terminating space to stop hex consumption)
     // Without the space, \aBeef would parse as a single 5-hex-digit escape consuming "Beef"
@@ -139,6 +147,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: { 'A\r5': { x: 0, y: 0, zoom: 1 } },
       styles: {},
+      text: {},
     });
     // Carriage return should be escaped as \d SPACE (with terminating space)
     // Without the space, \d5 would be a 2-hex-digit escape
@@ -150,6 +159,7 @@ describe('generateCss', () => {
     const css = generateCss({
       images: {},
       styles: { test: { color: 'constructor' as any, font: 'toString' as any, step: '__proto__' as any } },
+      text: {},
     });
     // Prototype pollution attempt: these should all be rejected
     expect(css).not.toContain('var(--constructor)');

@@ -2,6 +2,7 @@ import '../styles/panel.css';
 import { mountPanel } from './overlay';
 import { installImageEditing } from './imageEditing';
 import { installStyleControls } from './styleControls';
+import { installTextEditing } from './textEditing';
 import { createStore } from './state';
 
 export function initPanel(): void {
@@ -10,4 +11,5 @@ export function initPanel(): void {
   mountPanel(store);
   installImageEditing(store);
   installStyleControls(store);
+  installTextEditing(store);
 }

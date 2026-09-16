@@ -2,6 +2,7 @@ import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 import { resolveWriteTarget } from './paths';
+import { patchHtml, type TextPatch } from './htmlPatcher';
 
 interface SaveFile {
   path: string;
@@ -10,6 +11,7 @@ interface SaveFile {
 
 interface SavePayload {
   files: SaveFile[];
+  patches?: Array<{ path: string } & TextPatch>;
 }
 
 /**
@@ -27,6 +29,17 @@ function isSaveFile(value: unknown): value is SaveFile {
     value !== null &&
     typeof (value as SaveFile).path === 'string' &&
     typeof (value as SaveFile).contents === 'string'
+  );
+}
+
+function isTextPatchEntry(value: unknown): value is { path: string } & TextPatch {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { path: unknown }).path === 'string' &&
+    typeof (value as { id: unknown }).id === 'string' &&
+    typeof (value as { before: unknown }).before === 'string' &&
+    typeof (value as { after: unknown }).after === 'string'
   );
 }
 
@@ -141,6 +154,23 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
         }
         return { abs: resolveWriteTarget(f.path), contents: f.contents };
       });
+
+      const rawPatches = (payload as SavePayload).patches;
+      if (rawPatches !== undefined && !Array.isArray(rawPatches)) {
+        throw new Error('"patches" must be an array when present');
+      }
+      // Group patches per file, apply them all in memory, and let any
+      // failure throw before a single write happens.
+      const patched = new Map<string, string>();
+      for (const p of rawPatches ?? []) {
+        if (!isTextPatchEntry(p)) {
+          throw new Error('Each patch entry needs string "path", "id", "before" and "after"');
+        }
+        const abs = resolveWriteTarget(p.path);
+        const current = patched.get(abs) ?? readFileSync(abs, 'utf8');
+        patched.set(abs, patchHtml(current, [{ id: p.id, before: p.before, after: p.after }]));
+      }
+      for (const [abs, contents] of patched) targets.push({ abs, contents });
     } catch (err) {
       // Safe to return verbatim: this message names only the caller's own
       // input (the rejected path, or a shape complaint) — never a

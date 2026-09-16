@@ -21,7 +21,7 @@ describe('createStore', () => {
   it('starts empty and clean', () => {
     const s = createStore();
     expect(s.dirtyCount()).toBe(0);
-    expect(s.get()).toEqual({ images: {}, styles: {} });
+    expect(s.get()).toEqual({ images: {}, styles: {}, text: {} });
   });
 
   it('clamps framing on the way in', () => {
@@ -69,7 +69,7 @@ describe('createStore', () => {
     // strings, numbers, etc for images or styles should not be trusted
     localStorage.setItem('panel:state', '{"images":"x","styles":1}');
     const s = createStore();
-    expect(s.get()).toEqual({ images: {}, styles: {} });
+    expect(s.get()).toEqual({ images: {}, styles: {}, text: {} });
   });
 
   it('discards array-shaped persisted state (Finding 2)', () => {
