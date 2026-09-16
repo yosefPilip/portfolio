@@ -5,6 +5,7 @@ import { save } from './saveClient';
 
 let mounted = false;
 let active = false;
+let refreshFn: (() => void) | null = null;
 
 /** Takes the store rather than creating one: the interaction modules added in
     later tasks must share this exact instance, not a second copy. */
@@ -36,6 +37,7 @@ export function mountPanel(store: Store): void {
     count.textContent = n === 0 ? 'no changes' : `${n} pending`;
     saveBtn.disabled = n === 0;
   }
+  refreshFn = refresh;
 
   saveBtn.addEventListener('click', async () => {
     saveBtn.disabled = true;
@@ -55,7 +57,10 @@ export function mountPanel(store: Store): void {
   });
 
   document.addEventListener('keydown', (e) => {
-    if (!(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'e')) return;
+    // e.code names the physical key, not the character it produces, so this
+    // still fires under a non-QWERTY layout (e.g. Cyrillic) where e.key would
+    // never be 'e' even with the physical E key held under Ctrl+Shift.
+    if (!(e.ctrlKey && e.shiftKey && e.code === 'KeyE')) return;
     e.preventDefault();
     active = !active;
     bar.hidden = !active;
@@ -69,4 +74,12 @@ export function mountPanel(store: Store): void {
 /** Whether edit mode is currently on. Read by the interaction modules. */
 export function isActive(): boolean {
   return active;
+}
+
+/** Called by the interaction modules after they write to the store, so the
+    badge's pending count and the Save button's disabled state pick up the
+    change immediately instead of waiting for the next hotkey toggle. A no-op
+    before the panel has mounted. */
+export function refreshPanel(): void {
+  refreshFn?.();
 }
