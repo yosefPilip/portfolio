@@ -26,6 +26,23 @@ function walk(node: Node, visit: (el: Element) => void): void {
 }
 
 /**
+ * Elements whose content is the HTML tokenizer's RAWTEXT state: entities are
+ * never decoded inside them (unlike RCDATA elements `title`/`textarea`,
+ * which decode correctly). `escapeHtml` always HTML-escapes `after`, so
+ * writing into one of these would permanently corrupt the payload — e.g.
+ * `a < b` inside `<script>` becomes the literal, never-decoded text
+ * `a &lt; b`, which is broken JavaScript, not an entity a browser resolves.
+ *
+ * A denylist, not an allowlist of "safe" flow content: the defect is
+ * specific to this one content model, and an allowlist would have to
+ * enumerate every tag this site's authors are allowed to put `data-edit` on,
+ * rejecting legitimate future markup it doesn't yet know about. Denylisting
+ * the actual defect keeps the blast radius to the tags that are provably
+ * broken.
+ */
+const RAWTEXT_TAGS = new Set(['script', 'style', 'xmp', 'iframe', 'noembed', 'noframes']);
+
+/**
  * Replace the text inside `[data-edit]` elements, touching nothing else.
  *
  * Every patch is resolved and validated BEFORE a single byte is written, so a
@@ -35,16 +52,46 @@ function walk(node: Node, visit: (el: Element) => void): void {
 export function patchHtml(source: string, patches: TextPatch[]): string {
   if (patches.length === 0) return source;
 
+  // Two patches targeting the same id would resolve to the same element and
+  // produce identical {start,end} ranges; applying both corrupts the file,
+  // because the second splice uses a stale `end` against the string the
+  // first splice already shortened. Catch it before any parsing or offset
+  // work happens at all.
+  const seenIds = new Set<string>();
+  for (const patch of patches) {
+    if (seenIds.has(patch.id)) {
+      throw new Error(`Refusing to patch: duplicate id "${patch.id}" appears more than once in the same batch`);
+    }
+    seenIds.add(patch.id);
+  }
+
   const doc = parse(source, { sourceCodeLocationInfo: true });
   const byId = new Map<string, Element>();
   walk(doc, (el) => {
     const attr = el.attrs?.find((a) => a.name === 'data-edit');
-    if (attr) byId.set(attr.value, el);
+    if (attr) {
+      // data-edit is a system-wide unique key (the CSS generator emits
+      // `[data-edit="<id>"]` as a selector), so last-wins is never correct:
+      // it would silently edit a different element than the one the panel
+      // showed the user.
+      if (byId.has(attr.value)) {
+        throw new Error(
+          `Refusing to patch: duplicate data-edit="${attr.value}" found on more than one element in the document`,
+        );
+      }
+      byId.set(attr.value, el);
+    }
   });
 
   const edits = patches.map((patch) => {
     const el = byId.get(patch.id);
     if (!el) throw new Error(`No element with data-edit="${patch.id}"`);
+
+    if (RAWTEXT_TAGS.has(el.tagName)) {
+      throw new Error(
+        `Refusing to patch "${patch.id}": <${el.tagName}> content is raw text and never decodes HTML entities, so it cannot be safely rewritten`,
+      );
+    }
 
     const kids = el.childNodes ?? [];
     const textOnly = kids.length === 0 || (kids.length === 1 && kids[0].nodeName === '#text');
@@ -61,7 +108,10 @@ export function patchHtml(source: string, patches: TextPatch[]): string {
 
     const loc = el.sourceCodeLocation;
     if (!loc?.startTag || !loc?.endTag) {
-      throw new Error(`Refusing to patch "${patch.id}": no source location (is it a void element?)`);
+      throw new Error(
+        `Refusing to patch "${patch.id}": no closing-tag location found — likely an omitted end tag ` +
+          `(e.g. <p>, <li>, <td> implicitly closed by what follows), or, less commonly, a void element`,
+      );
     }
 
     return { start: loc.startTag.endOffset, end: loc.endTag.startOffset, after: escapeHtml(patch.after) };
