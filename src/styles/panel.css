@@ -81,6 +81,11 @@
   color: var(--fg);
 }
 
+/* Same cascade fact as .panel-bar above: an author-origin `display` beats the
+   UA `[hidden] { display: none }` rule regardless of specificity, so without
+   this override `box.hidden = true` has no visual effect. */
+.panel-controls[hidden] { display: none; }
+
 .panel-controls__row { display: flex; align-items: center; gap: 6px; }
 .panel-controls__row > span { min-width: 5ch; color: var(--muted); }
 

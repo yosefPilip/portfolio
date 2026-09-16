@@ -56,6 +56,14 @@ export function colorAllowed(color: ColorKey, room: string): boolean {
   return contrastRatio(fg, bg) >= 4.5;
 }
 
+/**
+ * What a control row writes back, independent of its human-readable label.
+ * `applyLive` switches on this, never on the label string, so renaming a
+ * label (e.g. 'Colour' -> 'Color') is a copy edit, not a silent behaviour
+ * change, and passing the wrong one is a compile error rather than a no-op.
+ */
+type ControlKind = 'font' | 'step' | 'color';
+
 export function installStyleControls(store: Store): void {
   const room = document.body.dataset.room ?? 'home';
 
@@ -67,15 +75,28 @@ export function installStyleControls(store: Store): void {
   let target: HTMLElement | null = null;
 
   function select(el: HTMLElement): void {
+    // Selecting the element already selected would wipe box.innerHTML and
+    // rebuild all three rows for no reason; once [data-edit] elements become
+    // contentEditable (a later task) this would fire on every caret move
+    // inside already-selected text mid-edit.
+    if (target === el) return;
+
+    const id = el.getAttribute(MANIFEST.editAttr);
+    // A real guard rather than a `!` assertion: `el` is only ever handed in
+    // from a `.closest('[data-edit]')` match today, so this never trips, but
+    // a future caller that hands in some other element now fails loudly
+    // instead of writing state under the string "null".
+    if (id === null) return;
+
     target = el;
-    const id = el.getAttribute(MANIFEST.editAttr)!;
     box.innerHTML = '';
 
-    box.append(row('Font', MANIFEST.fonts, (v) => { store.setStyle(id, { font: v }); refreshPanel(); }));
-    box.append(row('Size', MANIFEST.steps, (v) => { store.setStyle(id, { step: v }); refreshPanel(); }));
+    box.append(row('Font', 'font', MANIFEST.fonts, (v) => { store.setStyle(id, { font: v }); refreshPanel(); }));
+    box.append(row('Size', 'step', MANIFEST.steps, (v) => { store.setStyle(id, { step: v }); refreshPanel(); }));
     box.append(
       row(
         'Colour',
+        'color',
         // Only tokens that actually clear contrast in THIS room are offered, so
         // an unreadable combination cannot be chosen in the first place.
         MANIFEST.colors.filter((c) => colorAllowed(c, room)),
@@ -85,7 +106,12 @@ export function installStyleControls(store: Store): void {
     box.hidden = false;
   }
 
-  function row<T extends string>(label: string, values: T[], onPick: (v: T) => void): HTMLElement {
+  function row<T extends string>(
+    label: string,
+    kind: ControlKind,
+    values: T[],
+    onPick: (v: T) => void,
+  ): HTMLElement {
     const wrap = document.createElement('div');
     wrap.className = 'panel-controls__row';
     const name = document.createElement('span');
@@ -97,17 +123,23 @@ export function installStyleControls(store: Store): void {
       b.textContent = v;
       b.addEventListener('click', () => {
         onPick(v);
-        if (target) applyLive(target, label, v);
+        if (target) applyLive(target, kind, v);
       });
       wrap.appendChild(b);
     }
     return wrap;
   }
 
-  function applyLive(el: HTMLElement, label: string, v: string): void {
-    if (label === 'Font') el.style.fontFamily = `var(--font-${v})`;
-    if (label === 'Size') el.style.fontSize = `var(--step-${v})`;
-    if (label === 'Colour') el.style.color = `var(--${v})`;
+  function applyLive(el: HTMLElement, kind: ControlKind, v: string): void {
+    // The next task makes [data-edit] elements contentEditable; once it does,
+    // a stale `target` that has since left the document must not silently
+    // write a live style nobody can see.
+    if (!document.contains(el)) return;
+    switch (kind) {
+      case 'font': el.style.fontFamily = `var(--font-${v})`; break;
+      case 'step': el.style.fontSize = `var(--step-${v})`; break;
+      case 'color': el.style.color = `var(--${v})`; break;
+    }
   }
 
   document.addEventListener('click', (e) => {
