@@ -42,9 +42,16 @@ function rowFor(slug: string): string {
   return html.slice(start, end);
 }
 
-/** The decoded text of the one `<span class="<cls> …">` inside a row. */
+/**
+ * The decoded text of the one `<span class="<cls> …">` inside a row.
+ *
+ * Attribute-tolerant on purpose: these spans also carry the visual editing
+ * panel's `data-edit` id, so the class is no longer guaranteed to be the first
+ * attribute or the one abutting the `>`. The assertion itself is unchanged —
+ * the span must still carry the class, and its text is still compared exactly.
+ */
 function cellText(row: string, cls: string): string {
-  const match = row.match(new RegExp(`<span class="${cls}[^"]*">([\\s\\S]*?)</span>`));
+  const match = row.match(new RegExp(`<span [^>]*class="${cls}[^"]*"[^>]*>([\\s\\S]*?)</span>`));
   if (!match) throw new Error(`No .${cls} in row`);
   return decodeEntities(match[1]).replace(/\s+/g, ' ').trim();
 }

@@ -38,16 +38,16 @@
     <button class="mobile-menu__close" id="menuClose" aria-label="Close menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
     </button>
-    <a href="/">Home</a>
-    <a href="/projects.html">Projects</a>
-    <a href="/music.html">DJ &amp; Music</a>
-    <a href="/workshop.html">Workshop</a>
+    <a href="/" data-edit="page.link1">Home</a>
+    <a href="/projects.html" data-edit="page.link2">Projects</a>
+    <a href="/music.html" data-edit="page.link3">DJ &amp; Music</a>
+    <a href="/workshop.html" data-edit="page.link4">Workshop</a>
   </div>
 
   <main class="cs">
 
     <aside class="cs-rail">
-      <a class="cs-rail__back" href="/projects.html">&larr; All projects</a>
+      <a class="cs-rail__back" href="/projects.html" data-edit="page.link5">&larr; All projects</a>
       <nav data-rail="sections" aria-label="Sections of this case study">
         <a href="#idea">The idea</a>
         <a href="#map">The map</a>
@@ -140,8 +140,8 @@
         </div>
         <div>
           <p data-edit="authentic.body">The obvious version of this is a QR code taped to the wall. It&rsquo;s also the broken version: a QR code is just a picture, and a picture can be screenshotted and sent to a group chat. Then nobody has to go anywhere.</p>
-          <p>So collection runs on <strong>NFC</strong> instead &mdash; you physically tap the phone against the piece. That put me inside a real constraint set, because iOS and Web NFC disagree about a lot and neither gives you everything you&rsquo;d want.</p>
-          <p>I architected around those limits with an upgrade path to <strong>NTAG 424 DNA</strong> chips, which sign each tap rather than just handing over a static payload. That&rsquo;s the difference between &ldquo;this tag exists somewhere&rdquo; and &ldquo;this person tapped this tag.&rdquo;</p>
+          <p>So collection runs on <strong data-edit="authentic.emphasis1">NFC</strong> instead &mdash; you physically tap the phone against the piece. That put me inside a real constraint set, because iOS and Web NFC disagree about a lot and neither gives you everything you&rsquo;d want.</p>
+          <p>I architected around those limits with an upgrade path to <strong data-edit="authentic.emphasis2">NTAG 424 DNA</strong> chips, which sign each tap rather than just handing over a static payload. That&rsquo;s the difference between &ldquo;this tag exists somewhere&rdquo; and &ldquo;this person tapped this tag.&rdquo;</p>
         </div>
       </section>
 

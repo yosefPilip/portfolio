@@ -60,9 +60,14 @@ describe('workshop.html', () => {
   });
 
   it('sets each act as RE with a changing suffix', () => {
-    expect(html).toContain('>Re</span><span class="act__suffix">scue<');
-    expect(html).toContain('>Re</span><span class="act__suffix">new<');
-    expect(html).toContain('>Re</span><span class="act__suffix">sell<');
+    // Attribute-tolerant between the class and the `>`: the suffix span now also
+    // carries the visual editing panel's data-edit id. The split itself — "Re"
+    // immediately followed by its suffix span — is still asserted exactly.
+    for (const suffix of ['scue', 'new', 'sell']) {
+      expect(html, suffix).toMatch(
+        new RegExp(`>Re</span><span [^>]*class="act__suffix"[^>]*>${suffix}<`),
+      );
+    }
   });
 
   it('carries the manufacturing background', () => {
