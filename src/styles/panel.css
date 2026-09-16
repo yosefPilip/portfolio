@@ -64,3 +64,34 @@
   font-family: var(--font-mono);
   font-size: var(--step-meta);
 }
+
+.panel-controls {
+  position: fixed;
+  z-index: 9999;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--step-meta);
+  color: var(--fg);
+}
+
+.panel-controls__row { display: flex; align-items: center; gap: 6px; }
+.panel-controls__row > span { min-width: 5ch; color: var(--muted); }
+
+.panel-controls__row button {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 3px 8px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+.panel-active [data-edit] { outline: 1px dashed var(--accent-2); outline-offset: 2px; }
