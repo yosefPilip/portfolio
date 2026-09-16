@@ -23,10 +23,20 @@ export const MANIFEST = {
   steps: ['wordmark', 'display', 'h1', 'h2', 'lede', 'body', 'meta'] as StepKey[],
   colors: ['fg', 'fg-dim', 'muted', 'accent', 'accent-2'] as ColorKey[],
 
-  /** Which HTML file backs a given URL path. */
+  /**
+   * Which HTML file backs a given URL path.
+   *
+   * Extensionless URLs are the site's real shape, not an edge case:
+   * `caseStudyRoute.pathForSlug` builds `/projects/cache-it`, projects.html
+   * pushes exactly that, and the rooms are linked as `/projects`, `/music`,
+   * `/workshop`. Returning the path unchanged handed the endpoint
+   * `projects/cache-it`, which is not on the write allowlist, so every text
+   * save from a case study was rejected. A trailing slash is tolerated for
+   * the same reason `slugFromPath` tolerates it.
+   */
   pageForPath(pathname: string): string {
-    const clean = pathname.replace(/^\//, '');
-    if (clean === '' || clean === 'index.html') return 'index.html';
-    return clean;
+    const clean = pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+    if (clean === '') return 'index.html';
+    return clean.endsWith('.html') ? clean : `${clean}.html`;
   },
 };

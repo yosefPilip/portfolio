@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { patchHtml } from '../src/panel/server/htmlPatcher';
+import { patchHtml, isStaleTextError } from '../src/panel/server/htmlPatcher';
 import { MANIFEST } from '../src/panel/manifest';
 
 const DOC = `<!DOCTYPE html>
@@ -43,6 +43,51 @@ describe('patchHtml', () => {
         { id: 'b', before: 'Stale', after: 'Nope' },
       ]),
     ).toThrow(/changed on disk/i);
+  });
+
+  it('carries the stale ids structurally, not only in the message', () => {
+    // The client offers to discard exactly these. Regexing them back out of a
+    // human sentence would break the recovery the next time the copy changes.
+    try {
+      patchHtml(DOC, [{ id: 'a', before: 'Stale value', after: 'New' }]);
+      expect.unreachable('should have thrown');
+    } catch (err) {
+      expect(isStaleTextError(err)).toBe(true);
+      expect((err as { staleIds: string[] }).staleIds).toEqual(['a']);
+    }
+  });
+
+  it('collects EVERY stale id in the batch, so one discard clears them all', () => {
+    try {
+      patchHtml(DOC, [
+        { id: 'a', before: 'Stale one', after: 'x' },
+        { id: 'b', before: 'Stale two', after: 'y' },
+      ]);
+      expect.unreachable('should have thrown');
+    } catch (err) {
+      expect((err as { staleIds: string[] }).staleIds).toEqual(['a', 'b']);
+    }
+  });
+
+  it('tells the user a recovery that actually works — reloading is not one', () => {
+    // The old message said "Reload the page and try again", which re-hydrates
+    // the same stale edit from localStorage and 400s forever.
+    try {
+      patchHtml(DOC, [{ id: 'a', before: 'Stale value', after: 'New' }]);
+      expect.unreachable('should have thrown');
+    } catch (err) {
+      expect((err as Error).message).toMatch(/discard/i);
+      expect((err as Error).message).not.toMatch(/reload the page and try again/i);
+    }
+  });
+
+  it('does not mark a structural failure as stale', () => {
+    try {
+      patchHtml(DOC, [{ id: 'c', before: 'Has markup inside', after: 'x' }]);
+      expect.unreachable('should have thrown');
+    } catch (err) {
+      expect(isStaleTextError(err)).toBe(false);
+    }
   });
 
   it('refuses an element containing nested markup', () => {

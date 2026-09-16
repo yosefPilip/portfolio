@@ -47,6 +47,35 @@ function walk(node: Node, visit: (el: Element) => void): void {
 const RAWTEXT_TAGS = new Set(['script', 'style', 'xmp', 'iframe', 'noembed', 'noframes', 'noscript']);
 
 /**
+ * A stale-text abort, carrying the ids that no longer match the file.
+ *
+ * Typed rather than left to the caller to regex out of the message: the client
+ * offers to discard exactly these edits, and coupling that recovery to the
+ * wording of a human-readable sentence would break the escape hatch the next
+ * time the copy is improved.
+ */
+export interface StaleTextError extends Error {
+  staleIds: string[];
+}
+
+export function isStaleTextError(err: unknown): err is StaleTextError {
+  return err instanceof Error && Array.isArray((err as StaleTextError).staleIds);
+}
+
+function staleTextError(ids: string[]): StaleTextError {
+  const one = ids.length === 1;
+  const err = new Error(
+    `Refusing to patch ${ids.map((id) => `"${id}"`).join(', ')}: the source text changed on disk ` +
+      `since ${one ? 'this edit was' : 'these edits were'} made, so it no longer matches what ` +
+      `${one ? 'the edit was' : 'the edits were'} based on. Reloading will NOT clear this — the ` +
+      `edit is restored from the panel's own storage. Discard the conflicting text ` +
+      `edit${one ? '' : 's'} to keep saving.`,
+  ) as StaleTextError;
+  err.staleIds = ids;
+  return err;
+}
+
+/**
  * Replace the text inside `[data-edit]` elements, touching nothing else.
  *
  * Every patch is resolved and validated BEFORE a single byte is written, so a
@@ -87,7 +116,14 @@ export function patchHtml(source: string, patches: TextPatch[]): string {
     }
   });
 
-  const edits = patches.map((patch) => {
+  // Every stale id in the batch is collected rather than thrown on sight, so
+  // one round of "discard these" clears all of them instead of surfacing the
+  // next conflict on every retry. Nothing is written either way — the throw
+  // below still aborts the whole batch.
+  const stale: string[] = [];
+  const edits: Array<{ start: number; end: number; after: string }> = [];
+
+  for (const patch of patches) {
     const el = byId.get(patch.id);
     if (!el) throw new Error(`No element with data-edit="${patch.id}"`);
 
@@ -105,9 +141,8 @@ export function patchHtml(source: string, patches: TextPatch[]): string {
 
     const current = kids.length === 0 ? '' : ((kids[0] as { value: string }).value ?? '');
     if (current !== patch.before) {
-      throw new Error(
-        `Refusing to patch "${patch.id}": the file changed on disk. Reload the page and try again.`,
-      );
+      stale.push(patch.id);
+      continue;
     }
 
     const loc = el.sourceCodeLocation;
@@ -118,8 +153,10 @@ export function patchHtml(source: string, patches: TextPatch[]): string {
       );
     }
 
-    return { start: loc.startTag.endOffset, end: loc.endTag.startOffset, after: escapeHtml(patch.after) };
-  });
+    edits.push({ start: loc.startTag.endOffset, end: loc.endTag.startOffset, after: escapeHtml(patch.after) });
+  }
+
+  if (stale.length > 0) throw staleTextError(stale);
 
   let out = source;
   for (const e of [...edits].sort((a, b) => b.start - a.start)) {

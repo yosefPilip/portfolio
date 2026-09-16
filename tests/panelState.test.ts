@@ -3,6 +3,18 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createStore } from '../src/panel/state';
 import { MANIFEST } from '../src/panel/manifest';
 
+/** Mirrors server/paths.ts's allowlist. Duplicated rather than imported:
+    src/panel/server/ is a separate tsconfig project that browser-side code —
+    and this file, which imports browser-side code — must not reach into. */
+const ALLOWED_TARGETS = [
+  'src/styles/layout.generated.css',
+  'index.html',
+  'projects.html',
+  'music.html',
+  'workshop.html',
+  'projects/cache-it.html',
+];
+
 beforeEach(() => localStorage.clear());
 
 describe('MANIFEST', () => {
@@ -14,6 +26,27 @@ describe('MANIFEST', () => {
     expect(MANIFEST.pageForPath('/')).toBe('index.html');
     expect(MANIFEST.pageForPath('/music.html')).toBe('music.html');
     expect(MANIFEST.pageForPath('/projects/cache-it.html')).toBe('projects/cache-it.html');
+  });
+
+  it('maps the extensionless URLs the site actually produces to their .html file', () => {
+    // caseStudyRoute.pathForSlug builds exactly this, and projects.html pushes
+    // it. Returning it unchanged handed the endpoint "projects/cache-it",
+    // which resolveWriteTarget rejects — every case-study text save failed.
+    expect(MANIFEST.pageForPath('/projects/cache-it')).toBe('projects/cache-it.html');
+    expect(MANIFEST.pageForPath('/projects')).toBe('projects.html');
+    expect(MANIFEST.pageForPath('/music')).toBe('music.html');
+    expect(MANIFEST.pageForPath('/workshop')).toBe('workshop.html');
+  });
+
+  it('tolerates a trailing slash, as slugFromPath does', () => {
+    expect(MANIFEST.pageForPath('/projects/cache-it/')).toBe('projects/cache-it.html');
+    expect(MANIFEST.pageForPath('/')).toBe('index.html');
+  });
+
+  it('maps every real route onto a path the write allowlist accepts', () => {
+    for (const url of ['/', '/index.html', '/projects', '/music', '/workshop', '/projects/cache-it']) {
+      expect(ALLOWED_TARGETS, url).toContain(MANIFEST.pageForPath(url));
+    }
   });
 });
 
@@ -153,5 +186,148 @@ describe('createStore', () => {
     const s = createStore();
     // Check that __proto__ is not an own property of the images object
     expect(Object.prototype.hasOwnProperty.call(s.get().images, '__proto__')).toBe(false);
+  });
+});
+
+describe('saved vs pending — a Save must never delete what an earlier Save wrote', () => {
+  it('keeps a committed framing rule in the state generateCss is handed', () => {
+    const s = createStore();
+    s.setImage('Hero L5', { x: 42, y: 61, zoom: 1.12 });
+    s.commit();
+    // The next Save rewrites layout.generated.css WHOLESALE from this state.
+    // If the slot is missing here, that write silently deletes its rule.
+    expect(s.get().images['Hero L5']).toEqual({ x: 42, y: 61, zoom: 1.12 });
+  });
+
+  it('a later text-only save still carries every earlier framing rule', () => {
+    const s = createStore();
+    s.setImage('Hero L5', { x: 42, y: 61, zoom: 1.12 });
+    s.commit();
+    s.setText('index.html', 'hero.intro', 'Old', 'New');
+    s.commit();
+    expect(s.get().images['Hero L5']).toEqual({ x: 42, y: 61, zoom: 1.12 });
+  });
+
+  it('returns the pending count to zero on commit, so the badge means "unsaved"', () => {
+    const s = createStore();
+    s.setImage('Hero L5', { x: 1, y: 2, zoom: 1 });
+    s.setStyle('hero.intro', { font: 'mono' });
+    s.setText('index.html', 'hero.intro', 'Old', 'New');
+    expect(s.dirtyCount()).toBe(3);
+    s.commit();
+    expect(s.dirtyCount()).toBe(0);
+  });
+
+  it('drops committed text edits — they are in the HTML and must not re-apply', () => {
+    const s = createStore();
+    s.setText('index.html', 'hero.intro', 'Old', 'New');
+    s.commit();
+    expect(s.get().text).toEqual({});
+  });
+
+  it('UPDATES a re-edited slot rather than duplicating it', () => {
+    const s = createStore();
+    s.setImage('Hero L5', { x: 42, y: 61, zoom: 1.12 });
+    s.commit();
+    s.setImage('Hero L5', { x: 10, y: 20, zoom: 1 });
+    expect(Object.keys(s.get().images)).toEqual(['Hero L5']);
+    expect(s.get().images['Hero L5']).toEqual({ x: 10, y: 20, zoom: 1 });
+  });
+
+  it('merges a pending style patch onto a committed one for the same block', () => {
+    const s = createStore();
+    s.setStyle('hero.intro', { font: 'mono' });
+    s.commit();
+    s.setStyle('hero.intro', { color: 'muted' });
+    expect(s.get().styles['hero.intro']).toEqual({ font: 'mono', color: 'muted' });
+  });
+
+  it('survives a reload: committed rules come back, the pending count does not', () => {
+    const s = createStore();
+    s.setImage('Hero L5', { x: 42, y: 61, zoom: 1.12 });
+    s.setStyle('hero.intro', { font: 'mono' });
+    s.commit();
+    const reloaded = createStore();
+    expect(reloaded.get().images['Hero L5']).toEqual({ x: 42, y: 61, zoom: 1.12 });
+    expect(reloaded.get().styles['hero.intro']).toEqual({ font: 'mono' });
+    expect(reloaded.dirtyCount()).toBe(0);
+  });
+
+  it('puts committed state through the same hardening as pending state', () => {
+    localStorage.setItem(
+      'panel:state',
+      JSON.stringify({
+        images: {},
+        styles: {},
+        text: {},
+        saved: { images: { A: { x: -5, y: 200, zoom: 0.2 }, B: 'nope' }, styles: [] },
+      }),
+    );
+    const s = createStore();
+    // clampFraming applied, a non-object entry dropped, an array-shaped
+    // styles map discarded rather than trusted.
+    expect(s.get().images.A).toEqual({ x: 0, y: 100, zoom: 1 });
+    expect(s.get().images.B).toBeUndefined();
+    expect(s.get().styles).toEqual({});
+  });
+
+  it('strips __proto__ out of committed state too', () => {
+    localStorage.setItem(
+      'panel:state',
+      '{"images":{},"styles":{},"text":{},"saved":{"images":{"__proto__":{},"A":{"x":1,"y":2,"zoom":1}},"styles":{}}}',
+    );
+    const s = createStore();
+    expect(Object.prototype.hasOwnProperty.call(s.get().images, '__proto__')).toBe(false);
+    expect(s.get().images.A).toBeDefined();
+  });
+
+  it('tolerates a mirror written before committed state existed', () => {
+    localStorage.setItem('panel:state', '{"images":{"A":{"x":1,"y":2,"zoom":1}},"styles":{},"text":{}}');
+    const s = createStore();
+    expect(s.dirtyCount()).toBe(1);
+    expect(s.get().images.A).toEqual({ x: 1, y: 2, zoom: 1 });
+  });
+
+  it('clear() is the full reset — committed rules go too', () => {
+    const s = createStore();
+    s.setImage('A', { x: 1, y: 2, zoom: 1 });
+    s.commit();
+    s.clear();
+    expect(s.get()).toEqual({ images: {}, styles: {}, text: {} });
+    expect(createStore().get()).toEqual({ images: {}, styles: {}, text: {} });
+  });
+});
+
+describe('dropText — the only exit from a stale-file wedge', () => {
+  it('removes one pending text edit and leaves the rest alone', () => {
+    const s = createStore();
+    s.setText('index.html', 'hero.intro', 'Old', 'New');
+    s.setText('index.html', 'thesis.body', 'Old2', 'New2');
+    s.dropText('index.html', 'hero.intro');
+    expect(s.get().text['index.html::hero.intro']).toBeUndefined();
+    expect(s.get().text['index.html::thesis.body']).toBeDefined();
+    expect(s.dirtyCount()).toBe(1);
+  });
+
+  it('un-persists it, so a reload does not bring the conflict back', () => {
+    const s = createStore();
+    s.setText('index.html', 'hero.intro', 'Old', 'New');
+    s.dropText('index.html', 'hero.intro');
+    expect(createStore().dirtyCount()).toBe(0);
+  });
+
+  it('never touches image or typography edits', () => {
+    const s = createStore();
+    s.setImage('A', { x: 1, y: 2, zoom: 1 });
+    s.setText('index.html', 'hero.intro', 'Old', 'New');
+    s.dropText('index.html', 'hero.intro');
+    expect(s.get().images.A).toBeDefined();
+  });
+
+  it('is a no-op for an id that is not pending', () => {
+    const s = createStore();
+    s.setText('index.html', 'hero.intro', 'Old', 'New');
+    s.dropText('index.html', 'not-a-thing');
+    expect(s.dirtyCount()).toBe(1);
   });
 });

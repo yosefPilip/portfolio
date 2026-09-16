@@ -94,7 +94,12 @@ class FakeResponse {
   }
 }
 
-function jsonBody(res: FakeResponse): { ok: boolean; error?: string; written?: number } {
+function jsonBody(res: FakeResponse): {
+  ok: boolean;
+  error?: string;
+  written?: number;
+  stale?: Array<{ path: string; id: string }>;
+} {
   return JSON.parse(res.body);
 }
 
@@ -118,6 +123,40 @@ describe('handleSaveRequest — transport-layer hardening', () => {
 
     expect(res.statusCode).toBe(400);
     expect(jsonBody(res).ok).toBe(false);
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it('allows the IPv6 loopback origin, which Vite serves by default', () => {
+    // Browsing the dev server at http://[::1]:5174 is a real thing Vite's own
+    // default host list permits; rejecting it 403'd every Save with
+    // "Origin not allowed".
+    const absTarget = resolveWriteTarget('index.html');
+    const req = new FakeRequest('POST', {
+      'content-type': 'application/json',
+      origin: 'http://[::1]:5174',
+      host: '[::1]:5174',
+    });
+    const res = new FakeResponse();
+
+    invoke(req, res);
+    req.emit('data', Buffer.from(JSON.stringify({ files: [{ path: 'index.html', contents: 'ok' }] }), 'utf8'));
+    req.emit('end');
+
+    expect(res.statusCode).toBe(200);
+    expect(files.get(absTarget)).toBe('ok');
+  });
+
+  it('still rejects an IPv6-shaped origin that is not loopback', () => {
+    const req = new FakeRequest('POST', {
+      'content-type': 'application/json',
+      origin: 'http://[::2]:5174',
+      host: '[::1]:5174',
+    });
+    const res = new FakeResponse();
+
+    invoke(req, res);
+
+    expect(res.statusCode).toBe(403);
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
 
@@ -244,5 +283,55 @@ describe('handleSaveRequest — transport-layer hardening', () => {
     // No absolute filesystem path leaks into the client-facing error.
     expect(jsonBody(res).error).not.toMatch(/[A-Za-z]:[\\/]/);
     expect(jsonBody(res).error).not.toMatch(/layout\.generated\.css/);
+  });
+});
+
+describe('handleSaveRequest — a stale text patch must be recoverable', () => {
+  const PAGE = '<!DOCTYPE html>\n<html><body><p data-edit="a">On disk now</p></body></html>';
+
+  function staleRequest(): { res: FakeResponse; absPage: string; absCss: string } {
+    const absPage = resolveWriteTarget('index.html');
+    const absCss = resolveWriteTarget('src/styles/layout.generated.css');
+    files.set(absPage, PAGE);
+
+    const req = new FakeRequest('POST', SAME_ORIGIN_HEADERS);
+    const res = new FakeResponse();
+    invoke(req, res);
+    req.emit(
+      'data',
+      Buffer.from(
+        JSON.stringify({
+          files: [{ path: 'src/styles/layout.generated.css', contents: 'CSS THE USER ALSO WANTS' }],
+          patches: [{ path: 'index.html', id: 'a', before: 'What the panel loaded', after: 'New words' }],
+        }),
+        'utf8',
+      ),
+    );
+    req.emit('end');
+    return { res, absPage, absCss };
+  }
+
+  it('names the conflicting edits in a machine-readable "stale" field', () => {
+    const { res } = staleRequest();
+    expect(res.statusCode).toBe(400);
+    expect(jsonBody(res).stale).toEqual([{ path: 'index.html', id: 'a' }]);
+  });
+
+  it('writes nothing at all — the CSS in the same request is not half-applied', () => {
+    const { res, absPage, absCss } = staleRequest();
+    expect(jsonBody(res).ok).toBe(false);
+    expect(files.has(absCss)).toBe(false);
+    expect(files.get(absPage)).toBe(PAGE);
+  });
+
+  it('omits "stale" entirely when the failure is not a stale patch', () => {
+    const req = new FakeRequest('POST', SAME_ORIGIN_HEADERS);
+    const res = new FakeResponse();
+    invoke(req, res);
+    req.emit('data', Buffer.from(JSON.stringify({ files: [], patches: [{ path: 'nope.html', id: 'a', before: '', after: '' }] }), 'utf8'));
+    req.emit('end');
+
+    expect(res.statusCode).toBe(400);
+    expect(jsonBody(res).stale).toBeUndefined();
   });
 });

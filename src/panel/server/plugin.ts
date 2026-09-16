@@ -2,7 +2,7 @@ import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 import { resolveWriteTarget } from './paths';
-import { patchHtml, type TextPatch } from './htmlPatcher';
+import { patchHtml, isStaleTextError, type TextPatch } from './htmlPatcher';
 
 interface SaveFile {
   path: string;
@@ -53,13 +53,22 @@ function isTextPatchEntry(value: unknown): value is { path: string } & TextPatch
  * `Origin` header at all (curl, and some browsers omit it for same-origin
  * requests) is treated as same-origin: the header's whole purpose is
  * flagging cross-origin requests, so its absence is not a signal of one.
+ *
+ * `[::1]` is here because it is a real way to reach the dev server —
+ * it is in Vite's own default host list, and browsing the site at
+ * `http://[::1]:5174` otherwise sent an Origin this gate rejected, failing
+ * every Save with "Origin not allowed".
  */
+const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
+
 function isAllowedOrigin(origin: string | undefined, host: string | undefined): boolean {
   if (!origin) return true;
   if (!host) return false;
+  // Only a trailing `:<digits>` is a port — an IPv6 host is bracketed
+  // (`[::1]:5174`), so the colons inside the address never match here.
   const port = /:(\d+)$/.exec(host)?.[1];
   const suffix = port ? `:${port}` : '';
-  return origin === `http://localhost${suffix}` || origin === `http://127.0.0.1${suffix}`;
+  return LOOPBACK_HOSTS.some((h) => origin === `http://${h}${suffix}`);
 }
 
 /**
@@ -141,6 +150,12 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
     }
 
     let targets: Array<{ abs: string; contents: string }>;
+    // Declared outside the try so the failure response can report which text
+    // edits conflicted. The client offers to discard exactly these, which is
+    // the only way out of a stale-file wedge: reloading restores the same
+    // stale edit from localStorage and 400s again forever.
+    const stale: Array<{ path: string; id: string }> = [];
+    const staleMessages: string[] = [];
     try {
       if (typeof payload !== 'object' || payload === null || !Array.isArray((payload as SavePayload).files)) {
         throw new Error('Payload must be { files: Array<{ path: string; contents: string }> }');
@@ -178,15 +193,31 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
           );
         }
         const current = patched.get(abs) ?? readFileSync(abs, 'utf8');
-        patched.set(abs, patchHtml(current, [{ id: p.id, before: p.before, after: p.after }]));
+        try {
+          patched.set(abs, patchHtml(current, [{ id: p.id, before: p.before, after: p.after }]));
+        } catch (patchErr) {
+          // A stale patch is recorded and the batch keeps validating, so one
+          // discard round clears every conflict at once. Any other failure is
+          // a shape or structure problem and still aborts immediately.
+          if (!isStaleTextError(patchErr)) throw patchErr;
+          for (const id of patchErr.staleIds) stale.push({ path: p.path, id });
+          staleMessages.push(patchErr.message);
+        }
       }
+      if (stale.length > 0) throw new Error(staleMessages.join('\n\n'));
       for (const [abs, contents] of patched) targets.push({ abs, contents });
     } catch (err) {
       // Safe to return verbatim: this message names only the caller's own
       // input (the rejected path, or a shape complaint) — never a
       // server-side filesystem detail.
       res.statusCode = 400;
-      res.end(JSON.stringify({ ok: false, error: (err as Error).message }));
+      res.end(
+        JSON.stringify(
+          stale.length > 0
+            ? { ok: false, error: (err as Error).message, stale }
+            : { ok: false, error: (err as Error).message },
+        ),
+      );
       return;
     }
 

@@ -99,4 +99,9 @@
   cursor: pointer;
 }
 
-.panel-active [data-edit] { outline: 1px dashed var(--accent-2); outline-offset: 2px; }
+/* Deliberately NOT --accent-2: that resolves to green on Home, and green in
+   this project lives in the photography, never in interface chrome — even
+   dev-only chrome on the owner's own screen. --muted is neutral, and dotted
+   against the frames' clay dashed outline keeps the two markers telling apart
+   at a glance. */
+.panel-active [data-edit] { outline: 1px dotted var(--muted); outline-offset: 2px; }

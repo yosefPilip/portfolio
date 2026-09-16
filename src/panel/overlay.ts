@@ -2,7 +2,7 @@ import type { Store } from './state';
 import type { PanelState } from './types';
 import { generateCss } from './cssGenerator';
 import { MANIFEST } from './manifest';
-import { save } from './saveClient';
+import { save, isSaveError } from './saveClient';
 
 let mounted = false;
 let active = false;
@@ -10,6 +10,7 @@ let refreshFn: (() => void) | null = null;
 // A list, not a single slot: a second registrant must not silently replace
 // (and thereby unregister) the first the way a bare variable would.
 let deactivateFns: Array<() => void> = [];
+let beforeDeactivateFns: Array<() => void> = [];
 let saveSuccessFns: Array<(state: PanelState) => void> = [];
 
 /** Takes the store rather than creating one: the interaction modules added in
@@ -58,13 +59,36 @@ export function mountPanel(store: Store): void {
       // this save just wrote, so a second edit compares against reality
       // instead of a now-stale pre-save value.
       saveSuccessFns.forEach((fn) => fn(state));
-      store.clear();
+      // commit(), not clear(): the framing and typography just written are
+      // still needed to regenerate layout.generated.css on the NEXT save,
+      // which is a whole-file write. Clearing them made a later text-only
+      // save emit a bare header and delete every rule ever saved. The text
+      // edits are dropped here — they are in the HTML now.
+      store.commit();
       saveBtn.textContent = 'Saved';
     } catch (err) {
       saveBtn.textContent = 'Failed';
+      const message = (err as Error).message;
       // Surfaced loudly: a silent save failure would let work be lost on reload.
-      console.error('[panel] save failed:', (err as Error).message);
-      window.alert(`Panel save failed:\n\n${(err as Error).message}`);
+      console.error('[panel] save failed:', message);
+      const stale = isSaveError(err) ? err.stale : [];
+      if (stale.length === 0) {
+        window.alert(`Panel save failed:\n\n${message}`);
+      } else if (
+        // The one failure with no other way out: a stale text edit is
+        // re-hydrated from localStorage on reload, so every later Save —
+        // including one that only carries image framing — 400s forever.
+        // Discarding is offered, never done silently: these are the owner's
+        // own words, and losing them without a yes is worse than the wedge.
+        window.confirm(
+          `Panel save failed:\n\n${message}\n\n` +
+            `Discard ${stale.length === 1 ? 'this text edit' : `these ${stale.length} text edits`} ` +
+            `and keep everything else?\n\n${stale.map((s) => `  • ${s.id}  (${s.path})`).join('\n')}`,
+        )
+      ) {
+        stale.forEach((s) => store.dropText(s.path, s.id));
+        console.warn('[panel] discarded stale text edits:', stale.map((s) => s.id).join(', '));
+      }
     } finally {
       window.setTimeout(() => { saveBtn.textContent = 'Save'; refresh(); }, 1200);
     }
@@ -76,6 +100,12 @@ export function mountPanel(store: Store): void {
     // never be 'e' even with the physical E key held under Ctrl+Shift.
     if (!(e.ctrlKey && e.shiftKey && e.code === 'KeyE')) return;
     e.preventDefault();
+    // BEFORE the flag flips: a module holding an edit that only exists in the
+    // DOM (text typed into a still-focused contentEditable) has to commit it
+    // to the store while edit mode is still on. Every downstream recorder is
+    // gated on isActive(), so anything flushed after the flip is dropped —
+    // which is exactly how typing then hotkeying out lost the edit.
+    if (active) beforeDeactivateFns.forEach((fn) => fn());
     active = !active;
     bar.hidden = !active;
     document.documentElement.classList.toggle('panel-active', active);
@@ -109,6 +139,15 @@ export function refreshPanel(): void {
     second registrant must not silently drop the first. */
 export function onEditModeOff(fn: () => void): void {
   deactivateFns.push(fn);
+}
+
+/** Registered by an interaction module holding an edit that lives only in the
+    DOM until something records it. Called while edit mode is still ON, just
+    before it is switched off, so the edit reaches the store instead of being
+    dropped by the isActive() gates every recorder sits behind. A list, for the
+    same reason `onEditModeOff` is. */
+export function onBeforeEditModeOff(fn: () => void): void {
+  beforeDeactivateFns.push(fn);
 }
 
 /** Registered by an interaction module that needs to know exactly what a

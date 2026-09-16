@@ -22,6 +22,20 @@ describe.each(ENTRIES)('%s', (file) => {
   });
 });
 
+describe.each(ENTRIES)('%s — panel import failure', (file) => {
+  const src = readFileSync(file, 'utf8');
+
+  it('catches a failed panel import instead of leaving an unhandled rejection', () => {
+    // Without a .catch(), a throw anywhere in the panel's install path becomes
+    // an unhandled rejection and the tool is simply, silently absent.
+    expect(src).toMatch(/import\(['"]\.{1,2}\/panel['"]\)[\s\S]*?\.catch\(/);
+  });
+
+  it('logs loudly rather than swallowing it', () => {
+    expect(src).toMatch(/\.catch\(\(err\) => console\.error\(/);
+  });
+});
+
 describe('every page entry', () => {
   it('mounts the panel, so the tool exists on all four rooms', () => {
     for (const file of ENTRIES) {

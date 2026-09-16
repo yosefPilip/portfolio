@@ -1,7 +1,7 @@
 import type { PanelState } from './types';
 import type { Store } from './state';
 import { MANIFEST } from './manifest';
-import { isActive, refreshPanel, onSaveSuccess } from './overlay';
+import { isActive, refreshPanel, onSaveSuccess, onBeforeEditModeOff } from './overlay';
 
 /**
  * Mirrors the RAWTEXT denylist in server/htmlPatcher.ts. Duplicated rather
@@ -116,6 +116,24 @@ export function installTextEditing(store: Store): void {
     el.normalize();
   });
 
+  /** Record what an element currently reads, if it differs from what it read
+      when editing started. Idempotent: running it twice on an unchanged
+      element writes the same entry, so a flush followed by the element's own
+      focusout cannot double-count or corrupt anything. */
+  function record(el: HTMLElement): void {
+    const id = el.getAttribute(MANIFEST.editAttr);
+    if (id === null) return;
+    // No baseline means editing never started on this element (it was not
+    // patcher-safe, so `editable(true)` skipped it). Recording it anyway would
+    // invent a `before` of '' that the patcher can only reject as stale.
+    if (!originals.has(el)) return;
+    const before = originals.get(el) ?? '';
+    const after = el.textContent ?? '';
+    if (before === after) return;
+    store.setText(file, id, before, after);
+    refreshPanel();
+  }
+
   document.addEventListener('focusout', (e) => {
     // Edit mode being off must mean nothing gets recorded, full stop — even
     // in the case editable(false) above is specifically written to prevent
@@ -124,12 +142,20 @@ export function installTextEditing(store: Store): void {
     if (!isActive()) return;
     const el = e.target as HTMLElement;
     if (!el?.getAttribute?.(MANIFEST.editAttr)) return;
-    const id = el.getAttribute(MANIFEST.editAttr)!;
-    const before = originals.get(el) ?? '';
-    const after = el.textContent ?? '';
-    if (before === after) return;
-    store.setText(file, id, before, after);
-    refreshPanel();
+    record(el);
+  });
+
+  // Leaving edit mode by hotkey never blurs anything: the element stays
+  // focused, `contentEditable` is set to 'false' under it, and the focusout
+  // that eventually fires is gated on an isActive() that is already false. So
+  // the text just typed was silently thrown away unless Save happened to be
+  // clicked first (which DOES blur, which is why the happy path hid this).
+  // Flushing here, while edit mode is still on, makes leaving edit mode record
+  // what was typed rather than drop it.
+  onBeforeEditModeOff(() => {
+    const el = document.activeElement as HTMLElement | null;
+    if (!el?.getAttribute?.(MANIFEST.editAttr)) return;
+    record(el);
   });
 
   // A successful save writes `after` to disk for every text edit it just

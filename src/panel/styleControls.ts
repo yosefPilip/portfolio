@@ -8,7 +8,7 @@ import { contrastRatio } from '../lib/contrast';
  * The smallest px each step can render at, read off the clamp() minimums in
  * tokens.css. Used for the tracking rule, which is about rendered size.
  */
-const STEP_MIN_PX: Record<StepKey, number> = {
+export const STEP_MIN_PX: Record<StepKey, number> = {
   wordmark: 38,
   display: 56,
   h1: 40,
@@ -24,8 +24,14 @@ export function trackingAllowed(step: StepKey, tracking: number): boolean {
   return STEP_MIN_PX[step] < 32;
 }
 
-/** Resolved token values, mirrored from tokens.css for the live contrast check. */
-const FG: Record<ColorKey, string> = {
+/**
+ * Resolved token values, mirrored from tokens.css for the live contrast check.
+ *
+ * Exported so tests/panelTokenMirror.test.ts can hold them against the real
+ * stylesheet: mirrors drift, and a mirror that drifts here keeps offering a
+ * colour the room no longer passes.
+ */
+export const FG: Record<ColorKey, string> = {
   fg: '#f0efe9',
   'fg-dim': '#c2c4bc',
   muted: '#8e958a',
@@ -33,14 +39,14 @@ const FG: Record<ColorKey, string> = {
   'accent-2': '',
 };
 
-const ROOM_BG: Record<string, string> = {
+export const ROOM_BG: Record<string, string> = {
   home: '#171b19',
   projects: '#16191d',
   music: '#1a171d',
   workshop: '#1b1917',
 };
 
-const ROOM_ACCENT2: Record<string, string> = {
+export const ROOM_ACCENT2: Record<string, string> = {
   home: '#8aa572',
   projects: '#7f9bbd',
   music: '#b97fc9',
