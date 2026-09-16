@@ -8,10 +8,17 @@ interface Live { x: number; y: number; zoom: number }
 function readLive(img: HTMLImageElement): Live {
   const pos = img.style.objectPosition || getComputedStyle(img).objectPosition;
   const [px, py] = pos.split(/\s+/);
+  // parseFloat('0%') is the number 0, which is falsy — `|| 50` would wrongly
+  // treat a legitimate full-left/full-top drag (x or y === 0) as unset and
+  // snap it back to center. Number.isFinite distinguishes "genuinely 0" from
+  // "did not parse" (NaN, from a keyword getComputedStyle didn't normalize,
+  // or missing data), so only the latter falls back to 50.
+  const x = parseFloat(px);
+  const y = parseFloat(py);
   const zoom = parseFloat(img.style.getPropertyValue('--img-zoom') || '1');
   return {
-    x: parseFloat(px) || 50,
-    y: parseFloat(py) || 50,
+    x: Number.isFinite(x) ? x : 50,
+    y: Number.isFinite(y) ? y : 50,
     zoom: Number.isFinite(zoom) ? zoom : 1,
   };
 }
@@ -33,6 +40,16 @@ export function installImageEditing(store: Store): void {
 
   let dragging: { img: HTMLImageElement; label: string; startX: number; startY: number; from: Live } | null = null;
 
+  // Stop tracking a drag without committing it, and repaint back to the last
+  // committed value (`dragging.from`, read at pointerdown from the image's
+  // then-current painted state) rather than leaving the abandoned in-flight
+  // paint on screen.
+  function abortDrag(): void {
+    if (!dragging) return;
+    paint(dragging.img, dragging.from);
+    dragging = null;
+  }
+
   document.addEventListener('pointerdown', (e) => {
     if (!isActive()) return;
     const frame = (e.target as Element).closest?.(MANIFEST.slotSelector) as HTMLElement | null;
@@ -46,6 +63,14 @@ export function installImageEditing(store: Store): void {
 
   document.addEventListener('pointermove', (e) => {
     if (!dragging) return;
+    // Defensive: if the primary button is no longer held, a pointerup or
+    // pointercancel was missed (stylus barrel button, palm rejection, a
+    // second touch point, focus loss). Bail instead of letting every later
+    // unrelated pointer move keep repainting this image.
+    if ((e.buttons & 1) === 0) {
+      abortDrag();
+      return;
+    }
     const rect = dragging.img.getBoundingClientRect();
     // Dragging right moves the image right, which means revealing content from
     // its left — so the percentage decreases. Hence the negated delta.
@@ -64,6 +89,14 @@ export function installImageEditing(store: Store): void {
     paint(dragging.img, store.get().images[dragging.label]);
     refreshPanel();
     dragging = null;
+  });
+
+  // No pointerup fires on a cancel (stylus barrel button, palm rejection, a
+  // second touch point, the window losing focus mid-hold) — clear `dragging`
+  // WITHOUT committing to the store, so an interrupted drag never corrupts a
+  // slot's saved framing with garbage coordinates.
+  document.addEventListener('pointercancel', () => {
+    abortDrag();
   });
 
   // Lenis (src/shared/motion.ts) listens for 'wheel' in the bubble phase on
@@ -96,11 +129,17 @@ export function installImageEditing(store: Store): void {
 
   document.addEventListener('drop', (e) => {
     if (!isActive()) return;
+    // Swallow the drop as soon as we know edit mode is on, BEFORE the guards
+    // below decide whether it's usable. Otherwise a drop that fails a guard —
+    // a non-image file, or a target a few pixels outside a frame — falls
+    // through to the browser default, which navigates the tab to the dropped
+    // file and discards any unsaved edits. Panel-off drops never reach here,
+    // so ordinary browser behavior outside edit mode is untouched.
+    e.preventDefault();
     const frame = (e.target as Element).closest?.(MANIFEST.slotSelector) as HTMLElement | null;
     const img = frame?.querySelector('img') as HTMLImageElement | null;
     const file = e.dataTransfer?.files?.[0];
     if (!frame || !img || !file || !file.type.startsWith('image/')) return;
-    e.preventDefault();
     img.src = URL.createObjectURL(file);
     frame.classList.remove('is-missing');
     frame.dataset.panelPreview = file.name;
