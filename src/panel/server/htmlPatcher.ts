@@ -39,8 +39,12 @@ function walk(node: Node, visit: (el: Element) => void): void {
  * rejecting legitimate future markup it doesn't yet know about. Denylisting
  * the actual defect keeps the blast radius to the tags that are provably
  * broken.
+ *
+ * `noscript` is included even though a real browser's parsing of it depends
+ * on whether scripting is enabled: parse5 has no such toggle and always
+ * parses `noscript` content as RAWTEXT, so it always needs this guard here.
  */
-const RAWTEXT_TAGS = new Set(['script', 'style', 'xmp', 'iframe', 'noembed', 'noframes']);
+const RAWTEXT_TAGS = new Set(['script', 'style', 'xmp', 'iframe', 'noembed', 'noframes', 'noscript']);
 
 /**
  * Replace the text inside `[data-edit]` elements, touching nothing else.

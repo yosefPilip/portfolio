@@ -122,6 +122,19 @@ describe('patchHtml', () => {
     ).toThrow(/raw text/i);
   });
 
+  it('refuses to patch <noscript>, which parse5 always treats as raw text', () => {
+    // parse5 has no scriptingEnabled toggle, so <noscript> content is
+    // RAWTEXT unconditionally, unlike a browser with JS enabled — and,
+    // being RAWTEXT, the entity in the source is never decoded, so `before`
+    // must match the literal, undecoded text parse5 stores.
+    const noscriptDoc = `<!DOCTYPE html><html><body><noscript data-edit="n">Enable JS &amp; reload</noscript></body></html>`;
+    expect(() =>
+      patchHtml(noscriptDoc, [
+        { id: 'n', before: 'Enable JS &amp; reload', after: 'Please <turn> on JS & retry' },
+      ]),
+    ).toThrow(/raw text/i);
+  });
+
   it('keeps the hardcoded data-edit attribute name in sync with MANIFEST.editAttr', () => {
     expect('data-edit').toBe(MANIFEST.editAttr);
   });
