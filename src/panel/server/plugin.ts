@@ -159,6 +159,11 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
       if (rawPatches !== undefined && !Array.isArray(rawPatches)) {
         throw new Error('"patches" must be an array when present');
       }
+      // A path already covered by a whole-file write in `files` must not also
+      // be a patch target: the patch reads its "current" contents from disk,
+      // not from the pending `files` entry, so whichever of the two lands
+      // last in `targets` would silently discard the other's write.
+      const fileAbsPaths = new Set(targets.map((t) => t.abs));
       // Group patches per file, apply them all in memory, and let any
       // failure throw before a single write happens.
       const patched = new Map<string, string>();
@@ -167,6 +172,11 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
           throw new Error('Each patch entry needs string "path", "id", "before" and "after"');
         }
         const abs = resolveWriteTarget(p.path);
+        if (fileAbsPaths.has(abs)) {
+          throw new Error(
+            `Refusing to save: "${p.path}" is targeted by both a whole-file write and a text patch in the same request`,
+          );
+        }
         const current = patched.get(abs) ?? readFileSync(abs, 'utf8');
         patched.set(abs, patchHtml(current, [{ id: p.id, before: p.before, after: p.after }]));
       }

@@ -1,4 +1,5 @@
 import type { Store } from './state';
+import type { PanelState } from './types';
 import { generateCss } from './cssGenerator';
 import { MANIFEST } from './manifest';
 import { save } from './saveClient';
@@ -6,7 +7,10 @@ import { save } from './saveClient';
 let mounted = false;
 let active = false;
 let refreshFn: (() => void) | null = null;
-let deactivateFn: (() => void) | null = null;
+// A list, not a single slot: a second registrant must not silently replace
+// (and thereby unregister) the first the way a bare variable would.
+let deactivateFns: Array<() => void> = [];
+let saveSuccessFns: Array<(state: PanelState) => void> = [];
 
 /** Takes the store rather than creating one: the interaction modules added in
     later tasks must share this exact instance, not a second copy. */
@@ -49,6 +53,11 @@ export function mountPanel(store: Store): void {
         [{ path: MANIFEST.generatedCssPath, contents: generateCss(state) }],
         Object.values(state.text).map((t) => ({ path: t.file, id: t.id, before: t.before, after: t.after })),
       );
+      // Before clearing: modules that track their own "what's on disk"
+      // baseline (textEditing.ts's `originals`) need to know exactly what
+      // this save just wrote, so a second edit compares against reality
+      // instead of a now-stale pre-save value.
+      saveSuccessFns.forEach((fn) => fn(state));
       store.clear();
       saveBtn.textContent = 'Saved';
     } catch (err) {
@@ -73,7 +82,7 @@ export function mountPanel(store: Store): void {
     refresh();
     // Interaction modules with their own persistent UI (the typography/colour
     // control box) must not linger with a stale target once edit mode is off.
-    if (!active) deactivateFn?.();
+    if (!active) deactivateFns.forEach((fn) => fn());
   });
 
   refresh();
@@ -95,9 +104,18 @@ export function refreshPanel(): void {
 /** Registered by an interaction module that keeps its own on-screen state
     (a selected element, an open control box) alive independent of the bar.
     Called once edit mode is switched off, so that state is cleared rather
-    than left showing a target no longer being edited. Only the most recent
-    registration is kept, same as `refreshFn` above — today only one module
-    (styleControls.ts) needs this. */
+    than left showing a target no longer being edited. Every registration is
+    kept and called — unlike `refreshFn` above, this is a list, since a
+    second registrant must not silently drop the first. */
 export function onEditModeOff(fn: () => void): void {
-  deactivateFn = fn;
+  deactivateFns.push(fn);
+}
+
+/** Registered by an interaction module that needs to know exactly what a
+    successful Save just wrote, so it can keep its own "what's actually on
+    disk" bookkeeping in step (textEditing.ts's `originals` map). Called with
+    the state that was saved, after the request succeeds but before the store
+    is cleared. A list for the same reason `onEditModeOff` is. */
+export function onSaveSuccess(fn: (state: PanelState) => void): void {
+  saveSuccessFns.push(fn);
 }

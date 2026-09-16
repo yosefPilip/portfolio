@@ -45,6 +45,40 @@ describe('createStore', () => {
     expect(s.get().styles['hero.intro']).toEqual({ font: 'mono', color: 'muted' });
   });
 
+  it('records a text edit with setText, keyed "<file>::<id>"', () => {
+    const s = createStore();
+    s.setText('index.html', 'hero.intro', 'Old text', 'New text');
+    expect(s.get().text['index.html::hero.intro']).toEqual({
+      file: 'index.html',
+      id: 'hero.intro',
+      before: 'Old text',
+      after: 'New text',
+    });
+    expect(s.dirtyCount()).toBe(1);
+  });
+
+  it('mutating a returned text entry does NOT affect the store (deep-copy)', () => {
+    const s = createStore();
+    s.setText('index.html', 'hero.intro', 'A', 'B');
+    const snapshot = s.get();
+    snapshot.text['index.html::hero.intro'].after = 'TAMPERED';
+    expect(s.get().text['index.html::hero.intro'].after).toBe('B');
+  });
+
+  it('discards a wrong-typed "text" field rather than trusting it', () => {
+    localStorage.setItem('panel:state', '{"images":{},"styles":{},"text":"x"}');
+    const s = createStore();
+    expect(s.get()).toEqual({ images: {}, styles: {}, text: {} });
+  });
+
+  it('discards an array-shaped "text" field rather than losing edits silently', () => {
+    localStorage.setItem('panel:state', '{"images":{},"styles":{},"text":[]}');
+    const s = createStore();
+    s.setText('index.html', 'hero.intro', 'A', 'B');
+    // Without the fix, "text" would persist as [] and this edit would be lost on reload.
+    expect(createStore().get().text['index.html::hero.intro']).toBeDefined();
+  });
+
   it('survives a reload through localStorage', () => {
     const s = createStore();
     s.setImage('A', { x: 12, y: 34, zoom: 1.5 });
