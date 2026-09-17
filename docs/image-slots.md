@@ -29,8 +29,8 @@ true alpha (avoid; halos on soft edges).
 
 | Slot | Role | Tier | Status | Spend | Notes |
 |---|---|---|---|---|---|
-| `ridge-far` | back, opaque | 1 opaque | explore (graded, awaiting final) | $0.009 | 1536x1024, roll 1 accepted first time. Graded gamma 1.60 / exposure 1.00, **colour shift zeroed** (`blue=0 green=0 red=0`) — grade.py's default pulls blue out and pushes green/yellow in, which is right for the jungle set and wrong for a slate room. Raw title-band p95 was 0.441 = 2.01:1 against bone, below the 3:1 floor for display type; graded it measures 0.270 = 3.08:1. The fog bank is what sat bright behind the type. |
-| `ridge-near` | front | 2 white→multiply | explore (kept) | $0.018 | 1536x1024, 2 rolls. White point pushed 252→255 (top corners measured 254.0 raw; an off-white ground leaves a grey wash over the whole hero). 74 KB. |
+| `ridge-far` | back, opaque | 1 opaque | explore (awaiting final) | $0.027 | 1536x1024, roll 1 accepted first time. Graded gamma 1.60 / exposure 1.00, **colour shift zeroed** (`blue=0 green=0 red=0`) — grade.py's default pulls blue out and pushes green/yellow in, which is right for the jungle set and wrong for a slate room. Raw title-band p95 was 0.441 = 2.01:1 against bone, below the 3:1 floor for display type; graded it measures 0.270 = 3.08:1. The fog bank is what sat bright behind the type. |
+| `ridge-near` | front | **3 real alpha** | explore (kept) | $0.027 | 1536x1024, 2 rolls. White point pushed 252→255 (top corners measured 254.0 raw; an off-white ground leaves a grey wash over the whole hero). 74 KB. |
 
 **Roll log:**
 
@@ -38,7 +38,11 @@ true alpha (avoid; halos on soft edges).
 |---|---|---|
 | `ridge-far` v1 | $0.009 | **accepted.** Layered recession, fog bank across the middle distance, serrated spruce treeline, no sun. |
 | `ridge-near` v1 | $0.009 | **rejected — composition, not quality.** Mountain filled the entire frame, so under multiply the title was occluded at scroll 0 and never had a clear moment. See the standing lesson below. |
-| `ridge-near` v2 | $0.009 | **accepted.** Summit at ~47% height with pure white above it; mass unbroken to the bottom edge across 100% of the width; central band bare dark rock, snow on the flanks only. |
+| `ridge-near` v2 | $0.009 | superseded — correct shape, but Tier 2 multiply left the title legible through the rock. |
+| `ridge-far` v3 | $0.009 | superseded — matched the owner's reference for palette, but its dark centre was not dark enough (title band p95 0.534 = 1.69:1). |
+| `ridge-near` v3 | $0.009 | **accepted.** `--ref` + `--transparent`. 49% fully transparent / 50.5% fully opaque / 0.45% partial edge. |
+| `ridge-far` v4 | $0.009 | **accepted.** `--ref`. Huge dark rock wall across the centre, snow on both flanks. Band p95 0.223 = 3.62:1 with the frame still light at 0.479. |
+| ~~`ridge-near` v2~~ | — | ~~**accepted.**~~ Summit at ~47% height with pure white above it; mass unbroken to the bottom edge across 100% of the width; central band bare dark rock, snow on the flanks only. |
 
 **Standing lesson from this sitting — `mix-blend-mode: multiply` darkens the TITLE too.**
 The front plate composites against everything beneath it in the stacking context,

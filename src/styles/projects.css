@@ -17,17 +17,19 @@
    Must target .plate, not .frame: .plate sets will-change: transform, which
    creates a stacking context, and a blend on a descendant only composites
    against that plate's own children. */
-#ridge .plate--front { mix-blend-mode: multiply; }
+/* NOT multiply. The owner needs the title to vanish completely behind this peak,
+   and multiply blends with .plate--copy along with everything else beneath it --
+   bone type times dark rock is dark type, still legible through the mountain. This
+   slot is a real alpha cutout instead: transparent sky, fully opaque rock. The
+   Tier-3 ban in the spec was written against fine foliage, thousands of thin
+   semi-transparent edges and the worst case for matting; a ridge is a hard edge.
+   Measured 49% fully transparent, 50.5% fully opaque, 0.45% partial. */
 
 /* .frame paints var(--bg-deep) so a missing image reads as a labelled dark
-   box. Under multiply an opaque dark ground would crush the whole hero to
-   black. */
+   box. Here that opaque ground would sit in front of the ridge behind it and
+   hide the whole back plate, so the frame stays transparent and the cutout's
+   own alpha does the occluding. */
 #ridge .plate--front .frame { background: transparent; }
-
-/* While the slot is empty the dashed placeholder must stay legible, so the
-   blend switches off rather than multiplying a dashed border into the ridge.
-   Restores itself the moment a real file lands. */
-#ridge .plate--front:has(.frame.is-missing) { mix-blend-mode: normal; }
 
 /* ── filters ── */
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: clamp(24px, 3vw, 44px); }
