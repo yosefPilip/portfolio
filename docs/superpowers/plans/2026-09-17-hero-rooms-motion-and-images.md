@@ -83,10 +83,19 @@ interface PlateDecl {
  * property. The scope is the selector text to the left of `.plate--`, with an
  * empty string meaning the base body stack (`.plate--back/--copy/--front`).
  *
- * `.split(',').pop()` handles grouped selectors like
- * `.hero .plate--mid,\n.hero .plate--near { … }` — those declare a blend, not
- * a depth, so they are dropped by the `continue` below, but the split keeps
- * the scope correct for any grouped rule that does carry one.
+ * Extracting that scope needs more care than it looks. `([^{}]*?)` is lazy,
+ * but the match START is still the earliest position where the whole pattern
+ * can match — which is right after the previous rule's `}`. So group 1
+ * swallows every comment and blank line in between, and a naive
+ * `.split(',').pop()` hands back `"/* Body stacks: three plates. *\/"` as the
+ * scope of `.plate--back`. That was measured against the real stylesheet, not
+ * imagined: it put `--back` and `--fog` in invented single-member groups,
+ * which makes the `has('')` canary fail and lets the contiguity check pass
+ * vacuously on garbage.
+ *
+ * Stripping comments and splitting on newline as well as comma fixes it: a
+ * selector always sits on the same line as the `.plate--x` it qualifies.
+ * Verified to yield "" x3 and ".hero" x6 against stack.css as it stands.
  */
 function parsePlates(source: string): PlateDecl[] {
   const out: PlateDecl[] = [];
@@ -97,7 +106,7 @@ function parsePlates(source: string): PlateDecl[] {
     const zoom = body.match(/--zoom:\s*([\d.]+)/);
     if (!z && !rate && !zoom) continue;
     out.push({
-      scope: m[1].split(',').pop()!.trim(),
+      scope: m[1].replace(/\/\*[\s\S]*?\*\//g, '').split(/[,\n]/).pop()!.trim(),
       name: m[2],
       z: z ? Number(z[1]) : null,
       rate: rate ? Number(rate[1]) : null,
@@ -211,17 +220,19 @@ describe('stack depth ordering', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and read every failure**
+- [ ] **Step 2: Run it — it must PASS against today's CSS**
 
 ```
 npx vitest run tests/stack-depth.test.ts
 ```
 
-Expected: the `z 1..n` test **fails**. The base scope declares z 1, 2, 3 and `.hero` declares 1–6, both fine — but `.hero .plate--name` is matched by the regex `\.plate--([a-z]+)` while the base `.plate--copy` is too, and both land in different scopes correctly. If instead you see a failure naming a scope you did not expect, the regex is over-matching; fix the regex, not the CSS. Do not change `stack.css` in this task.
+Expected: **PASS**, all eight tests. This is a guard-strengthening task, not a behaviour change: the current `stack.css` is already correct (base z1/2/3 at −90/−260/−430; hero z1–6 at −60/−120/−190/−250/−350/−440), so a correct parser has nothing to complain about. The failing-test step that earns the TDD cycle is Step 4, where you deliberately break a rate.
 
-- [ ] **Step 3: Get it green against the CSS as it stands today**
+**Any failure here is a parser bug, not a CSS bug. Do not touch `src/styles/stack.css` in this task.** Debug it by printing what `parsePlates` actually returned — the scope strings are where this goes wrong. Expect exactly `""` for `--back`/`--copy`/`--front` and `".hero"` for the six hero plates; if you see a scope containing comment text, the comment-stripping in `parsePlates` is not doing its job.
 
-No source change should be required — the current `stack.css` already satisfies every rule (base: z1/2/3 at −90/−260/−430; hero: z1–6 at −60/−120/−190/−250/−350/−440). If a test fails, the parser is wrong. Iterate on the test until green.
+- [ ] **Step 3: Confirm the groups are what you expect**
+
+Temporarily add `console.log([...desktop.keys()])` (or run the parser in a scratch script) and confirm exactly two scopes: `''` with 3 plates, `'.hero'` with 6. Three or more scopes means the regex is inventing groups out of comment text, which makes every assertion below pass vacuously. Remove the log before committing.
 
 - [ ] **Step 4: Prove the guard actually bites**
 
