@@ -891,7 +891,8 @@ The one genuinely new piece of motion on the site. **Give it a review pass.**
 **Files:**
 - Modify: `src/styles/stack.css` (the shared `.plate` transform, the `#arrive` scope, mobile rates)
 - Modify: `src/styles/workshop.css`
-- Modify: `workshop.html:45-62`
+- Modify: `workshop.html:45-62`, `workshop.html` #inside block
+- Modify: `tests/workshop-page.test.ts` (its hardcoded slot list goes stale)
 - Test: `tests/stack-depth.test.ts`, `tests/base-css.test.ts`, `tests/sitewide.test.ts`
 
 **Interfaces:**
@@ -1109,21 +1110,53 @@ Replace the existing `#arrive .plate--front { mix-blend-mode: multiply; }` rule 
 
 and delete the `plate--front` div whose frame is `Workshop L6 — bench-near` — that slot is cancelled. The closer crop is set from the panel as `object-position` / `--img-zoom` against the new `data-label`, not hand-written here.
 
-- [ ] **Step 8: Run the guards**
+- [ ] **Step 8: Update `tests/workshop-page.test.ts` for the new slot names**
+
+That file hardcodes the old arrival slots and will now be asserting four names that no longer exist:
+
+```ts
+  it('references all four arrival image slots', () => {
+    ['cottage-far', 'needles-near', 'bench-far', 'bench-near'].forEach((slug) => {
+      expect(html).toContain(`/assets/img/${slug}.webp`);
+    });
+  });
+```
+
+`cottage-far` is renamed, `bench-near` is deleted, and `bench-far`'s frame now points at `shop-interior.webp`. Replace it with the slots this task actually creates:
+
+```ts
+  it('references every arrival image slot', () => {
+    ['shop-interior', 'cottage-face', 'cottage-door', 'needles-near'].forEach((slug) => {
+      expect(html).toContain(`/assets/img/${slug}.webp`);
+    });
+  });
+
+  it('reuses the arrival interior inside, rather than a second generated room', () => {
+    // #inside deliberately shows the same file at a closer crop. A separate
+    // bench image here would undo the walk-in the dolly just performed.
+    expect(html.match(/\/assets\/img\/shop-interior\.webp/g)).toHaveLength(2);
+    expect(html).not.toContain('bench-far');
+    expect(html).not.toContain('bench-near');
+  });
+```
+
+**This test is the known baseline failure.** It has been failing since before Task 1 because the owner's uncommitted panel work points `workshop.html` at a stock reference file. It goes green here and stays green — if it is still red after this step, the markup in Step 5 or Step 7 is wrong.
+
+- [ ] **Step 9: Run the guards**
 
 ```
-npx vitest run tests/stack-depth.test.ts tests/sitewide.test.ts tests/base-css.test.ts
+npx vitest run tests/stack-depth.test.ts tests/sitewide.test.ts tests/base-css.test.ts tests/workshop-page.test.ts
 ```
 
 Expected: PASS. If the `--zoom` test fails naming `#arrive .plate--front vs --door`, check that `--copy` is being skipped — it carries no `--zoom` and must not break the chain.
 
-- [ ] **Step 9: Run the full gate**
+- [ ] **Step 10: Run the full gate**
 
 ```
 npm test && npx tsc -b --noEmit && npm run lint && npm run build
 ```
 
-- [ ] **Step 10: Tune the dolly in a real browser against real events**
+- [ ] **Step 11: Tune the dolly in a real browser against real events**
 
 ```
 npm run filmstrip -- http://localhost:5174/workshop.html "#arrive"
@@ -1137,7 +1170,7 @@ npm run filmstrip -- http://localhost:5174/workshop.html "#arrive"
 - The fade completes before the facade's edges become visibly soft from upscaling.
 - At 390×844 the doorway is still inside the 37.5%–62.5% safe band.
 
-- [ ] **Step 11: Commit**
+- [ ] **Step 12: Commit**
 
 ```bash
 git add workshop.html src/styles/stack.css src/styles/workshop.css src/styles/layout.generated.css
