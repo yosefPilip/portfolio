@@ -532,14 +532,20 @@ python tools/checkplate.py assets/img/ridge-near.webp
 
 Required: corner RGB pure white (the white point may need pushing to 255, as `jungle-mid` and `jungle-near` both did), centre-band coverage **≤25%**. The summit must sit inside 37.5%–62.5% of width.
 
-- [ ] **Step 8: Delete the stock references**
+- [ ] **Step 8: Leave the stock references in place**
+
+**Do not delete them here.** They are inputs to the whole sitting, not temporary files: the owner judges every roll against them and the generator takes them via `--ref`. Deleting them after the first accepted roll cost a round trip and destroyed two unrecoverable files, because they are untracked. Task 10 removes every reference once the room is signed off. What this step *does* do is confirm `projects.html` points at `/assets/img/ridge-far.webp` and `/assets/img/ridge-near.webp`.
+
+<!-- superseded step, kept so the reason is visible:
+- [ ] Step 8: Delete the stock references
 
 ```bash
 git rm --cached assets/img/images.jpg 2>/dev/null; rm -f assets/img/images.jpg
 rm -f "assets/img/snow-mountain-on-the-horizon-isolated-against-a-transparent.png"
 ```
 
-Both are untracked third-party stock files and one carries a visible watermark. **No commit may leave a watermarked stock asset referenced by a page.** Confirm `projects.html` points at `/assets/img/ridge-far.webp` and `/assets/img/ridge-near.webp`.
+Both are untracked third-party stock files and one carries a visible watermark. **No commit may leave a watermarked stock asset referenced by a page.** Confirm `projects.html` points at the real slot paths.
+-->
 
 - [ ] **Step 9: Log every roll to the ledger**
 
