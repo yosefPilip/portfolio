@@ -11,6 +11,24 @@
 .page-hero .display { color: var(--fg); }
 .page-hero .lede { margin-inline: auto; }
 
+/* The ridge silhouette ships opaque on pure white and is composited
+   arithmetically — result = backdrop x source, so white vanishes and the dark
+   rock stays. No alpha, therefore no matte and no halo on the snow edges.
+   Must target .plate, not .frame: .plate sets will-change: transform, which
+   creates a stacking context, and a blend on a descendant only composites
+   against that plate's own children. */
+#ridge .plate--front { mix-blend-mode: multiply; }
+
+/* .frame paints var(--bg-deep) so a missing image reads as a labelled dark
+   box. Under multiply an opaque dark ground would crush the whole hero to
+   black. */
+#ridge .plate--front .frame { background: transparent; }
+
+/* While the slot is empty the dashed placeholder must stay legible, so the
+   blend switches off rather than multiplying a dashed border into the ridge.
+   Restores itself the moment a real file lands. */
+#ridge .plate--front:has(.frame.is-missing) { mix-blend-mode: normal; }
+
 /* ── filters ── */
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: clamp(24px, 3vw, 44px); }
 /* The filters ship `hidden` and are revealed by the enhancer, because pills
@@ -121,3 +139,56 @@
 .cs-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 body.is-overlay-open { overflow: hidden; }
+
+/* Rolling haze. Atmosphere between depth planes, which is what fog physically
+   is — not a gradient used as light.
+
+   The ::after is 200% wide and the loop translates it by exactly -50% of its
+   own width. For the wrap to be invisible, every pattern period must divide
+   that 50% evenly. Two gradients are used: one at a 25% period (2 whole
+   periods per loop) and one at 12.5% (4 per loop). The beat between them
+   kills the stripe read a single repeating gradient has, and neither seam
+   ever lands on screen. Do not change a period to a value that does not
+   divide 50% -- 20% would wrap mid-band and the jump is very visible.
+
+   The animation goes on the ::after and not the plate: the plate's transform
+   is the parallax, and the two would overwrite each other. Same structural
+   reason .hero .plate--fog::after exists. */
+#ridge .plate--haze::after {
+  content: '';
+  position: absolute;
+  inset: 34% -50% auto -50%;
+  height: 34%;
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0%,
+      color-mix(in oklab, var(--fg) 6%, transparent) 10%,
+      transparent 25%
+    ),
+    repeating-linear-gradient(
+      to right,
+      transparent 0%,
+      color-mix(in oklab, var(--fg) 4%, transparent) 5%,
+      transparent 12.5%
+    );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 35%,
+    black 65%,
+    transparent 100%
+  );
+  animation: haze-drift 48s linear infinite;
+}
+
+@keyframes haze-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+/* No scroll link means no parallax; a band sliding sideways forever with
+   nothing else moving is worse than a still one. */
+@media (prefers-reduced-motion: reduce) {
+  #ridge .plate--haze::after { animation: none; }
+}
