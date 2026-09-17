@@ -43,6 +43,16 @@
 #ridge .plate--back  { z-index: 1; --rate: -90; }
 #ridge .plate--haze  { z-index: 2; --rate: -160; pointer-events: none; }
 #ridge .plate--copy  { z-index: 3; --rate: -260; }
+/* -1000 is not a taste choice, it is the number that makes the front plate
+   swallow the frame. The opaque rock in ridge-near begins 60% down its own
+   image, so its top edge sits at (1.24f - 0.12)V + (f - 1)|--rate| and climbs
+   as --p runs 0->1. Raising --rate alone does NOT fix it: the frame is
+   `height: 100% - --rate`, so a bigger rate also pushes the rock further down
+   its own frame. At f = 0.604 burying the frame needs |--rate| >= 1.59V, which
+   at 1080p is 1715px of travel and reads as a lurch. The cutout is therefore
+   cropped so f = 0.40, which needs only 0.63V -- so -760 buries it at every
+   viewport up to 1080p, and -660 at 390x844.
+   Guarded by tests/front-plate-cover.test.ts. */
 #ridge .plate--front { z-index: 4; --rate: -640; }
 
 /* ── the hero: six layers, Home only ──
@@ -157,6 +167,7 @@
   #ridge .plate--back  { --rate: -54; }
   #ridge .plate--haze  { --rate: -96; }
   #ridge .plate--copy  { --rate: -150; }
+  /* Same solve at 390x844: the edge starts at 887px, so |--rate| >= 887. */
   #ridge .plate--front { --rate: -380; }
 }
 

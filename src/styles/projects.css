@@ -7,6 +7,10 @@
 
 /* Page heroes are three layers. Six belongs to Home alone. */
 .page-hero { --stack-h: 180vh; }
+/* The ridge needs a longer runway than the other page heroes: its front plate
+   travels 1000px so it can bury the back plate completely, and the same travel
+   over 180vh reads as a lurch. */
+#ridge { --stack-h: 260vh; }
 .page-hero .plate--copy { text-align: center; }
 .page-hero .display { color: var(--fg); }
 .page-hero .lede { margin-inline: auto; }
