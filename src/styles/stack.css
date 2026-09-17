@@ -53,7 +53,7 @@
    cropped so f = 0.40, which needs only 0.63V -- so -760 buries it at every
    viewport up to 1080p, and -660 at 390x844.
    Guarded by tests/front-plate-cover.test.ts. */
-#ridge .plate--front { z-index: 4; --rate: -640; }
+#ridge .plate--front { z-index: 4; --rate: -1500; }
 
 /* ── the hero: six layers, Home only ──
    Names encode DEPTH, not species. The previous names did not, and that is
@@ -168,7 +168,7 @@
   #ridge .plate--haze  { --rate: -96; }
   #ridge .plate--copy  { --rate: -150; }
   /* Same solve at 390x844: the edge starts at 887px, so |--rate| >= 887. */
-  #ridge .plate--front { --rate: -380; }
+  #ridge .plate--front { --rate: -1200; }
 }
 
 @media (prefers-reduced-motion: reduce) {
