@@ -3,78 +3,153 @@ import { readFileSync } from 'node:fs';
 
 const css = readFileSync('src/styles/stack.css', 'utf8');
 
-/**
- * Nearer layers must move faster. This is the invariant that the old
- * `.plate--canopy { --rate: -60 }` violated in spirit: a canopy is overhead,
- * i.e. the nearest thing in frame, yet it carried the slowest rate in the
- * stack. Encoding depth in the names made that visible; this keeps it true.
- */
-function heroRates(source: string): { name: string; z: number; rate: number }[] {
-  const rules = source.matchAll(
-    /\.hero \.plate--(\w+)\s*\{[^}]*z-index:\s*(\d+)[^}]*--rate:\s*(-?\d+)/g,
-  );
-  return Array.from(rules, (m) => ({ name: m[1], z: Number(m[2]), rate: Number(m[3]) }));
+const MOBILE = /@media \(max-width: 744px\) \{([\s\S]*?)\n\}/;
+
+interface PlateDecl {
+  scope: string;
+  name: string;
+  z: number | null;
+  rate: number | null;
+  zoom: number | null;
 }
 
 /**
- * The `@media (max-width: 744px)` block redeclares `--rate` per plate without
- * redeclaring `z-index` — depth is only ever stated once, in the desktop
- * block above. So a mobile rate is parsed on its own (name + rate, no
- * z-index in scope) and depth is looked up by NAME against the desktop
- * declarations. Without this, the six mobile rates are invisible to
- * `heroRates()` above (it requires both `z-index` and `--rate` in one rule
- * body) and the exact bug this file exists to catch — a plate carrying the
- * wrong rate for its depth — could live in the mobile block undetected.
+ * Every `<scope> .plate--<name> { … }` rule that declares at least one depth
+ * property. The scope is the selector text to the left of `.plate--`, with an
+ * empty string meaning the base body stack (`.plate--back/--copy/--front`).
+ *
+ * Extracting that scope needs more care than it looks. `([^{}]*?)` is lazy,
+ * but the match START is still the earliest position where the whole pattern
+ * can match — which is right after the previous rule's `}`. So group 1
+ * swallows every comment and blank line in between, and a naive
+ * `.split(',').pop()` hands back `"/* Body stacks: three plates. *\/"` as the
+ * scope of `.plate--back`. That was measured against the real stylesheet, not
+ * imagined: it put `--back` and `--fog` in invented single-member groups,
+ * which makes the `has('')` canary fail and lets the contiguity check pass
+ * vacuously on garbage.
+ *
+ * Stripping comments and splitting on newline as well as comma fixes it: a
+ * selector always sits on the same line as the `.plate--x` it qualifies.
+ * Verified to yield "" x3 and ".hero" x6 against stack.css as it stands.
  */
-function mobileHeroRates(source: string): { name: string; rate: number }[] {
-  const media = source.match(/@media \(max-width: 744px\) \{([\s\S]*?)\n\}/);
-  const body = media?.[1] ?? '';
-  const rules = body.matchAll(/\.hero \.plate--(\w+)\s*\{[^}]*--rate:\s*(-?\d+)/g);
-  return Array.from(rules, (m) => ({ name: m[1], rate: Number(m[2]) }));
+function parsePlates(source: string): PlateDecl[] {
+  const out: PlateDecl[] = [];
+  for (const m of source.matchAll(/([^{}]*?)\.plate--([a-z]+)\s*\{([^}]*)\}/g)) {
+    const body = m[3];
+    const z = body.match(/z-index:\s*(\d+)/);
+    const rate = body.match(/--rate:\s*(-?\d+)/);
+    const zoom = body.match(/--zoom:\s*([\d.]+)/);
+    if (!z && !rate && !zoom) continue;
+    out.push({
+      scope: m[1].replace(/\/\*[\s\S]*?\*\//g, '').split(/[,\n]/).pop()!.trim(),
+      name: m[2],
+      z: z ? Number(z[1]) : null,
+      rate: rate ? Number(rate[1]) : null,
+      zoom: zoom ? Number(zoom[1]) : null,
+    });
+  }
+  return out;
 }
 
-describe('hero depth ordering', () => {
-  it('declares all six layers with a z-index and a rate', () => {
-    const layers = heroRates(css);
-    expect(layers.map((l) => l.name)).toEqual([
-      'far', 'fog', 'mid', 'name', 'near', 'low',
-    ]);
+function groupByScope(decls: PlateDecl[]): Map<string, PlateDecl[]> {
+  const groups = new Map<string, PlateDecl[]>();
+  for (const d of decls) {
+    const list = groups.get(d.scope) ?? [];
+    list.push(d);
+    groups.set(d.scope, list);
+  }
+  return groups;
+}
+
+const desktop = groupByScope(parsePlates(css.replace(MOBILE, '')));
+const mobile = groupByScope(parsePlates(css.match(MOBILE)?.[1] ?? ''));
+
+describe('stack depth ordering', () => {
+  it('finds every stack scope, not just the hero', () => {
+    // A broken regex would silently shrink this to one group and every
+    // assertion below would pass vacuously. This is the canary.
+    expect(desktop.size).toBeGreaterThanOrEqual(2);
+    expect(desktop.has('')).toBe(true);
+    expect(desktop.has('.hero')).toBe(true);
   });
 
-  it('moves nearer layers faster, without exception', () => {
-    const layers = heroRates(css);
-    const byDepth = [...layers].sort((a, b) => a.z - b.z);
-    for (let i = 1; i < byDepth.length; i += 1) {
-      expect(Math.abs(byDepth[i].rate)).toBeGreaterThan(Math.abs(byDepth[i - 1].rate));
+  it('gives every depth-declaring plate both a z-index and a rate', () => {
+    for (const [scope, plates] of desktop) {
+      for (const p of plates) {
+        expect(p.z, `${scope} .plate--${p.name} z-index`).not.toBeNull();
+        expect(p.rate, `${scope} .plate--${p.name} --rate`).not.toBeNull();
+      }
     }
   });
 
-  it('moves nearer layers faster on mobile too, without exception', () => {
-    // Depth is declared once (desktop); the mobile block only redeclares
-    // --rate. Look up each mobile plate's depth by name against the desktop
-    // z-index before checking the same strict-increase invariant.
-    const zByName = new Map(heroRates(css).map((l) => [l.name, l.z]));
-    const mobile = mobileHeroRates(css);
-    expect(mobile.map((l) => l.name)).toEqual([
-      'far', 'fog', 'mid', 'name', 'near', 'low',
-    ]);
-    const byDepth = [...mobile].sort((a, b) => zByName.get(a.name)! - zByName.get(b.name)!);
-    for (let i = 1; i < byDepth.length; i += 1) {
-      expect(Math.abs(byDepth[i].rate)).toBeGreaterThan(Math.abs(byDepth[i - 1].rate));
+  it('numbers each scope z 1..n with no gap and no collision', () => {
+    // An incomplete scope is the real bug this catches: inserting one plate
+    // into a stack without restating the plates it displaces leaves two
+    // layers sharing a z-index, and paint order silently falls back to DOM
+    // order.
+    for (const [scope, plates] of desktop) {
+      const zs = plates.map((p) => p.z!).sort((a, b) => a - b);
+      expect(zs, `scope "${scope}"`).toEqual(zs.map((_, i) => i + 1));
     }
   });
 
-  it('composites the two front plates with multiply, on the plate not the frame', () => {
-    // .plate sets will-change: transform, which creates a stacking context, so
-    // a blend on the inner .frame silently does nothing.
-    expect(css).toMatch(/\.hero \.plate--mid,\s*\n\s*\.hero \.plate--near \{ mix-blend-mode: multiply; \}/);
-    expect(css).not.toMatch(/\.hero \.plate--(mid|near) \.frame \{[^}]*mix-blend-mode/);
+  it('moves nearer layers faster, in every scope, without exception', () => {
+    for (const [scope, plates] of desktop) {
+      const byDepth = [...plates].sort((a, b) => a.z! - b.z!);
+      for (let i = 1; i < byDepth.length; i += 1) {
+        expect(
+          Math.abs(byDepth[i].rate!),
+          `${scope} .plate--${byDepth[i].name} vs --${byDepth[i - 1].name}`,
+        ).toBeGreaterThan(Math.abs(byDepth[i - 1].rate!));
+      }
+    }
+  });
+
+  it('moves nearer layers faster on mobile too, in every scope', () => {
+    for (const [scope, plates] of mobile) {
+      const zByName = new Map(
+        (desktop.get(scope) ?? []).map((p) => [p.name, p.z!]),
+      );
+      const byDepth = [...plates].sort(
+        (a, b) => zByName.get(a.name)! - zByName.get(b.name)!,
+      );
+      expect(byDepth.every((p) => zByName.has(p.name)), `scope "${scope}"`).toBe(true);
+      for (let i = 1; i < byDepth.length; i += 1) {
+        expect(
+          Math.abs(byDepth[i].rate!),
+          `mobile ${scope} .plate--${byDepth[i].name}`,
+        ).toBeGreaterThan(Math.abs(byDepth[i - 1].rate!));
+      }
+    }
+  });
+
+  it('scales nearer image layers at least as fast, never slower', () => {
+    // Non-decreasing, not strictly increasing, and two exceptions are
+    // deliberate (spec §6):
+    //   - a door is IN its doorway, so --face and --door are coplanar and
+    //     share a --zoom; give the door its own depth and it drifts off the
+    //     opening as the dolly runs.
+    //   - --copy is type, not world geometry. Type never scales; --step-*
+    //     already sizes it. It is skipped entirely.
+    for (const [scope, plates] of desktop) {
+      const zoomed = plates
+        .filter((p) => p.name !== 'copy' && p.zoom !== null)
+        .sort((a, b) => a.z! - b.z!);
+      for (let i = 1; i < zoomed.length; i += 1) {
+        expect(
+          zoomed[i].zoom!,
+          `${scope} .plate--${zoomed[i].name} vs --${zoomed[i - 1].name}`,
+        ).toBeGreaterThanOrEqual(zoomed[i - 1].zoom!);
+      }
+    }
+  });
+
+  it('composites the hero front plates with multiply, on the plate not the frame', () => {
+    expect(css).toMatch(/mix-blend-mode: multiply/);
+    expect(css).not.toMatch(/\.plate--\w+ \.frame \{[^}]*mix-blend-mode/);
   });
 
   it('keeps no alpha-era mask on the hero', () => {
-    // The mask existed only to reveal one opaque photograph from behind
-    // another. With a single opaque plate it has nothing left to do, and it
-    // was the visible seam the owner reported.
     expect(css).not.toMatch(/\.hero \.plate--\w+ \{[\s\S]{0,200}mask-image/);
   });
 });
