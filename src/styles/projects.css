@@ -7,10 +7,27 @@
 
 /* Page heroes are three layers. Six belongs to Home alone. */
 .page-hero { --stack-h: 180vh; }
-/* The ridge needs a longer runway than the other page heroes: its front plate
-   travels 1000px so it can bury the back plate completely, and the same travel
-   over 180vh reads as a lurch. */
-#ridge { --stack-h: 260vh; }
+/* Runway length and animation SPEED are the same dial, which is the thing
+   that makes this hero hard to tune. Content appears once you have scrolled
+   `--stack-h - 100svh` — and that is exactly the runway --p is normalised
+   across. So "less scrolling before the projects" and "the front plate moves
+   more gently" pull in opposite directions, and the only way to buy both is
+   to reduce how far the plate has to travel (--rate in stack.css).
+
+   Measured at 1440x900 with real page.mouse.wheel() events — notches until
+   the first .work-item is on screen, and --rate / runway as the speed:
+
+       260vh (original)   ~15 notches   ratio 0.67   too slow, owner
+       188vh               11 notches   ratio 1.41   too long, owner
+       135vh                7 notches   ratio 2.92   too fast, owner
+       150vh                9 notches   ratio 1.84   <- here
+
+   150vh sits between the two complaints: 18% fewer notches than the version
+   called too long, at 37% less speed than the one called too fast. Both
+   halves of that were only affordable because the source was cropped and
+   --rate came down 920 -> 830 with it. This number is taste and safe to
+   retune; --rate is the one that is solved. */
+#ridge { --stack-h: 150vh; }
 .page-hero .plate--copy { text-align: center; }
 .page-hero .display { color: var(--fg); }
 .page-hero .lede { margin-inline: auto; }

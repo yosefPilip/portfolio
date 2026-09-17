@@ -42,18 +42,152 @@
    refuses. ── */
 #ridge .plate--back  { z-index: 1; --rate: -90; }
 #ridge .plate--haze  { z-index: 2; --rate: -160; pointer-events: none; }
-#ridge .plate--copy  { z-index: 3; --rate: -260; }
-/* -1000 is not a taste choice, it is the number that makes the front plate
-   swallow the frame. The opaque rock in ridge-near begins 60% down its own
-   image, so its top edge sits at (1.24f - 0.12)V + (f - 1)|--rate| and climbs
-   as --p runs 0->1. Raising --rate alone does NOT fix it: the frame is
-   `height: 100% - --rate`, so a bigger rate also pushes the rock further down
-   its own frame. At f = 0.604 burying the frame needs |--rate| >= 1.59V, which
-   at 1080p is 1715px of travel and reads as a lurch. The cutout is therefore
-   cropped so f = 0.40, which needs only 0.63V -- so -760 buries it at every
-   viewport up to 1080p, and -660 at 390x844.
-   Guarded by tests/front-plate-cover.test.ts. */
-#ridge .plate--front { z-index: 4; --rate: -1500; }
+#ridge .plate--copy  { z-index: 3; --rate: -190; }
+/* ── The front ridge: the one plate whose image scale is NOT derived from
+   its own travel. ──
+   Every other plate rides the shared `.plate > .frame` rule, whose height is
+   `100% - --rate` so the painted surface always outruns the travel. On this
+   plate that rule is a trap. `object-fit: cover` scales the source to that
+   box, so the ridgeline's position is a FRACTION of a box that grows exactly
+   as fast as the plate moves:
+
+       ridgeline_y(p) = -0.12V - R*p + g*(1.24V + R)
+
+   The `+g*R` term cancels the `-R*p` term. Raising --rate to bury the back
+   plate magnifies the source by that same factor, which is what repeatedly
+   produced an unreadable close-up of snow instead of a ridge. There is no
+   value of --rate alone that both clears the copy at rest and buries the back
+   plate at the end.
+
+   So this plate sizes its image against the VIEWPORT and leaves its own box
+   alone. The ridgeline becomes an absolute offset travelling the full -R*p,
+   and all three requirements are simultaneously solvable:
+
+       S    = max(--front-img-h / 1600, plateWidth / 2048)   (object-fit: cover)
+       peak = -0.12V + T + 117*S - R*p   crest, source row 117 of 1600
+       cov  = -0.12V + T + 482*S - R*p   ridge spans the full width, row 482
+       base = -0.12V + T + 1600*S - R*p  bottom edge of the source
+                                         (T = --front-img-top)
+
+   Position and scale are separated: --front-img-h pins the image at its
+   NATURAL height and --front-img-top slides it down to place the crest, rather
+   than scaling the image up to push the crest below the copy. S then stays
+   exactly 1.0 at every viewport up to ~1930px wide, so it is never resampled.
+
+   The source is CROPPED to the rows that are actually on screen. The render is
+   2048x2736 (crest row 517, coverage row 882) but rows below ~1200 never enter
+   the viewport at any scroll position, and the rows above the crest are
+   transparent. Cropping to rows 400-2000 leaves 2048x1600 — crest row 117,
+   coverage row 482, the same picture — and took the shipped file from 1713 KB
+   to 943 KB. `assets/img/roll-near-09.png` keeps the uncropped original.
+
+   Measured in-browser at 1280x800, 1440x900, 1686x950, 1920x1080, 390x844
+   and 744x1000:
+     peak(0) clears the lede by 60-106px  -> title fully visible at rest
+     cov(1)  lands above the h1's top     -> title fully buried behind the ridge
+     base(1) lands well past V            -> reaches the hero's bottom, always
+
+   -830 is a FLOOR, not a taste choice. It is the smallest travel that still
+   buries the title, and the title can only be hidden by BURIAL: the
+   alternative — letting the copy plate outrun the ridge and exit the top —
+   needs |--rate| on .plate--copy above the front plate's own, which inverts
+   the depth order and fails tests/stack-depth.test.ts. So the floor is
+
+       R >= copyHeight + restClearance + ridgeSpread + copyRate
+
+   measured at 1920x1080 as 215 + 37 + 365 + 190 = 807. Three of those four
+   were trimmed to get here: the rest clearance from 64px to ~37 (the crest
+   starts closer under the lede), the copy rate from -260 to -190, and the
+   whole thing re-based on the cropped source. That bought the drop from -920
+   and, with it, a gentler hero at a shorter runway.
+
+   ridgeSpread — 365px between the crest and the first fully-covering row — is
+   a property of THIS ridgeline's jaggedness, not of the layout. A flatter
+   skyline would lower the floor further; a more serrated one would raise it.
+
+   The owner asked for the hero to release the moment the crest reaches the
+   top of the viewport. That needs |--rate| ~672 at 1440x900, below this floor,
+   so it cannot hold while the title still vanishes. Burial won, being the
+   older requirement. The crest therefore ends 269-343px above the viewport
+   top rather than level with it, and a thin band of back plate survives in
+   the notches, reading as sky.
+
+   Two documented limits, both degrading the same safe way — the plate still
+   reaches the bottom and the title still vanishes, only the bury stops being
+   total:
+     - above ~1930px wide, the plate outgrows the source and `cover` scales to
+       WIDTH, so S > 1 and a band of back plate survives at the end;
+     - above ~1150px tall, --front-img-top grows by 0.62V while the plate top
+       only rises by 0.12V, so the coverage line outruns a fixed --rate.
+   --rate must stay a plain number (stack.css multiplies it by 1px, and
+   tests/stack-depth.test.ts parses it), so it cannot scale with the viewport.
+
+   The ID in the selectors below is load-bearing: (1,2,0) out-specifies the
+   (0,2,0) the visual editing panel writes into layout.generated.css, so a
+   band trim dropped on this slot can no longer turn the plate into a
+   floating strip. Guarded by tests/plate-frame-trim.test.ts. */
+#ridge .plate--front {
+  z-index: 4;
+  --rate: -830;
+  --front-img-h: 1600px;                          /* ridge-near.webp's natural height */
+  --front-img-top: calc(0.62 * 100svh + 16px);    /* places the crest under the lede */
+}
+#ridge .plate--front > .frame {
+  height: 100%;
+  top: 0;
+  overflow: visible;        /* the image is taller than the frame; .stack-view clips it */
+  background: transparent;  /* structural: ridge-near is an alpha cutout, not a photo */
+}
+#ridge .plate--front > .frame > img {
+  position: absolute;
+  inset: var(--front-img-top) auto auto 0;
+  width: 100%;
+  height: var(--front-img-h);
+  object-fit: cover;
+  object-position: center top;  /* row 0 of the source pinned to the box top */
+}
+
+/* ── the dissolve: no stack ends on a cut ──
+   A .stack-view is a hard-clipped 100svh box, so without this every plate
+   stops on a dead-straight horizontal edge exactly where the page ground
+   begins — the photograph and the prose under it meet on a seam.
+
+   This scrim carries the bottom of the stack into var(--bg), the same colour
+   body paints, so the image resolves into the page instead of being cropped
+   by it. It is atmosphere, not light — the same category as the fog plates
+   above, which is why a gradient is allowed here at all.
+
+   Ten stops on a cubic ease, not a two-stop ramp. Two reasons: a LINEAR fade
+   across ~250px of near-black bands visibly on an 8-bit panel, and a ramp that
+   is still climbing at the last stop lands the image on a visible step — which
+   is exactly what the flat brown ground of the Workshop hero showed at the
+   first pass. The curve is slow at the top and flat by 94%, so the plate is
+   already solid --bg before it reaches its own clipped edge.
+
+   z-index 7 clears every plate (the hero's deepest is .plate--low at 6) and
+   sits under .hero-intro / .hero-progress, moved to 8 below so the copy is
+   not washed out by the very scrim that makes it more legible. */
+.stack-view::after {
+  content: '';
+  position: absolute;
+  z-index: 7;
+  inset: auto 0 0 0;
+  height: var(--stack-fade);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--bg) 0%, transparent) 0%,
+    color-mix(in oklab, var(--bg) 3%, transparent) 14%,
+    color-mix(in oklab, var(--bg) 10%, transparent) 28%,
+    color-mix(in oklab, var(--bg) 22%, transparent) 42%,
+    color-mix(in oklab, var(--bg) 37%, transparent) 55%,
+    color-mix(in oklab, var(--bg) 54%, transparent) 67%,
+    color-mix(in oklab, var(--bg) 71%, transparent) 78%,
+    color-mix(in oklab, var(--bg) 85%, transparent) 87%,
+    color-mix(in oklab, var(--bg) 95%, transparent) 94%,
+    color-mix(in oklab, var(--bg) 100%, transparent) 100%
+  );
+}
 
 /* ── the hero: six layers, Home only ──
    Names encode DEPTH, not species. The previous names did not, and that is
@@ -131,10 +265,12 @@
 }
 .hero .plate--low::after { opacity: 0.8; }
 
-/* Hero intro copy: z-index 7, bottom-left, deliberately NOT parallaxed. */
+/* Hero intro copy: bottom-left, deliberately NOT parallaxed. z-index 8 so it
+   rides ON TOP of the .stack-view dissolve above rather than being faded by
+   it — the scrim is the ground under this copy, not a veil over it. */
 .hero-intro {
   position: absolute;
-  z-index: 7;
+  z-index: 8;
   left: var(--gutter);
   bottom: clamp(48px, 9vh, 104px);
   max-width: 34ch;
@@ -143,7 +279,7 @@
 /* A single hairline tick fills across the bottom. No numbers, no badge. */
 .hero-progress {
   position: absolute;
-  z-index: 7;
+  z-index: 8;
   left: 0; right: 0; bottom: 0;
   height: 1px;
   background: var(--border);
@@ -166,9 +302,13 @@
   .hero .plate--low  { --rate: -270; }
   #ridge .plate--back  { --rate: -54; }
   #ridge .plate--haze  { --rate: -96; }
-  #ridge .plate--copy  { --rate: -150; }
-  /* Same solve at 390x844: the edge starts at 887px, so |--rate| >= 887. */
-  #ridge .plate--front { --rate: -1200; }
+  #ridge .plate--copy  { --rate: -120; }
+  /* The same solve holds at 390x844 and at the 744x1000 boundary: burying the
+     TITLE needs |--rate| >= 876, measured, so the desktop -920 serves both. Declared rather than inherited so the mobile half of
+     tests/stack-depth.test.ts sees it explicitly. --front-img-h and
+     --front-img-top are inherited unchanged; the copy block is shorter here,
+     so the crest clears it by more (106px at 390x844). */
+  #ridge .plate--front { --rate: -830; }
 }
 
 @media (prefers-reduced-motion: reduce) {

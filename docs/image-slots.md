@@ -30,7 +30,7 @@ true alpha (avoid; halos on soft edges).
 | Slot | Role | Tier | Status | Spend | Notes |
 |---|---|---|---|---|---|
 | `ridge-far` | back, opaque | 1 opaque | explore (awaiting final) | $0.027 | 1536x1024, roll 1 accepted first time. Graded gamma 1.60 / exposure 1.00, **colour shift zeroed** (`blue=0 green=0 red=0`) — grade.py's default pulls blue out and pushes green/yellow in, which is right for the jungle set and wrong for a slate room. Raw title-band p95 was 0.441 = 2.01:1 against bone, below the 3:1 floor for display type; graded it measures 0.270 = 3.08:1. The fog bank is what sat bright behind the type. |
-| `ridge-near` | front | **3 real alpha** | explore (kept) | $0.027 | 1536x1024, 2 rolls. White point pushed 252→255 (top corners measured 254.0 raw; an off-white ground leaves a grey wash over the whole hero). 74 KB. |
+| `ridge-near` | front | **3 real alpha** | **final** | $0.288 | **2048x1600** RGBA webp q86, **943 KB**. roll-09 (2048x2736), `--ref` roll-08, medium quality, then `tools/mist.py` (slate grade gamma 0.70 + atmospheric veil). **The veil is not decoration.** The render came back with directional sun and hard cast shadows while `ridge-far` is flat overcast, so the pair read as two different days: lum 106 / shadow floor 11 / fine detail 41.4 against the back's 184 / 85 / 16.8. Grading alone closes luminance but not detail (41.4 -> 38.8) because it cannot remove a cast shadow; veiling does both, since most of the micro-busyness IS shadow contrast. After: 144 / 51 / 34.0. Deterministic and re-runnable from roll-09. **Then CROPPED to rows 400-2000**, which is the only part that ever enters the viewport: the rows above the crest are transparent and the rows below ~1200 never scroll into view at any position. Same picture, 1713 KB -> 943 KB, and the shorter source is what let --rate drop 920 -> 830 and the hero runway shorten with it. Mist is applied BEFORE the crop so its band stays where it was judged. Crest g=0.189, full coverage g=0.322, partial alpha 0.128%. Snow crest with rock ribs and couloirs -> ragged treeline ~55% -> dense conifer forest through the bottom third. Local detail 47.8 against roll-07's 20-falling-to-13.6. Renders at **S=1.0, never resampled**, at every viewport up to ~1930px wide — stack.css pins it at its natural 2736px height and positions it with `--front-img-top` instead of scaling it. 1.8 MB is genuine forest detail, not slack encoding: q74 still measures 99.3% of source detail and only saves 300 KB. |
 
 **Roll log:**
 
@@ -42,6 +42,8 @@ true alpha (avoid; halos on soft edges).
 | `ridge-far` v3 | $0.009 | superseded — matched the owner's reference for palette, but its dark centre was not dark enough (title band p95 0.534 = 1.69:1). |
 | `ridge-near` v3 | $0.009 | **accepted.** `--ref` + `--transparent`. 49% fully transparent / 50.5% fully opaque / 0.45% partial edge. |
 | `ridge-far` v4 | $0.009 | **accepted.** `--ref`. Huge dark rock wall across the centre, snow on both flanks. Band p95 0.223 = 3.62:1 with the frame still light at 0.479. |
+| `ridge-near` v8 (roll-08) | $0.008 | **composition accepted by the owner.** 1024x1360 explore, `--transparent`, no `--ref`. Replaces the dune-field source: crest g=0.192, full coverage g=0.321, ragged treeline breaking ~55%, dense conifer forest through the bottom third. Local detail 37-46 across the lower frame and RISING toward the base, against roll-07's 20 falling to 13.6 — roll-07's soft repetitive base was the real reason every geometry fix still read as a close-up. Bottom-third luminance 51 (forest) vs roll-07's 158 (bare snow). Awaiting a full-size medium render before it ships; at 1.39 MP it would upscale ~2.7x in the plate. |
+| `ridge-near` v9 (roll-09) | $0.28 | **accepted — shipped.** 2048x2736 medium, `--ref assets/img/roll-near-08.png`. `--ref` held the approved composition tightly: crest g 0.1919→0.1890, coverage g 0.3147→0.3129, while local detail rose 35.7→47.8 and the matte cleaned up 0.334%→0.128% partial pixels. Confirms the pattern the skill documents — approve composition at low quality for under a cent, then buy the detail once with `--ref`. |
 | ~~`ridge-near` v2~~ | — | ~~**accepted.**~~ Summit at ~47% height with pure white above it; mass unbroken to the bottom edge across 100% of the width; central band bare dark rock, snow on the flanks only. |
 
 **Second standing lesson — the frame-extension rule caps how far a front plate can
@@ -81,7 +83,7 @@ See `docs/image-rooms-queue.md`. All placeholders, none planned yet by design.
 | `trees-back` | $0.83 | wrong biome; rescued in post by rotating hue 200→81, which is the practice this plan bans |
 | `trunks-near` | ~$0.45 | Tier 3 alpha cutout, arrived haloed at +24 RGB, needed hand un-matting |
 
-**Running total spent to date: ~$1.98.** ($1.95 before this sitting, plus $0.027 across three Projects explore rolls; no final bought yet.)
+**Running total spent to date: ~$2.27.** ($1.95 before this sitting, plus $0.035 across four Projects explore rolls and one $0.28 medium render. `ridge-far` remains explore; its $0.32 final is approved but unspent.)
 
 **Superseded:** _Running total spent to date: ~$1.95._ Of that, $0.45 is this sitting and all of it is
 on the page: $0.126 across 7 explore rolls (14 images) plus one $0.32 final. Approved ceiling

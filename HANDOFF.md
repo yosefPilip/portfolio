@@ -30,17 +30,79 @@ Branch `portfolio-overgrowth-rebuild`. Last commit `79724a6`.
 - **Tasks 1 and 2** (depth guards generalized; `#ridge` four-plate scope with the CSS
   haze). Both reviewed clean.
 
-**Not done — the whole problem:**
+**Now done (2026-09-17, session 2) — `ridge-near` front plate.**
 
-`ridge-near` (front plate). The owner has flagged the same defect **four times** and it
-is still not fixed.
+The defect was three separate faults stacked, not one:
 
-**Known baseline:** `npm test` has exactly one pre-existing failure,
-`tests/workshop-page.test.ts > references all four arrival image slots`, caused by the
-owner's own uncommitted work. 554/555 pass. Do not "fix" it; Task 8 replaces it. Any
-*second* failure is yours.
+1. **The panel's band trim, live and uncommitted.** `layout.generated.css` carried
+   `height: 53%; top: 47%` for the front slot — the frame measured **591px instead of
+   2616px**, 22% of its height. At p=0.49 its bottom sat at 266px, leaving 634px of bare
+   back plate; by p=1 it was off-screen entirely. *This is what "the image keeps coming
+   out too short" actually was.* No image could ever have fixed it. §5's prediction that
+   it would return on a re-drop was correct.
+2. **The `g*R` cancellation in §4**, which was real. Fixed structurally, see below.
+3. **The source's lower 60% is a soft, repetitive dune field** — local detail falls 44%
+   from crest (24.3) to base (13.6). Nobody had named this. It is why every geometry
+   "fix" still looked like a close-up: there is nothing detailed below the ridgeline to
+   show. The end frame is now acceptable but it is still the weakest frame on the page.
 
----
+**The fix, all in `src/styles/stack.css` under `#ridge .plate--front`:** the plate stops
+using the shared `.plate > .frame` height rule and sizes its image against the VIEWPORT
+(`--front-img-h: calc(2.05 * 100svh + 520px)`), so the ridgeline is an absolute offset
+travelling the full `-R*p` instead of a fraction of a box that grows with R. `--rate`
+dropped -1500 → **-960**. The selector carries an ID on purpose: (1,2,0) out-specifies
+the (0,2,0) the panel writes, so a band trim can never strip this plate again.
+
+Measured in-browser with real `page.mouse.wheel()`, rest → end:
+
+| viewport | title clear at rest | back buried at end | worst bottom gap |
+|---|---|---|---|
+| 1280x800 | +82px | -225px | none (-304) |
+| 1440x900 | +72px | -153px | none (-402) |
+| 1686x950 | +69px | -124px | none (-444) |
+| 1920x1080 | +71px | -38px | none (-564) |
+| 390x844 | +114px | -196px | none (-345) |
+| 744x1000 | +110px | -91px | none (-490) |
+
+Known limit: **above ~1950px wide** the plate outgrows the source, `cover` scales to
+width, and ~300px of back plate stays visible at the end (2560x1080 measured at +297).
+No gap, and the title still vanishes. Deliberate, documented in the CSS.
+
+**Also fixed, same defect class, found by the new guard — flagged because they were the
+owner's own uncommitted panel settings, not mine to assume about:**
+
+- `Workshop L1 — cottage-far`: `height: 95%; top: 0%` → **measured 38px bare strip** at
+  the bottom of `#arrive` at full scroll. Removed.
+- `Music L3 — cave-near`: `height: 25%; top: 37.5%` → 741px gap. Removed. Its
+  `background: transparent` was KEPT (a paint choice, not a box choice); the slot's image
+  does not exist yet, so it renders as the designed placeholder.
+
+**Two defences now exist**, per §5's never-written guard:
+`tests/plate-frame-trim.test.ts` fails the suite if any `.plate > .frame` label gets a
+`height`/`top` in `layout.generated.css`, and `imageEditing.ts`'s `previewDroppedFile`
+clears a stored trim when a NEW image is dropped, so a re-drop can no longer inherit the
+previous subject's band.
+
+**Fault 3 is now closed too.** The owner approved a re-roll: `roll-08` at $0.008 to settle
+the composition, then `roll-09` at $0.28 (2048x2736 medium, `--ref roll-08`) for the detail.
+Shipped as `ridge-near.webp`. Crest moved to g=0.189, so stack.css was retuned: the image is
+pinned at its NATURAL 2736px height and positioned with `--front-img-top`, rather than scaled
+up 1.35x to push the crest below the copy — so it renders at S=1.0, never resampled, at every
+viewport up to ~1930px wide. `--rate` settled at **-920**, and the runway at **135vh** after four
+owner-directed trims (260 -> 210 -> 188 -> 135vh).
+
+The last trim was tuned against TIME-TO-CONTENT rather than feel: wheel notches until the
+first `.work-item` is on screen at 1440x900 went **11 -> 7**, a 36% cut. The owner's stated
+criterion was that the hero release the moment the crest reaches the top of the viewport;
+that is not reachable while the title still vanishes behind the ridge, and the numbers say
+why — crest-at-top needs |--rate| 672/762 (1440/1920), burying the title needs 876/879,
+because the coverage line starts 365px below the crest and must travel that much further.
+Burying the title won, being the older requirement; -920 is the smallest value that does it
+everywhere, so the crest lands as close to the top as that constraint permits. Residue: a
+~34px band of back plate through the notches at the end, which reads as sky.
+
+**Still open:** `ridge-far`'s $0.32 final render is approved but unspent — the back plate is
+still an explore roll. Worth doing now that the front plate is final, so the pair matches.
 
 ## 3. What the owner actually asked for
 
