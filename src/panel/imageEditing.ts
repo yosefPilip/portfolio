@@ -1,8 +1,68 @@
 import type { Store } from './state';
 import type { ImageEdit } from './types';
+import type { ImageUploadRequest } from './saveClient';
 import { MANIFEST } from './manifest';
 import { maxPanPercent } from './cssGenerator';
-import { isActive, refreshPanel, onUndo, getSelectedFrame, isPanelChrome, registerZoomSetter } from './overlay';
+import {
+  isActive,
+  refreshPanel,
+  onUndo,
+  onSaveSuccess,
+  getSelectedFrame,
+  isPanelChrome,
+  registerZoomSetter,
+  registerPendingUploadCounter,
+  registerPendingUploadsCollector,
+} from './overlay';
+
+/**
+ * Bytes of a dropped-but-unsaved image, kept only in memory, keyed by the
+ * frame's data-label — a File cannot be JSON-serialised, and the store
+ * mirrors its state to localStorage, so this intentionally never goes
+ * through persist(). That is also what keeps "an unsaved drop vanishes on
+ * reload" true without any extra reconciliation step: a reload always starts
+ * this Map empty, so there is nothing a stale localStorage entry could ever
+ * point at, and nothing that would show a pending count Save could not
+ * actually act on.
+ */
+const pendingUploads = new Map<string, File>();
+
+/**
+ * Each slot's real `<img src>` exactly as the page loaded it — the "before"
+ * value the server's stale check compares against when Save repoints this
+ * slot's HTML. Captured once, at install, before any drop can have touched
+ * it: `previewDroppedFile` sets `img.src` to a blob: URL via the IDL
+ * property, which — because `src` is a reflected attribute — ALSO rewrites
+ * `img.getAttribute('src')`, so reading it lazily after a drop would read
+ * back the preview, not the real value the file on disk still has.
+ */
+const originalSrc = new Map<string, string>();
+
+/**
+ * Client-side courtesy copy of paths.ts's MAX_IMAGE_BYTES. Duplicated, not
+ * imported: server/ and browser code sit on opposite sides of the tsconfig
+ * boundary and neither may import the other (see RAWTEXT_TAGS in
+ * textEditing.ts for the same pattern). Rejecting an oversized file at drop
+ * time is purely a courtesy — it stops the pending count from promising a
+ * save the server is going to refuse anyway, which is exactly the kind of
+ * dangling, un-saveable entry this feature has to avoid. The server's own
+ * check is the one that actually matters.
+ */
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+async function fileToBase64(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  // Chunked rather than one `String.fromCharCode(...bytes)`: spreading a
+  // large typed array as call arguments can exceed the engine's argument
+  // limit for a several-megabyte photo.
+  const CHUNK = 0x8000;
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
 
 /** Live values while dragging, before they are committed to the store. */
 interface Live { x: number; y: number; zoom: number; panX: number; panY: number }
@@ -78,6 +138,49 @@ export function installImageEditing(store: Store): void {
     if (slot) paint(slot.img, toLive(edit));
   }
 
+  // Snapshot every slot's real src BEFORE anything else can touch it (see
+  // originalSrc's doc comment) — this is what a later Save sends the server
+  // as "the value I loaded", for the stale-src check on the HTML patch.
+  for (const frame of document.querySelectorAll<HTMLElement>(MANIFEST.slotSelector)) {
+    const img = frame.querySelector('img');
+    const label = frame.getAttribute(MANIFEST.slotKeyAttr);
+    if (img && label) originalSrc.set(label, img.getAttribute('src') ?? '');
+  }
+
+  registerPendingUploadCounter(() => pendingUploads.size);
+
+  registerPendingUploadsCollector(async () => {
+    const file = MANIFEST.pageForPath(window.location.pathname);
+    const out: ImageUploadRequest[] = [];
+    for (const [label, f] of pendingUploads) {
+      out.push({
+        path: file,
+        label,
+        fileName: f.name,
+        data: await fileToBase64(f),
+        beforeSrc: originalSrc.get(label) ?? '',
+      });
+    }
+    return out;
+  });
+
+  onSaveSuccess((_state, result) => {
+    for (const { label, src } of result.images) {
+      pendingUploads.delete(label);
+      const slot = findSlot(label);
+      if (!slot) continue;
+      if (slot.img.src.startsWith('blob:')) URL.revokeObjectURL(slot.img.src);
+      slot.img.src = src;
+      slot.frame.classList.remove('is-missing');
+      delete slot.frame.dataset.panelPreview;
+      // Keep the "on disk now" snapshot current, same reason
+      // textEditing.ts's onSaveSuccess refreshes its own `originals`: the
+      // NEXT save's stale check must compare against reality, not this
+      // now-superseded pre-save value.
+      originalSrc.set(label, src);
+    }
+  });
+
   // The layer list's zoom slider is built and owned by overlay.ts, which
   // cannot import this module directly (this module already imports FROM
   // overlay.ts, and a cycle back the other way is worth avoiding) — so it
@@ -110,6 +213,16 @@ export function installImageEditing(store: Store): void {
     slot.frame.classList.toggle('is-missing', result.prevMissing);
     if (result.prevPreviewName === undefined) delete slot.frame.dataset.panelPreview;
     else slot.frame.dataset.panelPreview = result.prevPreviewName;
+    // Always drop this label's queued bytes, even when undo reverts to an
+    // EARLIER still-pending drop (prevPreviewName defined) rather than to
+    // "no preview at all": a second drop overwrote whatever this map held
+    // for the first one, so there is nothing left here that actually
+    // matches what is back on screen. Saving now would either do nothing
+    // for this slot (safe — the same as if it had never been dropped) or,
+    // worse, silently write bytes that don't match the preview being shown.
+    // The fix is cheap: drop the file again if that earlier preview is
+    // still wanted.
+    pendingUploads.delete(result.label);
   });
 
   let dragging: { img: HTMLImageElement; frame: HTMLElement; label: string; startX: number; startY: number; from: Live } | null = null;
@@ -247,7 +360,18 @@ export function installImageEditing(store: Store): void {
     const img = frame.querySelector('img') as HTMLImageElement | null;
     const label = frame.getAttribute(MANIFEST.slotKeyAttr);
     if (!img || !label || !file.type.startsWith('image/')) return;
+    // A courtesy rejection — see MAX_IMAGE_BYTES's doc comment. Refused
+    // before anything else touches the frame, so a too-big drop leaves the
+    // existing image and pending state completely untouched.
+    if (file.size > MAX_IMAGE_BYTES) {
+      window.alert(
+        `"${file.name}" is ${Math.round(file.size / (1024 * 1024))} MB, over the ` +
+          `${MAX_IMAGE_BYTES / (1024 * 1024)} MB the panel can save. Pick a smaller file.`,
+      );
+      return;
+    }
     store.recordImagePreview(label, img.src, frame.classList.contains('is-missing'), frame.dataset.panelPreview);
+    pendingUploads.set(label, file);
     img.src = URL.createObjectURL(file);
     frame.classList.remove('is-missing');
     frame.dataset.panelPreview = file.name;

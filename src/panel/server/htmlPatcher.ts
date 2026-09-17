@@ -17,6 +17,25 @@ function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+/**
+ * Escape a value for insertion into a DOUBLE-QUOTED HTML attribute. A
+ * different job than escapeHtml above: text-node content only ever risked
+ * breaking out via `&`/`<`/`>`, but an attribute value is unterminated by a
+ * literal `"` too — and, since every `src="…"` in this site's HTML is
+ * double-quoted, that is the one character that actually matters here. `'`
+ * is escaped too, defensively, in case this is ever reused against a
+ * single-quoted attribute; `<`/`>` are not strictly required in an attribute
+ * value but are escaped anyway for the same reason escapeHtml already does.
+ */
+function escapeAttr(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function walk(node: Node, visit: (el: Element) => void): void {
   const children = (node as { childNodes?: Node[] }).childNodes ?? [];
   for (const child of children) {
@@ -157,6 +176,145 @@ export function patchHtml(source: string, patches: TextPatch[]): string {
   }
 
   if (stale.length > 0) throw staleTextError(stale);
+
+  let out = source;
+  for (const e of [...edits].sort((a, b) => b.start - a.start)) {
+    out = out.slice(0, e.start) + e.after + out.slice(e.end);
+  }
+  return out;
+}
+
+export interface ImageSrcPatch {
+  /** The frame's data-label. */
+  label: string;
+  /** The src attribute value the panel loaded. A mismatch aborts, rather than guessing. */
+  before: string;
+  /** The new src, unescaped. */
+  after: string;
+}
+
+/**
+ * A stale-src abort, carrying the labels that no longer match the file. Same
+ * shape and purpose as StaleTextError above.
+ */
+export interface StaleSrcError extends Error {
+  staleLabels: string[];
+}
+
+export function isStaleSrcError(err: unknown): err is StaleSrcError {
+  return err instanceof Error && Array.isArray((err as StaleSrcError).staleLabels);
+}
+
+function staleSrcError(labels: string[]): StaleSrcError {
+  const one = labels.length === 1;
+  const err = new Error(
+    `Refusing to repoint ${labels.map((l) => `"${l}"`).join(', ')}: the source ` +
+      `${one ? 'image' : 'images'} changed on disk since this drop was made, so it no longer ` +
+      `matches what the save was based on. Reloading will NOT clear this — drop the file ` +
+      `again after reloading to pick up the current image.`,
+  ) as StaleSrcError;
+  err.staleLabels = labels;
+  return err;
+}
+
+/**
+ * Same hardcoded trio MANIFEST.slotSelector/slotKeyAttr describe on the
+ * browser side ('figure.frame' / 'data-label') — duplicated for the same
+ * reason RAWTEXT_TAGS above is duplicated from textEditing.ts: server/ and
+ * browser code sit on opposite sides of the tsconfig boundary and neither
+ * may import the other.
+ */
+const FRAME_TAG = 'figure';
+const FRAME_CLASS = 'frame';
+const LABEL_ATTR = 'data-label';
+
+function isFrameElement(el: Element): boolean {
+  if (el.tagName !== FRAME_TAG) return false;
+  const cls = el.attrs?.find((a) => a.name === 'class')?.value ?? '';
+  return cls.split(/\s+/).includes(FRAME_CLASS);
+}
+
+/** The first <img> found anywhere inside `el`, in document order, or null. */
+function findFirstImg(el: Element): Element | null {
+  let found: Element | null = null;
+  walk(el, (child) => {
+    if (!found && child.tagName === 'img') found = child;
+  });
+  return found;
+}
+
+/**
+ * Repoint the <img src> inside `figure.frame[data-label="…"]` for one or more
+ * slots, touching nothing else. Mirrors patchHtml's guarantees exactly: every
+ * patch is resolved and validated BEFORE a single byte is written, so a bad
+ * patch anywhere aborts the whole batch; replacements are applied from the
+ * end of the file backwards, which keeps earlier offsets valid; and a stale
+ * src aborts rather than guessing.
+ */
+export function patchImageSrc(source: string, patches: ImageSrcPatch[]): string {
+  if (patches.length === 0) return source;
+
+  // Same reasoning as patchHtml's own duplicate-id guard: two patches
+  // targeting the same label would resolve to the same attribute and the
+  // same {start,end} range, and applying both would splice against a
+  // stale offset from the first.
+  const seenLabels = new Set<string>();
+  for (const patch of patches) {
+    if (seenLabels.has(patch.label)) {
+      throw new Error(`Refusing to patch: duplicate label "${patch.label}" appears more than once in the same batch`);
+    }
+    seenLabels.add(patch.label);
+  }
+
+  const doc = parse(source, { sourceCodeLocationInfo: true });
+  const byLabel = new Map<string, Element>();
+  walk(doc, (el) => {
+    if (!isFrameElement(el)) return;
+    const attr = el.attrs?.find((a) => a.name === LABEL_ATTR);
+    if (!attr) return;
+    // data-label is a system-wide unique key (imageEditing.ts finds a slot
+    // by exactly this attribute), so last-wins is never correct here either.
+    if (byLabel.has(attr.value)) {
+      throw new Error(
+        `Refusing to patch: duplicate data-label="${attr.value}" found on more than one frame in the document`,
+      );
+    }
+    byLabel.set(attr.value, el);
+  });
+
+  const stale: string[] = [];
+  const edits: Array<{ start: number; end: number; after: string }> = [];
+
+  for (const patch of patches) {
+    const frame = byLabel.get(patch.label);
+    if (!frame) throw new Error(`No frame with data-label="${patch.label}"`);
+
+    const img = findFirstImg(frame);
+    if (!img) throw new Error(`Refusing to patch "${patch.label}": no <img> found inside its frame`);
+
+    const srcAttr = img.attrs?.find((a) => a.name === 'src');
+    if (!srcAttr) {
+      throw new Error(`Refusing to patch "${patch.label}": its <img> has no src attribute`);
+    }
+
+    if (srcAttr.value !== patch.before) {
+      stale.push(patch.label);
+      continue;
+    }
+
+    // parse5 reports this location as the ENTIRE `src="…"` span (name,
+    // `=`, and both quotes included), not just the value inside — so the
+    // replacement text below has to reproduce that whole shape, not just
+    // the value.
+    const loc = img.sourceCodeLocation?.attrs?.src;
+    if (!loc) {
+      throw new Error(`Refusing to patch "${patch.label}": no source location found for its src attribute`);
+    }
+
+    edits.push({ start: loc.startOffset, end: loc.endOffset, after: `src="${escapeAttr(patch.after)}"` });
+  }
+
+  if (stale.length > 0) throw staleSrcError(stale);
 
   let out = source;
   for (const e of [...edits].sort((a, b) => b.start - a.start)) {

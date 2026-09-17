@@ -2,7 +2,8 @@ import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 import { resolveWriteTarget } from './paths';
-import { patchHtml, isStaleTextError, type TextPatch } from './htmlPatcher';
+import { patchHtml, patchImageSrc, isStaleTextError, type TextPatch, type ImageSrcPatch } from './htmlPatcher';
+import { resolveImageUpload, type ImageUpload, type ResolvedImageWrite } from './images';
 
 interface SaveFile {
   path: string;
@@ -12,13 +13,20 @@ interface SaveFile {
 interface SavePayload {
   files: SaveFile[];
   patches?: Array<{ path: string } & TextPatch>;
+  images?: ImageUpload[];
 }
 
 /**
- * Hard cap on the request body. Generous for HTML/CSS, far below anything
- * that should be allowed to grow the dev server's memory unbounded.
+ * Hard cap on the request body. HTML/CSS text alone was comfortable at 2
+ * MiB; a dropped image needs far more, so this now composes with
+ * MAX_IMAGE_BYTES (paths.ts) rather than replacing it: base64 inflates raw
+ * bytes by ~4/3, and more than one frame's image can be pending in a single
+ * Save (e.g. a hero's three parallax layers all replaced before saving
+ * once), so 32 MiB gives headroom for a couple of near-cap images plus the
+ * usual text payload without being large enough to let the dev server's
+ * memory grow unbounded.
  */
-export const MAX_BODY_BYTES = 2 * 1024 * 1024;
+export const MAX_BODY_BYTES = 32 * 1024 * 1024;
 
 /** A stalled or malicious client should not hold the handler open forever. */
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -40,6 +48,18 @@ function isTextPatchEntry(value: unknown): value is { path: string } & TextPatch
     typeof (value as { id: unknown }).id === 'string' &&
     typeof (value as { before: unknown }).before === 'string' &&
     typeof (value as { after: unknown }).after === 'string'
+  );
+}
+
+function isImageUploadEntry(value: unknown): value is ImageUpload {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as ImageUpload).path === 'string' &&
+    typeof (value as ImageUpload).label === 'string' &&
+    typeof (value as ImageUpload).fileName === 'string' &&
+    typeof (value as ImageUpload).data === 'string' &&
+    typeof (value as ImageUpload).beforeSrc === 'string'
   );
 }
 
@@ -150,6 +170,9 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
     }
 
     let targets: Array<{ abs: string; contents: string }>;
+    // Declared outside the try so the write loop below (and, on success, the
+    // response) can see what images were resolved without re-doing the work.
+    const resolvedImages: ResolvedImageWrite[] = [];
     // Declared outside the try so the failure response can report which text
     // edits conflicted. The client offers to discard exactly these, which is
     // the only way out of a stale-file wedge: reloading restores the same
@@ -205,6 +228,47 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
         }
       }
       if (stale.length > 0) throw new Error(staleMessages.join('\n\n'));
+
+      // Images: each is validated and resolved — byte cap, filename
+      // derivation, collision-free naming — BEFORE anything is written,
+      // same discipline as the text/CSS validation above. A stale src (the
+      // on-disk value not matching what the panel loaded) throws immediately
+      // and aborts the whole request. Unlike a stale TEXT edit there is no
+      // discard-and-keep-going recovery offered here: re-dropping a file
+      // costs nothing, so "reload, then drop it again" is the whole fix, not
+      // a UI worth building. Checked after the text-stale throw above so
+      // that failure — which DOES have a recovery path — is what surfaces
+      // first if a request somehow manages to hit both at once.
+      const rawImages = (payload as SavePayload).images;
+      if (rawImages !== undefined && !Array.isArray(rawImages)) {
+        throw new Error('"images" must be an array when present');
+      }
+      const reservedImageNames = new Set<string>();
+      const srcPatchesByFile = new Map<string, ImageSrcPatch[]>();
+      for (const raw of rawImages ?? []) {
+        if (!isImageUploadEntry(raw)) {
+          throw new Error('Each image entry needs string "path", "label", "fileName", "data" and "beforeSrc"');
+        }
+        const absHtml = resolveWriteTarget(raw.path);
+        if (fileAbsPaths.has(absHtml)) {
+          throw new Error(
+            `Refusing to save: "${raw.path}" is targeted by both a whole-file write and a dropped image in the same request`,
+          );
+        }
+        const resolved = resolveImageUpload(raw, reservedImageNames);
+        resolvedImages.push(resolved);
+        const list = srcPatchesByFile.get(absHtml) ?? [];
+        list.push({ label: raw.label, before: raw.beforeSrc, after: resolved.src });
+        srcPatchesByFile.set(absHtml, list);
+      }
+      // Applied on top of `patched` (not straight from disk) so a request
+      // that both text-edits and drops an image on the SAME page gets both
+      // transformations in the one file this writes — see verification (g).
+      for (const [absHtml, srcPatches] of srcPatchesByFile) {
+        const current = patched.get(absHtml) ?? readFileSync(absHtml, 'utf8');
+        patched.set(absHtml, patchImageSrc(current, srcPatches));
+      }
+
       for (const [abs, contents] of patched) targets.push({ abs, contents });
     } catch (err) {
       // Safe to return verbatim: this message names only the caller's own
@@ -228,13 +292,24 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
     });
 
     let written = 0;
+    let writtenImages = 0;
     try {
       for (const t of targets) {
         writeFileSync(t.abs, t.contents, 'utf8');
         written += 1;
       }
+      for (const img of resolvedImages) {
+        writeFileSync(img.absPath, img.buffer);
+        writtenImages += 1;
+      }
       res.statusCode = 200;
-      res.end(JSON.stringify({ ok: true, written }));
+      res.end(
+        JSON.stringify({
+          ok: true,
+          written,
+          images: resolvedImages.map((r) => ({ label: r.label, src: r.src })),
+        }),
+      );
     } catch (writeErr) {
       // Only undo the targets actually written (indices before `written`);
       // anything after that point was never touched. A target that did not
@@ -250,6 +325,16 @@ export function handleSaveRequest(req: IncomingMessage, res: ServerResponse): vo
         } catch (restoreErr) {
           // One restore failing must not stop the others from being tried.
           console.error('[panel] failed to roll back a write:', restoreErr);
+        }
+      }
+      // Images are always brand-new files — pickAvailableFilename (images.ts)
+      // never reuses an existing name — so "roll back" is simply "delete
+      // it": there is no prior content to restore.
+      for (let i = 0; i < writtenImages; i += 1) {
+        try {
+          unlinkSync(resolvedImages[i].absPath);
+        } catch (restoreErr) {
+          console.error('[panel] failed to roll back an image write:', restoreErr);
         }
       }
       // Never echo filesystem details (absolute paths, OS error codes) back

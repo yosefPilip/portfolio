@@ -11,16 +11,20 @@ vi.mock('node:fs', () => {
     readFileSync: vi.fn(),
     writeFileSync: vi.fn(),
     unlinkSync: vi.fn(),
+    existsSync: vi.fn(),
   };
   return { ...mocked, default: mocked };
 });
 
 import * as fs from 'node:fs';
 import { handleSaveRequest, MAX_BODY_BYTES } from '../src/panel/server/plugin';
-import { resolveWriteTarget } from '../src/panel/server/paths';
+import { resolveWriteTarget, resolveImageWriteTarget, MAX_IMAGE_BYTES } from '../src/panel/server/paths';
 
-/** The fake filesystem `node:fs`'s mocked functions read and write. */
-const files = new Map<string, string>();
+/** The fake filesystem `node:fs`'s mocked functions read and write. Images
+    are written as Buffers; storing them in the same string-keyed map as text
+    works fine for these tests, which only check presence/absence and the
+    decoded byte content. */
+const files = new Map<string, string | Buffer>();
 
 function fakeReadFileSync(path: string): string {
   if (!files.has(path)) {
@@ -31,7 +35,7 @@ function fakeReadFileSync(path: string): string {
   return files.get(path) as string;
 }
 
-function fakeWriteFileSync(path: string, contents: string): void {
+function fakeWriteFileSync(path: string, contents: string | Buffer): void {
   files.set(path, contents);
 }
 
@@ -39,11 +43,16 @@ function fakeUnlinkSync(path: string): void {
   files.delete(path);
 }
 
+function fakeExistsSync(path: string): boolean {
+  return files.has(path);
+}
+
 beforeEach(() => {
   files.clear();
   vi.mocked(fs.readFileSync).mockReset().mockImplementation(fakeReadFileSync as never);
   vi.mocked(fs.writeFileSync).mockReset().mockImplementation(fakeWriteFileSync as never);
   vi.mocked(fs.unlinkSync).mockReset().mockImplementation(fakeUnlinkSync as never);
+  vi.mocked(fs.existsSync).mockReset().mockImplementation(fakeExistsSync as never);
 });
 
 /** Minimal double for http.IncomingMessage: an event emitter plus the bits the handler touches. */
@@ -99,6 +108,7 @@ function jsonBody(res: FakeResponse): {
   error?: string;
   written?: number;
   stale?: Array<{ path: string; id: string }>;
+  images?: Array<{ label: string; src: string }>;
 } {
   return JSON.parse(res.body);
 }
@@ -333,5 +343,181 @@ describe('handleSaveRequest — a stale text patch must be recoverable', () => {
 
     expect(res.statusCode).toBe(400);
     expect(jsonBody(res).stale).toBeUndefined();
+  });
+});
+
+describe('handleSaveRequest — dropped images', () => {
+  const FRAME_PAGE =
+    '<!DOCTYPE html><html><body>' +
+    '<figure class="frame" data-label="Hero L1 — jungle-far"><img src="/assets/img/jungle-far.webp" alt="" /></figure>' +
+    '<p data-edit="a">Original</p>' +
+    '</body></html>';
+
+  function imagePayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      files: [],
+      images: [
+        {
+          path: 'index.html',
+          label: 'Hero L1 — jungle-far',
+          fileName: 'My Photo.JPG',
+          data: Buffer.from('fake bytes').toString('base64'),
+          beforeSrc: '/assets/img/jungle-far.webp',
+          ...overrides,
+        },
+      ],
+    };
+  }
+
+  function send(payload: Record<string, unknown>): FakeResponse {
+    const req = new FakeRequest('POST', SAME_ORIGIN_HEADERS);
+    const res = new FakeResponse();
+    invoke(req, res);
+    req.emit('data', Buffer.from(JSON.stringify(payload), 'utf8'));
+    req.emit('end');
+    return res;
+  }
+
+  it('writes the image, patches the src, and reports where it landed', () => {
+    files.set(resolveWriteTarget('index.html'), FRAME_PAGE);
+
+    const res = send(imagePayload());
+
+    expect(res.statusCode).toBe(200);
+    expect(jsonBody(res).images).toEqual([{ label: 'Hero L1 — jungle-far', src: '/assets/img/my-photo.jpg' }]);
+    expect(files.get(resolveImageWriteTarget('my-photo.jpg'))?.toString()).toBe('fake bytes');
+    expect(files.get(resolveWriteTarget('index.html'))).toContain('src="/assets/img/my-photo.jpg"');
+  });
+
+  it('never overwrites an existing image file — picks the next free name', () => {
+    files.set(resolveWriteTarget('index.html'), FRAME_PAGE);
+    files.set(resolveImageWriteTarget('my-photo.jpg'), Buffer.from('older art, do not touch'));
+
+    const res = send(imagePayload());
+
+    expect(res.statusCode).toBe(200);
+    expect(jsonBody(res).images).toEqual([{ label: 'Hero L1 — jungle-far', src: '/assets/img/my-photo-2.jpg' }]);
+    expect(files.get(resolveImageWriteTarget('my-photo.jpg'))?.toString()).toBe('older art, do not touch');
+  });
+
+  it('rejects an oversized image before writing anything', () => {
+    files.set(resolveWriteTarget('index.html'), FRAME_PAGE);
+    const big = Buffer.alloc(MAX_IMAGE_BYTES + 1, 0x61).toString('base64');
+
+    const res = send(imagePayload({ data: big }));
+
+    expect(res.statusCode).toBe(400);
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+    expect(files.get(resolveWriteTarget('index.html'))).toBe(FRAME_PAGE);
+  });
+
+  it('aborts the whole request when the src on disk does not match what the panel loaded', () => {
+    files.set(resolveWriteTarget('index.html'), FRAME_PAGE);
+
+    const res = send(imagePayload({ beforeSrc: '/assets/img/something-else.webp' }));
+
+    expect(res.statusCode).toBe(400);
+    expect(jsonBody(res).error).toMatch(/changed on disk/i);
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+    expect(files.get(resolveWriteTarget('index.html'))).toBe(FRAME_PAGE);
+  });
+
+  it('rejects a filename with an extension this panel will never write', () => {
+    files.set(resolveWriteTarget('index.html'), FRAME_PAGE);
+
+    const res = send(imagePayload({ fileName: 'photo.heic' }));
+
+    expect(res.statusCode).toBe(400);
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it('applies a dropped image, a text edit, and a whole-file write in one request', () => {
+    files.set(resolveWriteTarget('index.html'), FRAME_PAGE);
+
+    const req = new FakeRequest('POST', SAME_ORIGIN_HEADERS);
+    const res = new FakeResponse();
+    invoke(req, res);
+    req.emit(
+      'data',
+      Buffer.from(
+        JSON.stringify({
+          files: [{ path: 'src/styles/layout.generated.css', contents: 'NEW CSS' }],
+          patches: [{ path: 'index.html', id: 'a', before: 'Original', after: 'Rewritten' }],
+          images: [
+            {
+              path: 'index.html',
+              label: 'Hero L1 — jungle-far',
+              fileName: 'photo.png',
+              data: Buffer.from('bytes').toString('base64'),
+              beforeSrc: '/assets/img/jungle-far.webp',
+            },
+          ],
+        }),
+        'utf8',
+      ),
+    );
+    req.emit('end');
+
+    expect(res.statusCode).toBe(200);
+    const finalHtml = files.get(resolveWriteTarget('index.html')) as string;
+    expect(finalHtml).toContain('<p data-edit="a">Rewritten</p>');
+    expect(finalHtml).toContain('src="/assets/img/photo.png"');
+    expect(files.get(resolveWriteTarget('src/styles/layout.generated.css'))).toBe('NEW CSS');
+    expect(files.get(resolveImageWriteTarget('photo.png'))?.toString()).toBe('bytes');
+  });
+
+  it('refuses an image targeting a path already covered by a whole-file write in the same request', () => {
+    const res = send({
+      files: [{ path: 'index.html', contents: '<html></html>' }],
+      images: (imagePayload().images as unknown[]),
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it('rolls back an already-written image if a later image in the same batch fails to write', () => {
+    const twoFramePage =
+      '<!DOCTYPE html><html><body>' +
+      '<figure class="frame" data-label="a"><img src="/assets/img/a.webp" /></figure>' +
+      '<figure class="frame" data-label="b"><img src="/assets/img/b.webp" /></figure>' +
+      '</body></html>';
+    files.set(resolveWriteTarget('index.html'), twoFramePage);
+    const absSecond = resolveImageWriteTarget('two.png');
+    vi.mocked(fs.writeFileSync).mockImplementation(((path: string, contents: string | Buffer) => {
+      if (path === absSecond) throw new Error('simulated failure');
+      fakeWriteFileSync(path, contents);
+    }) as never);
+
+    const req = new FakeRequest('POST', SAME_ORIGIN_HEADERS);
+    const res = new FakeResponse();
+    invoke(req, res);
+    req.emit(
+      'data',
+      Buffer.from(
+        JSON.stringify({
+          files: [],
+          images: [
+            { path: 'index.html', label: 'a', fileName: 'one.png', data: Buffer.from('1').toString('base64'), beforeSrc: '/assets/img/a.webp' },
+            { path: 'index.html', label: 'b', fileName: 'two.png', data: Buffer.from('2').toString('base64'), beforeSrc: '/assets/img/b.webp' },
+          ],
+        }),
+        'utf8',
+      ),
+    );
+    req.emit('end');
+
+    expect(res.statusCode).toBe(400);
+    // The first image's bytes DID get written, then had to be rolled back —
+    // unlinked, since (unlike a text/CSS target) an image is always a
+    // brand-new file with no prior content to restore.
+    expect(files.has(resolveImageWriteTarget('one.png'))).toBe(false);
+    expect(files.has(absSecond)).toBe(false);
+    // The patched HTML (both src patches applied in memory) must not have
+    // been written either — it shares the SAME target as the image writes
+    // it accompanies, so it comes first in `targets` and IS in fact written
+    // before the failing image is reached; it too must be rolled back to
+    // its original, unpatched content.
+    expect(files.get(resolveWriteTarget('index.html'))).toBe(twoFramePage);
   });
 });

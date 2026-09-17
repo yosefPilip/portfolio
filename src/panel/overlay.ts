@@ -2,7 +2,7 @@ import type { Store } from './state';
 import type { PanelState, UndoResult } from './types';
 import { generateCss } from './cssGenerator';
 import { MANIFEST } from './manifest';
-import { save, isSaveError } from './saveClient';
+import { save, isSaveError, type ImageUploadRequest, type SaveResult } from './saveClient';
 
 let mounted = false;
 let active = false;
@@ -11,12 +11,24 @@ let refreshFn: (() => void) | null = null;
 // (and thereby unregister) the first the way a bare variable would.
 let deactivateFns: Array<() => void> = [];
 let beforeDeactivateFns: Array<() => void> = [];
-let saveSuccessFns: Array<(state: PanelState) => void> = [];
+let saveSuccessFns: Array<(state: PanelState, result: SaveResult) => void> = [];
 let undoFns: Array<(result: UndoResult) => void> = [];
 /** Set by imageEditing.ts (see its doc comment on the registration call) so
     the layer list's zoom slider, built here, can apply a change through the
     same store-write + repaint path a wheel or drag uses. */
 let zoomSetter: ((frame: HTMLElement, zoom: number) => void) | null = null;
+/** Set by imageEditing.ts: how many dropped-but-unsaved images are queued.
+    Added to store.dirtyCount() in refresh() below — a dropped image is never
+    part of PanelState (see imageEditing.ts's pendingUploads doc comment), so
+    the store alone cannot answer "how many pending changes". A single slot,
+    not a list, for the same reason zoomSetter is: exactly one module ever
+    provides this. */
+let pendingUploadCounter: (() => number) | null = null;
+/** Set by imageEditing.ts: turn every currently-queued dropped image into the
+    request shape save() expects (reading the File's bytes, which is async).
+    Called once, from the Save button handler, right before the request is
+    sent. */
+let pendingUploadsCollector: (() => Promise<ImageUploadRequest[]>) | null = null;
 
 /** The frame the layer list has selected, or null when hit-testing should
     behave exactly as before (topmost frame under the pointer wins). Module
@@ -195,7 +207,7 @@ export function mountPanel(store: Store): void {
   }
 
   function refresh(): void {
-    const n = store.dirtyCount();
+    const n = store.dirtyCount() + (pendingUploadCounter?.() ?? 0);
     count.textContent = n === 0 ? 'no changes' : `${n} pending`;
     saveBtn.disabled = n === 0;
     undoBtn.disabled = !store.canUndo();
@@ -227,15 +239,18 @@ export function mountPanel(store: Store): void {
     saveBtn.textContent = 'Saving…';
     try {
       const state = store.get();
-      await save(
+      const images = (await pendingUploadsCollector?.()) ?? [];
+      const result = await save(
         [{ path: MANIFEST.generatedCssPath, contents: generateCss(state) }],
         Object.values(state.text).map((t) => ({ path: t.file, id: t.id, before: t.before, after: t.after })),
+        images,
       );
       // Before clearing: modules that track their own "what's on disk"
-      // baseline (textEditing.ts's `originals`) need to know exactly what
-      // this save just wrote, so a second edit compares against reality
-      // instead of a now-stale pre-save value.
-      saveSuccessFns.forEach((fn) => fn(state));
+      // baseline (textEditing.ts's `originals`, imageEditing.ts's per-slot
+      // src snapshot) need to know exactly what this save just wrote, so a
+      // second edit compares against reality instead of a now-stale
+      // pre-save value.
+      saveSuccessFns.forEach((fn) => fn(state, result));
       // commit(), not clear(): the framing and typography just written are
       // still needed to regenerate layout.generated.css on the NEXT save,
       // which is a whole-file write. Clearing them made a later text-only
@@ -363,10 +378,12 @@ export function onBeforeEditModeOff(fn: () => void): void {
 
 /** Registered by an interaction module that needs to know exactly what a
     successful Save just wrote, so it can keep its own "what's actually on
-    disk" bookkeeping in step (textEditing.ts's `originals` map). Called with
-    the state that was saved, after the request succeeds but before the store
-    is cleared. A list for the same reason `onEditModeOff` is. */
-export function onSaveSuccess(fn: (state: PanelState) => void): void {
+    disk" bookkeeping in step (textEditing.ts's `originals` map,
+    imageEditing.ts's per-slot src snapshot). Called with the state that was
+    saved and the server's SaveResult (which images actually landed where),
+    after the request succeeds but before the store is cleared. A list for
+    the same reason `onEditModeOff` is. */
+export function onSaveSuccess(fn: (state: PanelState, result: SaveResult) => void): void {
   saveSuccessFns.push(fn);
 }
 
@@ -387,4 +404,21 @@ export function onUndo(fn: (result: UndoResult) => void): void {
     for why this indirection exists instead of an ordinary import. */
 export function registerZoomSetter(fn: (frame: HTMLElement, zoom: number) => void): void {
   zoomSetter = fn;
+}
+
+/** Registered by imageEditing.ts so the badge's pending count includes
+    dropped-but-unsaved images, which live outside PanelState (see that
+    module's pendingUploads doc comment) and so are invisible to
+    store.dirtyCount(). A single slot, not a list — same reasoning as
+    registerZoomSetter. */
+export function registerPendingUploadCounter(fn: () => number): void {
+  pendingUploadCounter = fn;
+}
+
+/** Registered by imageEditing.ts so the Save button can include every
+    queued drop in the request it sends — see that module's doc comment on
+    why reading a File's bytes has to be async. A single slot, same
+    reasoning as registerZoomSetter. */
+export function registerPendingUploadsCollector(fn: () => Promise<ImageUploadRequest[]>): void {
+  pendingUploadsCollector = fn;
 }

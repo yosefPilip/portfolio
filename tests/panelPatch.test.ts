@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { patchHtml, isStaleTextError } from '../src/panel/server/htmlPatcher';
+import { patchHtml, isStaleTextError, patchImageSrc, isStaleSrcError } from '../src/panel/server/htmlPatcher';
 import { MANIFEST } from '../src/panel/manifest';
 
 const DOC = `<!DOCTYPE html>
@@ -182,5 +182,120 @@ describe('patchHtml', () => {
 
   it('keeps the hardcoded data-edit attribute name in sync with MANIFEST.editAttr', () => {
     expect('data-edit').toBe(MANIFEST.editAttr);
+  });
+});
+
+const FRAME_DOC = `<!DOCTYPE html>
+<html><body>
+  <figure class="frame" data-label="Hero L1 — jungle-far"><img src="/assets/img/jungle-far.webp" alt="" /></figure>
+  <figure class="frame" data-label="Hero L3 — jungle-mid"><img src="/assets/img/jungle-mid.webp" alt="" /></figure>
+</body></html>`;
+
+describe('patchImageSrc', () => {
+  it('replaces only the targeted <img src>, leaving everything else identical', () => {
+    const out = patchImageSrc(FRAME_DOC, [
+      { label: 'Hero L1 — jungle-far', before: '/assets/img/jungle-far.webp', after: '/assets/img/photo.jpg' },
+    ]);
+    expect(out).toContain('data-label="Hero L1 — jungle-far"><img src="/assets/img/photo.jpg" alt=""');
+    expect(out).toContain('data-label="Hero L3 — jungle-mid"><img src="/assets/img/jungle-mid.webp" alt=""');
+  });
+
+  it('leaves every other byte identical', () => {
+    const out = patchImageSrc(FRAME_DOC, [
+      { label: 'Hero L1 — jungle-far', before: '/assets/img/jungle-far.webp', after: '/assets/img/photo.jpg' },
+    ]);
+    expect(out).toBe(FRAME_DOC.replace('/assets/img/jungle-far.webp', '/assets/img/photo.jpg'));
+  });
+
+  it('escapes " and \' in the new value — a context text patching never had to handle', () => {
+    const out = patchImageSrc(FRAME_DOC, [
+      { label: 'Hero L1 — jungle-far', before: '/assets/img/jungle-far.webp', after: `a"b'c<d>e&f` },
+    ]);
+    expect(out).toContain('src="a&quot;b&#39;c&lt;d&gt;e&amp;f"');
+    // The escaped value must not be able to terminate the attribute early.
+    expect(out).not.toContain('src="a"');
+  });
+
+  it('applies several patches in one pass', () => {
+    const out = patchImageSrc(FRAME_DOC, [
+      { label: 'Hero L1 — jungle-far', before: '/assets/img/jungle-far.webp', after: '/assets/img/one.png' },
+      { label: 'Hero L3 — jungle-mid', before: '/assets/img/jungle-mid.webp', after: '/assets/img/two.png' },
+    ]);
+    expect(out).toContain('src="/assets/img/one.png"');
+    expect(out).toContain('src="/assets/img/two.png"');
+  });
+
+  it('handles an empty patch list as a no-op', () => {
+    expect(patchImageSrc(FRAME_DOC, [])).toBe(FRAME_DOC);
+  });
+
+  it('aborts on a stale src and writes nothing', () => {
+    expect(() =>
+      patchImageSrc(FRAME_DOC, [{ label: 'Hero L1 — jungle-far', before: '/assets/img/stale.webp', after: '/x.png' }]),
+    ).toThrow(/changed on disk/i);
+  });
+
+  it('aborts the WHOLE batch when any one patch is stale', () => {
+    expect(() =>
+      patchImageSrc(FRAME_DOC, [
+        { label: 'Hero L1 — jungle-far', before: '/assets/img/jungle-far.webp', after: '/x.png' },
+        { label: 'Hero L3 — jungle-mid', before: '/assets/img/stale.webp', after: '/y.png' },
+      ]),
+    ).toThrow(/changed on disk/i);
+  });
+
+  it('carries the stale labels structurally, not only in the message', () => {
+    try {
+      patchImageSrc(FRAME_DOC, [{ label: 'Hero L1 — jungle-far', before: '/assets/img/stale.webp', after: '/x.png' }]);
+      expect.unreachable('should have thrown');
+    } catch (err) {
+      expect(isStaleSrcError(err)).toBe(true);
+      expect((err as { staleLabels: string[] }).staleLabels).toEqual(['Hero L1 — jungle-far']);
+    }
+  });
+
+  it('throws on an unknown data-label rather than silently doing nothing', () => {
+    expect(() => patchImageSrc(FRAME_DOC, [{ label: 'nope', before: '', after: '/x.png' }])).toThrow(
+      /no frame with data-label/i,
+    );
+  });
+
+  it('rejects two patches with the same label in one batch, before any offset work', () => {
+    expect(() =>
+      patchImageSrc(FRAME_DOC, [
+        { label: 'Hero L1 — jungle-far', before: '/assets/img/jungle-far.webp', after: '/a.png' },
+        { label: 'Hero L1 — jungle-far', before: '/assets/img/jungle-far.webp', after: '/b.png' },
+      ]),
+    ).toThrow(/duplicate/i);
+  });
+
+  it('refuses a document where two frames share the same data-label', () => {
+    const dupDoc = `<!DOCTYPE html><html><body>
+      <figure class="frame" data-label="x"><img src="/a.png"></figure>
+      <figure class="frame" data-label="x"><img src="/b.png"></figure>
+    </body></html>`;
+    expect(() => patchImageSrc(dupDoc, [{ label: 'x', before: '/a.png', after: '/c.png' }])).toThrow(/duplicate/i);
+  });
+
+  it('refuses an <img> that has no src attribute at all', () => {
+    const noSrcDoc = `<!DOCTYPE html><html><body><figure class="frame" data-label="x"><img alt="no src"></figure></body></html>`;
+    expect(() => patchImageSrc(noSrcDoc, [{ label: 'x', before: '', after: '/c.png' }])).toThrow(/no src attribute/i);
+  });
+
+  it('refuses a frame with no <img> inside it at all', () => {
+    const noImgDoc = `<!DOCTYPE html><html><body><figure class="frame" data-label="x"></figure></body></html>`;
+    expect(() => patchImageSrc(noImgDoc, [{ label: 'x', before: '', after: '/c.png' }])).toThrow(/no <img>/i);
+  });
+
+  it('only matches a <figure> that actually carries the "frame" class', () => {
+    const wrongTagDoc = `<!DOCTYPE html><html><body><div class="frame" data-label="x"><img src="/a.png"></div></body></html>`;
+    expect(() => patchImageSrc(wrongTagDoc, [{ label: 'x', before: '/a.png', after: '/c.png' }])).toThrow(
+      /no frame with data-label/i,
+    );
+  });
+
+  it('keeps the hardcoded figure/frame/data-label trio in sync with MANIFEST', () => {
+    expect(MANIFEST.slotSelector).toBe('figure.frame');
+    expect(MANIFEST.slotKeyAttr).toBe('data-label');
   });
 });
