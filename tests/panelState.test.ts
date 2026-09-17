@@ -458,3 +458,63 @@ describe('undo — the only way back from a mistake', () => {
     expect(s.undo()).toBeNull();
   });
 });
+
+describe('recordImagePreview — undoing a dropped preview', () => {
+  it('hands back exactly what was recorded, without touching pending/saved', () => {
+    const s = createStore();
+    s.recordImagePreview('Hero L1', 'blob:old', false, undefined);
+    expect(s.canUndo()).toBe(true);
+    expect(s.undo()).toEqual({
+      kind: 'imagePreview',
+      label: 'Hero L1',
+      prevSrc: 'blob:old',
+      prevMissing: false,
+      prevPreviewName: undefined,
+    });
+    // Never pending: a preview is DOM-only and never reaches PanelState.
+    expect(s.get().images).toEqual({});
+    expect(s.dirtyCount()).toBe(0);
+  });
+
+  it('carries a missing-before state through untouched', () => {
+    const s = createStore();
+    s.recordImagePreview('Hero L1', 'https://site/hero.jpg', true, undefined);
+    expect(s.undo()).toEqual({
+      kind: 'imagePreview',
+      label: 'Hero L1',
+      prevSrc: 'https://site/hero.jpg',
+      prevMissing: true,
+      prevPreviewName: undefined,
+    });
+  });
+
+  it('carries the previous preview filename when one drop replaces another', () => {
+    const s = createStore();
+    s.recordImagePreview('Hero L1', 'blob:first', false, 'first.png');
+    expect(s.undo()).toEqual({
+      kind: 'imagePreview',
+      label: 'Hero L1',
+      prevSrc: 'blob:first',
+      prevMissing: false,
+      prevPreviewName: 'first.png',
+    });
+  });
+
+  it('interleaves with framing/style/text undo in the order every edit was made', () => {
+    const s = createStore();
+    s.setImage('A', { x: 5, y: 5, zoom: 1 });
+    s.recordImagePreview('Hero L1', 'blob:old', false, undefined);
+    s.setStyle('hero.intro', { font: 'mono' });
+
+    expect(s.undo()).toEqual({ kind: 'style', id: 'hero.intro' });
+    expect(s.undo()).toEqual({
+      kind: 'imagePreview',
+      label: 'Hero L1',
+      prevSrc: 'blob:old',
+      prevMissing: false,
+      prevPreviewName: undefined,
+    });
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.canUndo()).toBe(false);
+  });
+});

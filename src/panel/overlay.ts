@@ -13,6 +13,10 @@ let deactivateFns: Array<() => void> = [];
 let beforeDeactivateFns: Array<() => void> = [];
 let saveSuccessFns: Array<(state: PanelState) => void> = [];
 let undoFns: Array<(result: UndoResult) => void> = [];
+/** Set by imageEditing.ts (see its doc comment on the registration call) so
+    the layer list's zoom slider, built here, can apply a change through the
+    same store-write + repaint path a wheel or drag uses. */
+let zoomSetter: ((frame: HTMLElement, zoom: number) => void) | null = null;
 
 /** The frame the layer list has selected, or null when hit-testing should
     behave exactly as before (topmost frame under the pointer wins). Module
@@ -67,11 +71,64 @@ export function mountPanel(store: Store): void {
   bar.append(row, layerList);
   document.body.appendChild(bar);
 
+  /** The zoom-slider row currently shown under the selected frame's row, if
+      any — built fresh on each selection so its initial value always reflects
+      that frame's current zoom, and torn down on deselect so a stale slider
+      never lingers under the wrong row. */
+  let zoomRow: HTMLElement | null = null;
+  /** The slider + readout inside `zoomRow`, kept so `refresh()` can resync
+      the displayed value after a wheel-pinch or a drag changes zoom out from
+      under it — those never touch the slider directly, so without this the
+      readout would go stale the moment you stopped touching the slider
+      itself. */
+  let zoomSlider: HTMLInputElement | null = null;
+  let zoomValueLabel: HTMLElement | null = null;
+
+  /**
+   * The slider is given to the SELECTED row only, not every row: Workshop
+   * alone has nine frames, and nine always-visible sliders would roughly
+   * triple the list's height and bury the labels the list exists to make
+   * scannable. Selection is already how this list targets drag/wheel at a
+   * buried layer, so hanging the slider off that same selection — rather
+   * than inventing a second, parallel notion of "which row is active" — is
+   * one idea, not two, and keeps every row but the one you're touching down
+   * to a single readable line.
+   */
+  function buildZoomRow(frame: HTMLElement): HTMLElement {
+    const wrap = document.createElement('div');
+    wrap.className = 'panel-bar__zoom';
+    const img = frame.querySelector('img');
+    const raw = img ? parseFloat(img.style.getPropertyValue('--img-zoom') || '1') : 1;
+    const current = Number.isFinite(raw) ? raw : 1;
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '1';
+    slider.max = '4';
+    slider.step = '0.05';
+    slider.value = String(current);
+    slider.setAttribute('aria-label', 'Zoom');
+    const value = document.createElement('span');
+    value.textContent = `${current.toFixed(2)}x`;
+    slider.addEventListener('input', () => {
+      const z = parseFloat(slider.value);
+      value.textContent = `${z.toFixed(2)}x`;
+      zoomSetter?.(frame, z);
+    });
+    wrap.append(slider, value);
+    zoomSlider = slider;
+    zoomValueLabel = value;
+    return wrap;
+  }
+
   function clearSelection(): void {
     if (!selectedFrame) return;
     selectedFrame.classList.remove('panel-frame-selected');
     frameRows.get(selectedFrame)?.classList.remove('panel-bar__layer--selected');
     selectedFrame = null;
+    zoomRow?.remove();
+    zoomRow = null;
+    zoomSlider = null;
+    zoomValueLabel = null;
   }
 
   function selectFrame(frame: HTMLElement): void {
@@ -83,7 +140,12 @@ export function mountPanel(store: Store): void {
     clearSelection();
     selectedFrame = frame;
     frame.classList.add('panel-frame-selected');
-    frameRows.get(frame)?.classList.add('panel-bar__layer--selected');
+    const row = frameRows.get(frame);
+    row?.classList.add('panel-bar__layer--selected');
+    zoomRow = buildZoomRow(frame);
+    // Right after the row it belongs to, not appended at the list's end —
+    // with nine frames the end could be scrolled well out of view.
+    row?.insertAdjacentElement('afterend', zoomRow);
   }
 
   /**
@@ -99,6 +161,7 @@ export function mountPanel(store: Store): void {
   function buildLayerList(): void {
     layerList.innerHTML = '';
     frameRows = new Map();
+    zoomRow = null;
     const frames = Array.from(document.querySelectorAll<HTMLElement>(MANIFEST.slotSelector));
     for (const frame of frames) {
       const label = frame.getAttribute(MANIFEST.slotKeyAttr) ?? '(unlabeled)';
@@ -107,7 +170,19 @@ export function mountPanel(store: Store): void {
       btn.type = 'button';
       btn.className = 'panel-bar__layer';
       btn.textContent = empty ? `${label} [empty]` : label;
+      // Mirrors the frame's own data-label so imageEditing.ts's drop handler
+      // can resolve a drop on THIS row back to this frame, whatever else is
+      // stacked on top of it — the same reach-a-buried-layer trick selection
+      // already does for drag/wheel.
+      btn.dataset.label = label;
       btn.addEventListener('click', () => selectFrame(frame));
+      // Visual-only: which row a dragged file is over. The actual drop is
+      // handled by imageEditing.ts's document-level listener (it bubbles
+      // there from this button), so this only ever toggles a class.
+      btn.addEventListener('dragover', (e) => e.preventDefault());
+      btn.addEventListener('dragenter', () => btn.classList.add('panel-bar__layer--dropover'));
+      btn.addEventListener('dragleave', () => btn.classList.remove('panel-bar__layer--dropover'));
+      btn.addEventListener('drop', () => btn.classList.remove('panel-bar__layer--dropover'));
       frameRows.set(frame, btn);
       layerList.appendChild(btn);
     }
@@ -118,6 +193,15 @@ export function mountPanel(store: Store): void {
     count.textContent = n === 0 ? 'no changes' : `${n} pending`;
     saveBtn.disabled = n === 0;
     undoBtn.disabled = !store.canUndo();
+    // A pinch or a drag changes zoom without ever touching the slider, so its
+    // readout needs the same resync every OTHER store write already gets here.
+    if (selectedFrame && zoomSlider && zoomValueLabel) {
+      const img = selectedFrame.querySelector('img');
+      const raw = img ? parseFloat(img.style.getPropertyValue('--img-zoom') || '1') : 1;
+      const z = Number.isFinite(raw) ? raw : 1;
+      zoomSlider.value = String(z);
+      zoomValueLabel.textContent = `${z.toFixed(2)}x`;
+    }
   }
   refreshFn = refresh;
 
@@ -287,4 +371,14 @@ export function onSaveSuccess(fn: (state: PanelState) => void): void {
     others. A list, for the same reason `onEditModeOff` is. */
 export function onUndo(fn: (result: UndoResult) => void): void {
   undoFns.push(fn);
+}
+
+/** Registered by imageEditing.ts, the only module that knows how to turn a
+    zoom value into a store write plus a repaint. A single slot, not a list
+    like the callbacks above: there is exactly one such setter in the whole
+    app (imageEditing.ts installs once), and overlay.ts calls it from the
+    layer list's zoom slider — see that module's own doc comment on the call
+    for why this indirection exists instead of an ordinary import. */
+export function registerZoomSetter(fn: (frame: HTMLElement, zoom: number) => void): void {
+  zoomSetter = fn;
 }

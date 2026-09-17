@@ -53,6 +53,66 @@ export function installTextEditing(store: Store): void {
   // rather than a pre-save value the store already discarded.
   const originals = new WeakMap<HTMLElement, string>();
 
+  /**
+   * Undo, mid-typing: recording only ever happened on blur, so Ctrl+Z hit an
+   * empty store history while the caret was still in the block — the global
+   * hotkey (overlay.ts) still ran, preventDefault and all, but store.undo()
+   * had nothing to pop, so it was a silent no-op indistinguishable from
+   * nothing happening.
+   *
+   * Fixed by recording MORE eagerly, on a short pause in typing, rather than
+   * by trying to let the browser's own contentEditable undo run and taking
+   * over only at block boundaries. That second option would mean detecting
+   * "are we still inside the browser's native undo timeline for this block"
+   * — which contentEditable does not expose, and which `plaintext-only` mode
+   * (used here for the RAWTEXT/paste hardening above) supports even less
+   * consistently across engines than ordinary contentEditable does. A
+   * debounce is simpler, behaves the same in every browser, and reuses
+   * setText/undo exactly as they already work: each debounced tick is just
+   * another setText call, and "undoing a second text edit restores the
+   * FIRST edit" (already true and already tested in panelState.test.ts)
+   * applies here without any change to that logic.
+   *
+   * Trade-off, stated plainly: a long uninterrupted typing burst that never
+   * pauses for DEBOUNCE_MS produces no checkpoint until it does, so the very
+   * latest keystrokes of an still-in-flight edit are not yet undo-able — and
+   * a long session that pauses often can spend a meaningful share of the
+   * 50-entry undo cap (state.ts's HISTORY_CAP) on checkpoints of ONE block,
+   * crowding out older, unrelated edits. Both are accepted: the alternative
+   * (recording on every keystroke) makes the second problem worse for no
+   * gain, and 500ms is short enough that "pause to think, then Ctrl+Z" — the
+   * actual complaint — lands on a checkpoint from a moment ago, not minutes.
+   *
+   * That debounce alone is NOT enough, though — measured directly in Chrome:
+   * overlay.ts's keydown listener DOES run first and DOES call
+   * preventDefault() on Ctrl+Z, but that does not stop what happens next.
+   * Chrome dispatches the native undo command from a path that keydown's
+   * preventDefault does not reach — a 'beforeinput' with
+   * inputType 'historyUndo' fires and mutates the DOM regardless, so without
+   * the listener just below, native undo (removing one native-tracked
+   * insertion — NOT the same unit as one of our debounced checkpoints) and
+   * our own store-driven undo would BOTH fire off the same keypress and fight
+   * over the same text. `beforeinput` is cancelable specifically so a page can
+   * pre-empt an edit before it happens (unlike `keydown`'s preventDefault,
+   * which only cancels the browser's OWN default handling, and evidently does
+   * not count native undo/redo as part of that here) — cancelling historyUndo
+   * and historyRedo there is what actually stops it, leaving our own
+   * store-backed undo as the only thing that runs.
+   */
+  const DEBOUNCE_MS = 500;
+  const pending = new WeakMap<HTMLElement, ReturnType<typeof window.setTimeout>>();
+
+  /** Cancel a still-pending debounced record for `el`, if any — called right
+      before every OTHER path that records `el` (blur, edit-mode-off), so a
+      settle point is never recorded twice for the same final text. */
+  function cancelPending(el: HTMLElement): void {
+    const timer = pending.get(el);
+    if (timer !== undefined) {
+      window.clearTimeout(timer);
+      pending.delete(el);
+    }
+  }
+
   function editable(on: boolean): void {
     document.querySelectorAll<HTMLElement>(`[${MANIFEST.editAttr}]`).forEach((el) => {
       if (!on) {
@@ -90,6 +150,15 @@ export function installTextEditing(store: Store): void {
       const el = e.target as HTMLElement;
       if (el?.getAttribute?.(MANIFEST.editAttr)) e.preventDefault();
     }
+  });
+
+  // See the long comment above DEBOUNCE_MS: this is the half that actually
+  // stops native undo/redo from touching a [data-edit] block, since keydown's
+  // preventDefault (overlay.ts) does not.
+  document.addEventListener('beforeinput', (e) => {
+    const el = e.target as HTMLElement;
+    if (!el?.getAttribute?.(MANIFEST.editAttr)) return;
+    if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') e.preventDefault();
   });
 
   document.addEventListener('paste', (e) => {
@@ -134,6 +203,23 @@ export function installTextEditing(store: Store): void {
     refreshPanel();
   }
 
+  // The eager half of the debounce described above `pending`: every
+  // keystroke reschedules a record() DEBOUNCE_MS after the last one, so a
+  // pause in typing — not just a blur — leaves something on the undo stack.
+  document.addEventListener('input', (e) => {
+    if (!isActive()) return;
+    const el = e.target as HTMLElement;
+    if (!el?.getAttribute?.(MANIFEST.editAttr)) return;
+    cancelPending(el);
+    pending.set(
+      el,
+      window.setTimeout(() => {
+        pending.delete(el);
+        record(el);
+      }, DEBOUNCE_MS),
+    );
+  });
+
   document.addEventListener('focusout', (e) => {
     // Edit mode being off must mean nothing gets recorded, full stop — even
     // in the case editable(false) above is specifically written to prevent
@@ -142,6 +228,12 @@ export function installTextEditing(store: Store): void {
     if (!isActive()) return;
     const el = e.target as HTMLElement;
     if (!el?.getAttribute?.(MANIFEST.editAttr)) return;
+    // Cancel first: a debounce tick firing AFTER this blur's own record()
+    // would just write the identical (before, after) pair again, which
+    // record()'s before/after check does not catch (both calls, run back to
+    // back, would see the same true change) — it would cost a real, wasted
+    // second undo step.
+    cancelPending(el);
     record(el);
   });
 
@@ -155,6 +247,7 @@ export function installTextEditing(store: Store): void {
   onBeforeEditModeOff(() => {
     const el = document.activeElement as HTMLElement | null;
     if (!el?.getAttribute?.(MANIFEST.editAttr)) return;
+    cancelPending(el); // same double-record reasoning as focusout's above
     record(el);
   });
 

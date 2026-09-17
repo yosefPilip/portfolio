@@ -133,15 +133,24 @@ strong { font-weight: 600; }
   background: var(--bg-deep);
   aspect-ratio: var(--ar, 3 / 2);
 }
-/* object-position and --img-zoom are written per slot by the visual editing
-   panel into layout.generated.css. Defaults here keep an unedited frame
-   identical to its pre-panel rendering. .frame already clips (overflow:
-   hidden), so a zoom above 1 crops rather than overflowing. */
+/* object-position, --img-zoom and --img-pan-x/-y are written per slot by the
+   visual editing panel into layout.generated.css. Defaults here keep an
+   unedited frame identical to its pre-panel rendering — scale(1)
+   translate(0%, 0%) paints exactly where object-position alone would.
+   .frame already clips (overflow: hidden), so zoom/pan crop rather than
+   overflowing.
+
+   translate() comes AFTER scale(): a point is translated in the image's own
+   (untransformed) coordinate space first, and the combined result is then
+   scaled around the box's centre — which is what lets --img-pan-x/-y stay
+   expressed as a plain percentage of the frame at every zoom level. See
+   src/panel/cssGenerator.ts's maxPanPercent for the full derivation and the
+   zoom-dependent bound on how far that pan is allowed to go. */
 .frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(var(--img-zoom, 1));
+  transform: scale(var(--img-zoom, 1)) translate(var(--img-pan-x, 0%), var(--img-pan-y, 0%));
 }
 .frame.is-missing img { display: none; }
 .frame.is-missing::after {

@@ -15,7 +15,13 @@ const HISTORY_CAP = 50;
 type HistoryEntry =
   | { kind: 'image'; label: string; prev: ImageEdit | undefined }
   | { kind: 'style'; id: string; prev: TextStyleEdit | undefined }
-  | { kind: 'text'; file: string; id: string; prev: TextEdit | undefined };
+  | { kind: 'text'; file: string; id: string; prev: TextEdit | undefined }
+  /** A dropped preview image. Unlike the other three kinds this never has a
+      matching `pending`/`saved` entry — a preview is DOM-only and never
+      reaches PanelState (see MANIFEST/imageEditing's drop handling) — so
+      there is nothing to apply here beyond handing the snapshot back to
+      whichever module actually owns the <img> repaint. */
+  | { kind: 'imagePreview'; label: string; prevSrc: string; prevMissing: boolean; prevPreviewName: string | undefined };
 
 /**
  * The half of the panel's state that has ALREADY been written to
@@ -64,11 +70,11 @@ function sanitizeImages(raw: unknown): Record<string, ImageEdit> {
   const out: Record<string, ImageEdit> = {};
   for (const [label, edit] of safeEntries(raw)) {
     if (!isPlainObject(edit)) continue;
-    const { x, y, zoom } = edit;
+    const { x, y, zoom, panX, panY } = edit;
     if (typeof x !== 'number' || typeof y !== 'number' || typeof zoom !== 'number') continue;
     // Same clamp the setter applies, so a hand-edited or corrupted mirror can
     // never put a framing into state that the setter itself would refuse.
-    out[label] = clampFraming(x, y, zoom);
+    out[label] = clampFraming(x, y, zoom, typeof panX === 'number' ? panX : 0, typeof panY === 'number' ? panY : 0);
   }
   return out;
 }
@@ -155,6 +161,15 @@ export interface Store {
   setText(file: string, id: string, before: string, after: string): void;
   /** Forget one pending text edit — the escape hatch for an edit the patcher refuses. */
   dropText(file: string, id: string): void;
+  /**
+   * Push an undo checkpoint for a dropped preview image, WITHOUT writing
+   * anything into `pending`/`saved` — a preview never reaches PanelState (see
+   * `ImageEdit`'s doc comment), so there is nothing for this call to persist.
+   * `prev*` is exactly what the frame's <img> looked like right before the
+   * drop being recorded; `undo()` hands it straight back for imageEditing.ts
+   * to repaint from.
+   */
+  recordImagePreview(label: string, prevSrc: string, prevMissing: boolean, prevPreviewName: string | undefined): void;
   /** Unsaved changes only. The badge means "pending", never "total edits ever". */
   dirtyCount(): number;
   /** Whether there is at least one change `undo()` can act on. Drives the
@@ -242,7 +257,7 @@ export function createStore(initial?: PanelState): Store {
   // would just make Ctrl+Z toggle between two states instead of walking back
   // through the stack).
   function applyImage(label: string, edit: ImageEdit): void {
-    pending.images[label] = clampFraming(edit.x, edit.y, edit.zoom);
+    pending.images[label] = clampFraming(edit.x, edit.y, edit.zoom, edit.panX ?? 0, edit.panY ?? 0);
     persist();
   }
 
@@ -307,6 +322,12 @@ export function createStore(initial?: PanelState): Store {
       // not a normal editing action a user would expect Ctrl+Z to reach.
       removeText(`${file}::${id}`);
     },
+    recordImagePreview(label, prevSrc, prevMissing, prevPreviewName) {
+      // No persist(): a preview is session-DOM-only by design (see the type's
+      // doc comment), and `history` itself is already session-local only —
+      // see the design note where it is declared above.
+      pushHistory({ kind: 'imagePreview', label, prevSrc, prevMissing, prevPreviewName });
+    },
     dirtyCount() {
       return (
         Object.keys(pending.images).length +
@@ -328,6 +349,17 @@ export function createStore(initial?: PanelState): Store {
       if (h.kind === 'style') {
         applyStyleReplace(h.id, h.prev);
         return { kind: 'style', id: h.id };
+      }
+      if (h.kind === 'imagePreview') {
+        // Nothing to mutate here — see recordImagePreview's doc comment.
+        // imageEditing.ts's onUndo handler does the actual repaint/revoke.
+        return {
+          kind: 'imagePreview',
+          label: h.label,
+          prevSrc: h.prevSrc,
+          prevMissing: h.prevMissing,
+          prevPreviewName: h.prevPreviewName,
+        };
       }
       // Text: read what is about to be overwritten/removed BEFORE mutating —
       // when there is no earlier pending entry to restore (h.prev undefined),

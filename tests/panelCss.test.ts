@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { findHardcodedHex } from '../src/lib/guards';
-import { clampFraming, generateCss } from '../src/panel/cssGenerator';
+import { clampFraming, generateCss, maxPanPercent } from '../src/panel/cssGenerator';
 import type { PanelState } from '../src/panel/types';
 
 const empty: PanelState = { images: {}, styles: {}, text: {} };
@@ -27,6 +27,42 @@ describe('clampFraming', () => {
   });
 });
 
+describe('maxPanPercent', () => {
+  it('is zero at zoom 1 — pan is impossible when unzoomed', () => {
+    expect(maxPanPercent(1)).toBe(0);
+  });
+
+  it('grows with zoom, capping at 37.5% at the 4x ceiling', () => {
+    expect(maxPanPercent(2)).toBeCloseTo(25, 10);
+    expect(maxPanPercent(4)).toBeCloseTo(37.5, 10);
+  });
+});
+
+describe('clampFraming — pan', () => {
+  it('omits pan entirely when it rounds to zero, same as an untouched zoom', () => {
+    expect(clampFraming(50, 50, 2, 0, 0)).toEqual({ x: 50, y: 50, zoom: 2 });
+  });
+
+  it('forces pan to zero at zoom 1 regardless of what was asked for', () => {
+    // A stored pan from a session that later zoomed back out must not linger
+    // and silently do nothing useful — it is dropped, not just ignored.
+    expect(clampFraming(50, 50, 1, 40, -40)).toEqual({ x: 50, y: 50, zoom: 1 });
+  });
+
+  it('clamps pan to the zoom-dependent bound so empty frame can never show', () => {
+    // maxPanPercent(2) === 25
+    expect(clampFraming(50, 50, 2, 999, -999)).toEqual({ x: 50, y: 50, zoom: 2, panX: 25, panY: -25 });
+  });
+
+  it('keeps an in-range pan untouched', () => {
+    expect(clampFraming(50, 50, 4, 10, -20)).toEqual({ x: 50, y: 50, zoom: 4, panX: 10, panY: -20 });
+  });
+
+  it('sanitizes a non-finite pan to 0 rather than propagating NaN', () => {
+    expect(clampFraming(50, 50, 2, NaN, Infinity)).toEqual({ x: 50, y: 50, zoom: 2 });
+  });
+});
+
 describe('generateCss', () => {
   it('emits only the header when there is nothing to write', () => {
     const css = generateCss(empty);
@@ -49,6 +85,29 @@ describe('generateCss', () => {
     const css = generateCss({ images: { A: { x: 10, y: 20, zoom: 1 } }, styles: {}, text: {} });
     expect(css).toContain('object-position: 10% 20%;');
     expect(css).not.toContain('--img-zoom');
+  });
+
+  it('emits pan translate declarations when zoom exceeds 1 and pan is nonzero', () => {
+    const css = generateCss({
+      images: { A: { x: 50, y: 50, zoom: 2, panX: 10, panY: -5 } },
+      styles: {},
+      text: {},
+    });
+    expect(css).toContain('--img-zoom: 2;');
+    expect(css).toContain('--img-pan-x: 10%;');
+    expect(css).toContain('--img-pan-y: -5%;');
+  });
+
+  it('omits pan declarations when pan is zero, even at zoom > 1', () => {
+    const css = generateCss({ images: { A: { x: 50, y: 50, zoom: 2 } }, styles: {}, text: {} });
+    expect(css).not.toContain('--img-pan');
+  });
+
+  it('omits pan declarations for an unzoomed frame — identical to before pan existed', () => {
+    const css = generateCss({ images: { A: { x: 50, y: 50, zoom: 1, panX: 40, panY: 40 } }, styles: {}, text: {} });
+    expect(css).not.toContain('--img-zoom');
+    expect(css).not.toContain('--img-pan');
+    expect(css).toBe(generateCss({ images: { A: { x: 50, y: 50, zoom: 1 } }, styles: {}, text: {} }));
   });
 
   it('escapes quotes and backslashes in a slot label', () => {

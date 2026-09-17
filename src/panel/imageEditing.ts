@@ -1,9 +1,17 @@
 import type { Store } from './state';
+import type { ImageEdit } from './types';
 import { MANIFEST } from './manifest';
-import { isActive, refreshPanel, onUndo, getSelectedFrame, isPanelChrome } from './overlay';
+import { maxPanPercent } from './cssGenerator';
+import { isActive, refreshPanel, onUndo, getSelectedFrame, isPanelChrome, registerZoomSetter } from './overlay';
 
 /** Live values while dragging, before they are committed to the store. */
-interface Live { x: number; y: number; zoom: number }
+interface Live { x: number; y: number; zoom: number; panX: number; panY: number }
+
+/** An ImageEdit (panX/panY optional, omitted at 0) widened to a Live's
+    always-present fields — the shape paint()/repaint want. */
+function toLive(edit: ImageEdit): Live {
+  return { x: edit.x, y: edit.y, zoom: edit.zoom, panX: edit.panX ?? 0, panY: edit.panY ?? 0 };
+}
 
 function readLive(img: HTMLImageElement): Live {
   const pos = img.style.objectPosition || getComputedStyle(img).objectPosition;
@@ -16,10 +24,14 @@ function readLive(img: HTMLImageElement): Live {
   const x = parseFloat(px);
   const y = parseFloat(py);
   const zoom = parseFloat(img.style.getPropertyValue('--img-zoom') || '1');
+  const panX = parseFloat(img.style.getPropertyValue('--img-pan-x') || '0');
+  const panY = parseFloat(img.style.getPropertyValue('--img-pan-y') || '0');
   return {
     x: Number.isFinite(x) ? x : 50,
     y: Number.isFinite(y) ? y : 50,
     zoom: Number.isFinite(zoom) ? zoom : 1,
+    panX: Number.isFinite(panX) ? panX : 0,
+    panY: Number.isFinite(panY) ? panY : 0,
   };
 }
 
@@ -28,6 +40,8 @@ export function paint(img: HTMLImageElement, v: Live): void {
   // turns the store into the generated stylesheet.
   img.style.objectPosition = `${v.x}% ${v.y}%`;
   img.style.setProperty('--img-zoom', String(v.zoom));
+  img.style.setProperty('--img-pan-x', `${v.panX}%`);
+  img.style.setProperty('--img-pan-y', `${v.panY}%`);
 }
 
 /** Find the frame + its <img> for a given `data-label`, if either exists on
@@ -48,10 +62,12 @@ export function repaintImageFromStore(store: Store, label: string): void {
   if (!slot) return;
   const edit = store.get().images[label];
   if (edit) {
-    paint(slot.img, edit);
+    paint(slot.img, toLive(edit));
   } else {
     slot.img.style.removeProperty('object-position');
     slot.img.style.removeProperty('--img-zoom');
+    slot.img.style.removeProperty('--img-pan-x');
+    slot.img.style.removeProperty('--img-pan-y');
   }
 }
 
@@ -59,17 +75,44 @@ export function installImageEditing(store: Store): void {
   // Apply anything already pending so a reload does not lose an unsaved drag.
   for (const [label, edit] of Object.entries(store.get().images)) {
     const slot = findSlot(label);
-    if (slot) paint(slot.img, edit);
+    if (slot) paint(slot.img, toLive(edit));
   }
 
-  onUndo((result) => {
-    if (result.kind !== 'image') return;
-    repaintImageFromStore(store, result.label);
-    // dirtyCount/Save-button state changed too — see overlay.ts's own
-    // refreshPanel() call right after this fires, which handles that half.
+  // The layer list's zoom slider is built and owned by overlay.ts, which
+  // cannot import this module directly (this module already imports FROM
+  // overlay.ts, and a cycle back the other way is worth avoiding) — so it
+  // registers a setter here instead, the same registration pattern onUndo
+  // and friends already use in the other direction.
+  registerZoomSetter((frame, zoom) => {
+    const img = frame.querySelector('img') as HTMLImageElement | null;
+    const label = frame.getAttribute(MANIFEST.slotKeyAttr);
+    if (!img || !label) return;
+    store.setImage(label, { ...readLive(img), zoom });
+    paint(img, toLive(store.get().images[label]));
+    refreshPanel();
   });
 
-  let dragging: { img: HTMLImageElement; label: string; startX: number; startY: number; from: Live } | null = null;
+  onUndo((result) => {
+    if (result.kind === 'image') {
+      repaintImageFromStore(store, result.label);
+      // dirtyCount/Save-button state changed too — see overlay.ts's own
+      // refreshPanel() call right after this fires, which handles that half.
+      return;
+    }
+    if (result.kind !== 'imagePreview') return;
+    const slot = findSlot(result.label);
+    if (!slot) return;
+    const current = slot.img.src;
+    // Only ever a blob: URL when it was THIS panel's own preview — the real,
+    // committed asset is always an ordinary http(s)/relative path.
+    if (current.startsWith('blob:')) URL.revokeObjectURL(current);
+    slot.img.src = result.prevSrc;
+    slot.frame.classList.toggle('is-missing', result.prevMissing);
+    if (result.prevPreviewName === undefined) delete slot.frame.dataset.panelPreview;
+    else slot.frame.dataset.panelPreview = result.prevPreviewName;
+  });
+
+  let dragging: { img: HTMLImageElement; frame: HTMLElement; label: string; startX: number; startY: number; from: Live } | null = null;
 
   // Stop tracking a drag without committing it, and repaint back to the last
   // committed value (`dragging.from`, read at pointerdown from the image's
@@ -106,7 +149,7 @@ export function installImageEditing(store: Store): void {
     const label = frame?.getAttribute(MANIFEST.slotKeyAttr);
     if (!frame || !img || !label) return;
     e.preventDefault();
-    dragging = { img, label, startX: e.clientX, startY: e.clientY, from: readLive(img) };
+    dragging = { img, frame, label, startX: e.clientX, startY: e.clientY, from: readLive(img) };
     frame.setPointerCapture(e.pointerId);
   });
 
@@ -120,14 +163,36 @@ export function installImageEditing(store: Store): void {
       abortDrag();
       return;
     }
-    const rect = dragging.img.getBoundingClientRect();
-    // Dragging right moves the image right, which means revealing content from
-    // its left — so the percentage decreases. Hence the negated delta.
-    const next: Live = {
-      x: dragging.from.x - ((e.clientX - dragging.startX) / rect.width) * 100,
-      y: dragging.from.y - ((e.clientY - dragging.startY) / rect.height) * 100,
-      zoom: dragging.from.zoom,
-    };
+    const dx = e.clientX - dragging.startX;
+    const dy = e.clientY - dragging.startY;
+    let next: Live;
+    if (dragging.from.zoom > 1) {
+      // Zoomed in: drag pans WITHIN the crop via translate, which needs the
+      // frame's own (untransformed) size as the % basis — see
+      // maxPanPercent's doc comment for why, and why the clamp here has to
+      // grow with zoom. Positive translate moves content the same direction
+      // screen-space, so — unlike the object-position branch below — the
+      // pointer delta is NOT negated: the image follows the cursor, like
+      // dragging a photo.
+      const frameRect = dragging.frame.getBoundingClientRect();
+      const maxPan = maxPanPercent(dragging.from.zoom);
+      const rawX = dragging.from.panX + (dx / (dragging.from.zoom * frameRect.width)) * 100;
+      const rawY = dragging.from.panY + (dy / (dragging.from.zoom * frameRect.height)) * 100;
+      next = {
+        ...dragging.from,
+        panX: Math.min(maxPan, Math.max(-maxPan, rawX)),
+        panY: Math.min(maxPan, Math.max(-maxPan, rawY)),
+      };
+    } else {
+      const rect = dragging.img.getBoundingClientRect();
+      // Dragging right moves the image right, which means revealing content from
+      // its left — so the percentage decreases. Hence the negated delta.
+      next = {
+        ...dragging.from,
+        x: dragging.from.x - (dx / rect.width) * 100,
+        y: dragging.from.y - (dy / rect.height) * 100,
+      };
+    }
     paint(dragging.img, next);
   });
 
@@ -135,7 +200,7 @@ export function installImageEditing(store: Store): void {
     if (!dragging) return;
     store.setImage(dragging.label, readLive(dragging.img));
     // Re-paint from the clamped value the store actually kept.
-    paint(dragging.img, store.get().images[dragging.label]);
+    paint(dragging.img, toLive(store.get().images[dragging.label]));
     refreshPanel();
     dragging = null;
   });
@@ -148,18 +213,19 @@ export function installImageEditing(store: Store): void {
     abortDrag();
   });
 
-  // Lenis (src/shared/motion.ts) listens for 'wheel' in the bubble phase on
-  // window and does not consult event.defaultPrevented before scrolling, so
-  // preventDefault() alone never stops it. Registering here in the CAPTURE
-  // phase means this handler runs on the way down, before the event ever
-  // reaches target/bubble phase — so stopPropagation() (once we know we are
-  // actually handling the event) keeps it from ever reaching Lenis's
-  // window-level listener at all. Only stop propagation when a frame is
-  // actually under the pointer and edit mode is on; every other wheel event
-  // — panel off, or over empty page — must reach Lenis untouched so normal
-  // scrolling keeps working.
+  // A PLAIN wheel must scroll the page exactly as it does with the panel off
+  // — Lenis (src/shared/motion.ts) owns it, same as always. Only a trackpad
+  // PINCH (reported by every browser as a wheel event with ctrlKey === true;
+  // there is no way to tell that apart from someone genuinely holding Ctrl
+  // while spinning a wheel, and per the spec for this feature that ambiguity
+  // is fine) hijacks the event: preventDefault() stops the browser's own
+  // page-zoom default action, and — since Lenis listens on window in the
+  // bubble phase and does not consult event.defaultPrevented before
+  // scrolling — stopPropagation() in this CAPTURE-phase listener is what
+  // stops the pinch from ALSO being read as a scroll.
   document.addEventListener('wheel', (e) => {
     if (!isActive()) return;
+    if (!e.ctrlKey) return;
     const frame = resolveTargetFrame(e.target as Element);
     const img = frame?.querySelector('img') as HTMLImageElement | null;
     const label = frame?.getAttribute(MANIFEST.slotKeyAttr);
@@ -167,13 +233,30 @@ export function installImageEditing(store: Store): void {
     e.preventDefault();
     e.stopPropagation();
     const live = readLive(img);
-    store.setImage(label, { ...live, zoom: live.zoom - e.deltaY * 0.001 });
-    paint(img, store.get().images[label]);
+    store.setImage(label, { ...live, zoom: live.zoom - e.deltaY * 0.01 });
+    paint(img, toLive(store.get().images[label]));
     refreshPanel();
   }, { capture: true, passive: false });
 
-  // Drag a local file onto a slot to preview it. Never written to the repo:
-  // the point is judging composition before spending on a generation.
+  /** Preview a locally dropped file in `frame`, recording enough on the
+      store's undo stack to restore exactly what was there before. Shared by
+      both drop targets below (a frame directly, or its layer-list row) so
+      undo behaves identically either way. Never written to the repo — the
+      point is judging composition before spending on a generation. */
+  function previewDroppedFile(frame: HTMLElement, file: File): void {
+    const img = frame.querySelector('img') as HTMLImageElement | null;
+    const label = frame.getAttribute(MANIFEST.slotKeyAttr);
+    if (!img || !label || !file.type.startsWith('image/')) return;
+    store.recordImagePreview(label, img.src, frame.classList.contains('is-missing'), frame.dataset.panelPreview);
+    img.src = URL.createObjectURL(file);
+    frame.classList.remove('is-missing');
+    frame.dataset.panelPreview = file.name;
+    refreshPanel();
+  }
+
+  // Drag a local file onto a slot — or onto its row in the layer list, which
+  // reaches a frame buried under others the same way selecting that row does
+  // for drag/wheel — to preview it.
   document.addEventListener('dragover', (e) => { if (isActive()) e.preventDefault(); });
 
   document.addEventListener('drop', (e) => {
@@ -185,12 +268,16 @@ export function installImageEditing(store: Store): void {
     // file and discards any unsaved edits. Panel-off drops never reach here,
     // so ordinary browser behavior outside edit mode is untouched.
     e.preventDefault();
-    const frame = (e.target as Element).closest?.(MANIFEST.slotSelector) as HTMLElement | null;
-    const img = frame?.querySelector('img') as HTMLImageElement | null;
+    const target = e.target as Element;
+    // A layer-list row carries the same data-label as the frame it
+    // represents (see overlay.ts's buildLayerList) — resolving through it
+    // rather than through closest(MANIFEST.slotSelector) is what lets a drop
+    // on the row reach a frame buried under others in the stack.
+    const row = target.closest?.('.panel-bar__layer') as HTMLElement | null;
+    const label = row?.dataset.label;
+    const frame = label ? findSlot(label)?.frame ?? null : (target.closest?.(MANIFEST.slotSelector) as HTMLElement | null);
     const file = e.dataTransfer?.files?.[0];
-    if (!frame || !img || !file || !file.type.startsWith('image/')) return;
-    img.src = URL.createObjectURL(file);
-    frame.classList.remove('is-missing');
-    frame.dataset.panelPreview = file.name;
+    if (!frame || !file) return;
+    previewDroppedFile(frame, file);
   });
 }

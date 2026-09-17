@@ -9,12 +9,22 @@ export type ColorKey = 'fg' | 'fg-dim' | 'muted' | 'accent' | 'accent-2';
 
 /** Framing of one image inside its frame. */
 export interface ImageEdit {
-  /** object-position X as a percentage, 0-100. */
+  /** object-position X as a percentage, 0-100. Picks which part of the
+      object-fit: cover crop is used — unaffected by zoom, exactly as before
+      this pan/zoom rework. */
   x: number;
   /** object-position Y as a percentage, 0-100. */
   y: number;
   /** scale() multiplier, 1-4. 1 means untouched. */
   zoom: number;
+  /** Additional pan WITHIN the zoomed-in crop, as a translate() percentage.
+      Always clamped to 0 at zoom 1 (see cssGenerator's maxPanPercent), which
+      is why it is optional and omitted from generated CSS — and from
+      clampFraming's own return value — whenever it is 0. Lets a zoomed-in
+      frame reach image area object-position alone cannot, since that clamps
+      at 0/100 regardless of zoom. */
+  panX?: number;
+  panY?: number;
 }
 
 /** Typographic overrides for one editable text block. */
@@ -59,4 +69,12 @@ export interface PanelState {
 export type UndoResult =
   | { kind: 'image'; label: string }
   | { kind: 'style'; id: string }
-  | { kind: 'text'; file: string; id: string; text: string };
+  | { kind: 'text'; file: string; id: string; text: string }
+  /** A dropped preview image being undone away. `prevSrc`/`prevMissing` are
+      the frame's <img> src and is-missing state exactly as they were right
+      before the drop this undoes — restoring them is a straight repaint,
+      never a store write, since a preview never entered PanelState (it is
+      never saved to the repo). `prevPreviewName` restores the PREVIOUS
+      preview's filename label when the drop being undone replaced an earlier
+      preview rather than the real image. */
+  | { kind: 'imagePreview'; label: string; prevSrc: string; prevMissing: boolean; prevPreviewName: string | undefined };

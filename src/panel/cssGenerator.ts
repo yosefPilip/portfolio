@@ -56,22 +56,76 @@ function clamp(n: number, lo: number, hi: number): number {
 }
 
 /**
+ * The largest |translate()| percentage, on either axis, that keeps a
+ * `scale(zoom) translate(pan%, pan%)` image fully covering its frame.
+ *
+ * The maths: `.frame img` is sized to exactly fill the frame (width/height:
+ * 100%), so before any transform its box IS the frame, edges at local
+ * coordinates 0 and W (using width; height is the same argument). CSS
+ * resolves a percentage in `translate()` against that untransformed box, and
+ * `transform-origin` defaults to the box's own centre, O = W/2.
+ *
+ * For `transform: scale(z) translate(p%, ..)`, a point is translated first,
+ * then the whole result (including the translation) is scaled around O — so
+ * a local point p maps to screen position `O + z*(p - O) + z*t`, where t is
+ * the translate distance in the same units as p (i.e. pan% * W / 100).
+ *
+ * The frame shows no empty area exactly when the transformed image still
+ * covers [0, W]: the transformed left edge (p=0) must land at or left of 0,
+ * and the transformed right edge (p=W) at or right of W. Working through
+ * both inequalities (they are mirror images of each other) gives the same
+ * bound on t in either direction:
+ *
+ *   |t| <= W*(z-1) / (2z)
+ *
+ * Dividing by W turns that into the percentage this function returns:
+ *
+ *   |pan%| <= 100*(z-1) / (2z)
+ *
+ * At z=1 this is exactly 0 — panning is impossible, which is what keeps an
+ * unzoomed frame's rendering identical to before this pan/zoom rework, since
+ * object-position (x/y) alone decided the crop and this file never touched
+ * it. As z grows the bound grows too (it is monotonic; at z=4 it is 37.5%),
+ * which is what lets a zoomed-in frame reach image area x/y's fixed 0-100
+ * clamp cannot: x/y still pick which part of the object-fit: cover crop is
+ * used, and pan then moves the viewport around within that (now larger)
+ * crop, bounded so it can never run out of image to show.
+ */
+export function maxPanPercent(zoom: number): number {
+  return zoom > 1 ? (100 * (zoom - 1)) / (2 * zoom) : 0;
+}
+
+/**
  * Bring a dragged framing into the range that is guaranteed safe.
  *
  * With `object-fit: cover` the image always covers the frame, so any
  * object-position from 0% to 100% shows image content — the range itself is
  * the bound, and no per-zoom arithmetic is needed. Zoom below 1 is what would
- * actually expose empty frame, so 1 is the floor.
+ * actually expose empty frame, so 1 is the floor. `panX`/`panY` get their own,
+ * zoom-dependent bound — see `maxPanPercent`.
  *
  * Non-finite values (NaN, Infinity) are sanitized to safe defaults to prevent
- * corrupted localStorage from generating invalid CSS.
+ * corrupted localStorage from generating invalid CSS. `panX`/`panY` default to
+ * 0 so every existing call site (and every saved framing from before pan
+ * existed) keeps clamping to exactly the same `{x, y, zoom}` it always did —
+ * a clamped pan of 0 is omitted below, the same way an untouched zoom of 1 is.
  */
-export function clampFraming(x: number, y: number, zoom: number): ImageEdit {
-  return {
+export function clampFraming(x: number, y: number, zoom: number, panX = 0, panY = 0): ImageEdit {
+  const z = round2(clamp(isFinite(zoom) ? zoom : 1, MIN_ZOOM, MAX_ZOOM));
+  const maxPan = maxPanPercent(z);
+  const px = round2(clamp(isFinite(panX) ? panX : 0, -maxPan, maxPan));
+  const py = round2(clamp(isFinite(panY) ? panY : 0, -maxPan, maxPan));
+  const out: ImageEdit = {
     x: round2(clamp(isFinite(x) ? x : 0, 0, 100)),
     y: round2(clamp(isFinite(y) ? y : 0, 0, 100)),
-    zoom: round2(clamp(isFinite(zoom) ? zoom : 1, MIN_ZOOM, MAX_ZOOM)),
+    zoom: z,
   };
+  // Omitted rather than written as 0: keeps every pre-pan saved framing, and
+  // every zoom-1 framing, byte-identical to what clampFraming produced before
+  // panX/panY existed.
+  if (px !== 0) out.panX = px;
+  if (py !== 0) out.panY = py;
+  return out;
 }
 
 /** Escape a value for use inside a double-quoted CSS attribute selector. */
@@ -89,10 +143,14 @@ export function generateCss(state: PanelState): string {
   for (const label of Object.keys(state.images).sort()) {
     const raw = state.images[label];
     // Re-clamp numeric values in case they were corrupted in storage (NaN, Infinity, etc.)
-    const { x, y, zoom } = clampFraming(raw.x, raw.y, raw.zoom);
+    const { x, y, zoom, panX, panY } = clampFraming(raw.x, raw.y, raw.zoom, raw.panX ?? 0, raw.panY ?? 0);
     const decls = [`  object-position: ${x}% ${y}%;`];
     // A zoom of exactly 1 is the default; emitting it would be noise in the diff.
     if (zoom !== 1) decls.push(`  --img-zoom: ${zoom};`);
+    // panX/panY are already omitted by clampFraming when 0 (including always
+    // at zoom 1), so presence alone is the "worth emitting" check.
+    if (panX) decls.push(`  --img-pan-x: ${panX}%;`);
+    if (panY) decls.push(`  --img-pan-y: ${panY}%;`);
     blocks.push(`.frame[data-label="${cssAttrValue(label)}"] img {\n${decls.join('\n')}\n}`);
   }
 
