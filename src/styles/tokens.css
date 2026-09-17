@@ -36,6 +36,8 @@
   --gutter:  clamp(20px, 5vw, 88px);
   --section: clamp(72px, 11vw, 168px);
   --stack-h: 240vh;                      /* Home hero overrides to 260vh */
+  --stack-fade: clamp(140px, 26svh, 320px);  /* how far a stack dissolves into
+                                                the page ground at its bottom edge */
 
   /* ── fallback room so an unlabelled page is never unstyled ── */
   --bg:           #171b19;
