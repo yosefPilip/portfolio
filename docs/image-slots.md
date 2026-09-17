@@ -44,6 +44,17 @@ true alpha (avoid; halos on soft edges).
 | `ridge-far` v4 | $0.009 | **accepted.** `--ref`. Huge dark rock wall across the centre, snow on both flanks. Band p95 0.223 = 3.62:1 with the frame still light at 0.479. |
 | ~~`ridge-near` v2~~ | — | ~~**accepted.**~~ Summit at ~47% height with pure white above it; mass unbroken to the bottom edge across 100% of the width; central band bare dark rock, snow on the flanks only. |
 
+**Second standing lesson — the frame-extension rule caps how far a front plate can
+travel.** `.plate > .frame` is `height: 100% + |--rate|` and `object-fit: cover` scales
+the source to fill it, so asking for more travel zooms the image by the same factor. A
+3:2 source at --rate -1200 was magnified 2.3x into an unreadable wall of snow. Two
+failed fixes are recorded so they are not retried: mirror-tiling the rock downward to
+make the source tall (numbers passed at four viewports, the render was a visible
+kaleidoscope), and a portrait 1024x1536 source (cover then scales by WIDTH, which zooms
+worse). What works: **match the source aspect to the frame aspect** — roughly square at
+desktop sizes — and place the massif by padding transparent rows on top, which moves it
+without changing its scale.
+
 **Standing lesson from this sitting — `mix-blend-mode: multiply` darkens the TITLE too.**
 The front plate composites against everything beneath it in the stacking context,
 including `.plate--copy`. Bone `#f0efe9` multiplied by dark rock becomes dark rock. So a
@@ -90,6 +101,17 @@ failures are the reason the final worked first time:
 | near v4 (more reach) | $0.02 | **rejected** by the owner: too much on the name, and blurry |
 | near v5 (sharp, slim) | $0.02 | accepted |
 | **far final** | **$0.32** | accepted, graded |
+
+**Second standing lesson — the frame-extension rule caps how far a front plate can
+travel.** `.plate > .frame` is `height: 100% + |--rate|` and `object-fit: cover` scales
+the source to fill it, so asking for more travel zooms the image by the same factor. A
+3:2 source at --rate -1200 was magnified 2.3x into an unreadable wall of snow. Two
+failed fixes are recorded so they are not retried: mirror-tiling the rock downward to
+make the source tall (numbers passed at four viewports, the render was a visible
+kaleidoscope), and a portrait 1024x1536 source (cover then scales by WIDTH, which zooms
+worse). What works: **match the source aspect to the frame aspect** — roughly square at
+desktop sizes — and place the massif by padding transparent rows on top, which moves it
+without changing its scale.
 
 **Standing lesson from this sitting:** never ask a prompt for "brighter" or "darker". Prompt
 for the subject and the light, then set exposure numerically in `grade.py` against a measured

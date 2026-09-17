@@ -35,6 +35,17 @@
    own alpha does the occluding. */
 #ridge .plate--front .frame { background: transparent; }
 
+/* The cutout is a TALL portrait source on purpose. The shared rule makes a
+   plate's frame `height: 100% + |--rate|`, and object-fit: cover scales the
+   image to fill it — so a 3:2 source gets zoomed by the whole travel, which is
+   exactly what turned this plate into an unreadable wall of snow. A source
+   taller than any frame aspect is scaled by WIDTH instead and never zooms; the
+   excess cover crops is the transparent headroom above the ridgeline, which
+   costs nothing. Anchoring to the bottom pins the rock to the foot of the hero
+   so no gap can open under it at any viewport. */
+#ridge .plate--front img { object-position: 50% 100%; }
+
+
 /* ── filters ── */
 .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: clamp(24px, 3vw, 44px); }
 /* The filters ship `hidden` and are revealed by the enhancer, because pills
