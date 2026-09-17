@@ -70,11 +70,23 @@ function sanitizeImages(raw: unknown): Record<string, ImageEdit> {
   const out: Record<string, ImageEdit> = {};
   for (const [label, edit] of safeEntries(raw)) {
     if (!isPlainObject(edit)) continue;
-    const { x, y, zoom, panX, panY } = edit;
+    const { x, y, zoom, panX, panY, frameHeight, frameAnchor, transparentBg } = edit;
     if (typeof x !== 'number' || typeof y !== 'number' || typeof zoom !== 'number') continue;
     // Same clamp the setter applies, so a hand-edited or corrupted mirror can
     // never put a framing into state that the setter itself would refuse.
-    out[label] = clampFraming(x, y, zoom, typeof panX === 'number' ? panX : 0, typeof panY === 'number' ? panY : 0);
+    const clamped = clampFraming(
+      x,
+      y,
+      zoom,
+      typeof panX === 'number' ? panX : 0,
+      typeof panY === 'number' ? panY : 0,
+      typeof frameHeight === 'number' ? frameHeight : undefined,
+      typeof frameAnchor === 'number' ? frameAnchor : undefined,
+    );
+    // Strict === true, not a truthiness check: a corrupted mirror holding
+    // e.g. the string "true" must not reach generateCss as a boolean.
+    if (transparentBg === true) clamped.transparentBg = true;
+    out[label] = clamped;
   }
   return out;
 }
@@ -256,8 +268,45 @@ export function createStore(initial?: PanelState): Store {
   // history first) and undo() (which must NOT — recording undo's own action
   // would just make Ctrl+Z toggle between two states instead of walking back
   // through the stack).
+  /**
+   * The ordinary write path, used by the public `setImage()` — including
+   * every plain drag/zoom/pan edit imageEditing.ts makes, which build their
+   * edit from a live DOM read (`readLive`) that knows nothing about frame
+   * trim or background. Those calls' `edit` objects simply have no
+   * `frameHeight`/`frameAnchor`/`transparentBg` KEY at all, so the `in`
+   * checks below fall through to whatever this slot already had — a drag
+   * can never wipe a trim it doesn't know exists, and a trim/background
+   * change (which always spreads the slot's current framing before setting
+   * its own key — see overlay.ts's frame/background setters) never wipes an
+   * in-flight position edit either. Undo does NOT use this path — see
+   * restoreImage, which needs an unambiguous exact replace instead of a
+   * presence-based merge.
+   */
   function applyImage(label: string, edit: ImageEdit): void {
-    pending.images[label] = clampFraming(edit.x, edit.y, edit.zoom, edit.panX ?? 0, edit.panY ?? 0);
+    const prior = pending.images[label] ?? saved.images[label];
+    const frameHeight = 'frameHeight' in edit ? edit.frameHeight : prior?.frameHeight;
+    const frameAnchor = 'frameAnchor' in edit ? edit.frameAnchor : prior?.frameAnchor;
+    const clamped = clampFraming(edit.x, edit.y, edit.zoom, edit.panX ?? 0, edit.panY ?? 0, frameHeight, frameAnchor);
+    const transparentBg = 'transparentBg' in edit ? edit.transparentBg : prior?.transparentBg;
+    if (transparentBg) clamped.transparentBg = true;
+    pending.images[label] = clamped;
+    persist();
+  }
+
+  /**
+   * Undo's write path: an unconditional, exact replace from a full snapshot
+   * (`currentImage()`'s spread, captured at the moment of the edit being
+   * undone) — never merged with whatever is about to be overwritten. A
+   * snapshot's frameHeight/frameAnchor/transparentBg are either genuinely
+   * present (the slot had a trim/background then) or genuinely absent (it
+   * didn't); applyImage's presence-based merge would be the WRONG tool here,
+   * since an absent key on the snapshot must restore to "absent", not fall
+   * back to the CURRENT value that undo is in the middle of replacing.
+   */
+  function restoreImage(label: string, edit: ImageEdit): void {
+    const clamped = clampFraming(edit.x, edit.y, edit.zoom, edit.panX ?? 0, edit.panY ?? 0, edit.frameHeight, edit.frameAnchor);
+    if (edit.transparentBg) clamped.transparentBg = true;
+    pending.images[label] = clamped;
     persist();
   }
 
@@ -342,7 +391,7 @@ export function createStore(initial?: PanelState): Store {
       const h = history.pop();
       if (!h) return null;
       if (h.kind === 'image') {
-        if (h.prev) applyImage(h.label, h.prev);
+        if (h.prev) restoreImage(h.label, h.prev);
         else removeImage(h.label);
         return { kind: 'image', label: h.label };
       }

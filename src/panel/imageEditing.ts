@@ -11,6 +11,8 @@ import {
   getSelectedFrame,
   isPanelChrome,
   registerZoomSetter,
+  registerFrameSetter,
+  registerBackgroundSetter,
   registerPendingUploadCounter,
   registerPendingUploadsCollector,
 } from './overlay';
@@ -104,6 +106,36 @@ export function paint(img: HTMLImageElement, v: Live): void {
   img.style.setProperty('--img-pan-y', `${v.panY}%`);
 }
 
+/** Live-preview the frame's own box (height + where it sits) before Save —
+    the same inline-style-overrides-the-stylesheet trick `paint()` uses for
+    the image, applied to the <figure> itself instead of its <img>. Mirrors
+    generateCss's own height/top formula exactly, so what is seen while
+    editing matches what Save later writes byte for byte. `height`
+    undefined (or clamped back to "no trim") clears both properties, which
+    is what returns a plate frame to stack.css's own `.plate > .frame` rule. */
+export function paintFrame(frame: HTMLElement, height: number | undefined, anchor: number | undefined): void {
+  if (height === undefined || height >= 100) {
+    frame.style.removeProperty('height');
+    frame.style.removeProperty('top');
+    return;
+  }
+  const a = anchor ?? 50;
+  const top = (100 - height) * (a / 100);
+  frame.style.height = `${height}%`;
+  frame.style.top = `${top}%`;
+}
+
+/** Live-preview the background-transparency toggle. `undefined`/`false`
+    clears the inline override, returning the frame to whatever CSS already
+    says for it (base.css's opaque var(--bg-deep), or a more specific
+    existing rule like .hero .plate--near .frame's own transparent — see the
+    design note on ImageEdit.transparentBg for why this never fights that
+    rule). */
+export function paintBackground(frame: HTMLElement, transparentBg: boolean | undefined): void {
+  if (transparentBg) frame.style.background = 'transparent';
+  else frame.style.removeProperty('background');
+}
+
 /** Find the frame + its <img> for a given `data-label`, if either exists on
     the current page. Shared by the initial pending-edit repaint below and by
     the undo repaint. */
@@ -129,13 +161,23 @@ export function repaintImageFromStore(store: Store, label: string): void {
     slot.img.style.removeProperty('--img-pan-x');
     slot.img.style.removeProperty('--img-pan-y');
   }
+  // The frame's own box/background travel with the same undo entry (they
+  // live on the same ImageEdit — see state.ts's restoreImage), so a trim or
+  // background change undoes through this exact same repaint, no separate
+  // wiring needed.
+  paintFrame(slot.frame, edit?.frameHeight, edit?.frameAnchor);
+  paintBackground(slot.frame, edit?.transparentBg);
 }
 
 export function installImageEditing(store: Store): void {
-  // Apply anything already pending so a reload does not lose an unsaved drag.
+  // Apply anything already pending so a reload does not lose an unsaved drag,
+  // trim or background choice.
   for (const [label, edit] of Object.entries(store.get().images)) {
     const slot = findSlot(label);
-    if (slot) paint(slot.img, toLive(edit));
+    if (!slot) continue;
+    paint(slot.img, toLive(edit));
+    paintFrame(slot.frame, edit.frameHeight, edit.frameAnchor);
+    paintBackground(slot.frame, edit.transparentBg);
   }
 
   // Snapshot every slot's real src BEFORE anything else can touch it (see
@@ -192,6 +234,34 @@ export function installImageEditing(store: Store): void {
     if (!img || !label) return;
     store.setImage(label, { ...readLive(img), zoom });
     paint(img, toLive(store.get().images[label]));
+    refreshPanel();
+  });
+
+  // Same registration pattern as registerZoomSetter, for the layer list's
+  // frame-trim sliders. Spreads the slot's CURRENT framing (defaulting to a
+  // fresh, centred, unzoomed one for a slot with no edit yet) before setting
+  // frameHeight/frameAnchor explicitly — those two keys being present, even
+  // when the value is `undefined`, is what tells state.ts's applyImage this
+  // call is authoritative about trim, as opposed to an ordinary drag/zoom
+  // edit that never mentions them at all and so must never wipe one.
+  registerFrameSetter((frame, height, anchor) => {
+    const label = frame.getAttribute(MANIFEST.slotKeyAttr);
+    if (!label) return;
+    const current = store.get().images[label] ?? { x: 50, y: 50, zoom: 1 };
+    store.setImage(label, { ...current, frameHeight: height, frameAnchor: anchor });
+    const updated = store.get().images[label];
+    paintFrame(frame, updated?.frameHeight, updated?.frameAnchor);
+    refreshPanel();
+  });
+
+  // Same pattern again, for the background-transparency checkbox.
+  registerBackgroundSetter((frame, transparentBg) => {
+    const label = frame.getAttribute(MANIFEST.slotKeyAttr);
+    if (!label) return;
+    const current = store.get().images[label] ?? { x: 50, y: 50, zoom: 1 };
+    store.setImage(label, { ...current, transparentBg });
+    const updated = store.get().images[label];
+    paintBackground(frame, updated?.transparentBg);
     refreshPanel();
   });
 

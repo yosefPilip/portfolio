@@ -117,6 +117,43 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The frame-trim row (height + anchor sliders) — same shape as .panel-bar__zoom,
+   just two sliders instead of one, so it reads as belonging to the same family
+   of per-layer controls. */
+.panel-bar__frame {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px 4px;
+  flex-wrap: wrap;
+}
+
+.panel-bar__frame input[type='range'] {
+  flex: 1;
+  min-width: 60px;
+  accent-color: var(--accent);
+}
+
+.panel-bar__frame input[type='range']:disabled { opacity: 0.4; }
+
+.panel-bar__frame span {
+  min-width: 3ch;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The background-transparency toggle — a checkbox row in the same family. */
+.panel-bar__bg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px 4px;
+  cursor: pointer;
+  color: var(--fg-dim);
+}
+
+.panel-bar__bg input[type='checkbox'] { accent-color: var(--accent); }
+
 /* Edit mode marks every editable surface so nothing is hidden from the user. */
 .panel-active figure.frame { outline: 1px dashed var(--accent); outline-offset: 2px; }
 

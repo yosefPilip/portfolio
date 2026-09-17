@@ -1,6 +1,6 @@
 import type { Store } from './state';
 import type { PanelState, UndoResult } from './types';
-import { generateCss } from './cssGenerator';
+import { generateCss, MIN_FRAME_HEIGHT } from './cssGenerator';
 import { MANIFEST } from './manifest';
 import { save, isSaveError, type ImageUploadRequest, type SaveResult } from './saveClient';
 
@@ -17,6 +17,15 @@ let undoFns: Array<(result: UndoResult) => void> = [];
     the layer list's zoom slider, built here, can apply a change through the
     same store-write + repaint path a wheel or drag uses. */
 let zoomSetter: ((frame: HTMLElement, zoom: number) => void) | null = null;
+/** Set by imageEditing.ts, same indirection and same reason as zoomSetter:
+    the layer list's frame-trim sliders (height + anchor), built here, apply a
+    change through the same store-write + repaint path a drag/zoom uses.
+    `height` undefined means "no trim" (the slider pulled back to 100). */
+let frameSetter: ((frame: HTMLElement, height: number | undefined, anchor: number | undefined) => void) | null = null;
+/** Set by imageEditing.ts, same indirection as zoomSetter: the layer list's
+    background-transparency checkbox, built here, applies a change through
+    the same store-write + repaint path. */
+let backgroundSetter: ((frame: HTMLElement, transparentBg: boolean) => void) | null = null;
 /** Set by imageEditing.ts: how many dropped-but-unsaved images are queued.
     Added to store.dirtyCount() in refresh() below — a dropped image is never
     part of PanelState (see imageEditing.ts's pendingUploads doc comment), so
@@ -96,6 +105,114 @@ export function mountPanel(store: Store): void {
   let zoomSlider: HTMLInputElement | null = null;
   let zoomValueLabel: HTMLElement | null = null;
 
+  /** Same lifecycle as zoomRow/zoomSlider above, for the frame-trim controls
+      (height + anchor). Built only for a full-bleed plate frame — see
+      buildFrameRow — so this stays null for an inline --ar frame's
+      selection, exactly like a missing zoomRow would for a control this
+      list simply does not offer that kind of frame. */
+  let frameRow: HTMLElement | null = null;
+  let frameHeightSlider: HTMLInputElement | null = null;
+  let frameHeightValueLabel: HTMLElement | null = null;
+  let frameAnchorSlider: HTMLInputElement | null = null;
+  let frameAnchorValueLabel: HTMLElement | null = null;
+
+  /** Same lifecycle again, for the background-transparency checkbox — offered
+      on every frame, plate or inline, since transparency is not a box
+      concern the way height/anchor are. */
+  let bgRow: HTMLElement | null = null;
+  let bgCheckbox: HTMLInputElement | null = null;
+
+  /** 0/100 read as the words a slider's ends actually mean; anything between
+      is just its own percentage — matches "top, bottom, or somewhere
+      between" rather than forcing three discrete stops. */
+  function anchorLabel(a: number): string {
+    if (a <= 10) return 'Top';
+    if (a >= 90) return 'Bottom';
+    return `${Math.round(a)}%`;
+  }
+
+  /**
+   * Height + anchor sliders for a trimmed frame — see the design note on
+   * ImageEdit.frameHeight. Offered only for a full-bleed plate frame (a
+   * direct `.plate > .frame`): an inline content frame sized by `--ar` has
+   * no plate to be a fraction OF, and generateCss's rule would fight its
+   * aspect-ratio box rather than do anything useful, so the control simply
+   * is not shown for one — returning null here is exactly what keeps such a
+   * frame "working exactly as it does now".
+   */
+  function buildFrameRow(frame: HTMLElement, label: string): HTMLElement | null {
+    if (!frame.parentElement?.classList.contains('plate')) return null;
+    const current = store.get().images[label];
+    const height = current?.frameHeight ?? 100;
+    const anchor = current?.frameAnchor ?? 50;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'panel-bar__frame';
+
+    const heightSlider = document.createElement('input');
+    heightSlider.type = 'range';
+    heightSlider.min = String(MIN_FRAME_HEIGHT);
+    heightSlider.max = '100';
+    heightSlider.step = '1';
+    heightSlider.value = String(height);
+    heightSlider.setAttribute('aria-label', 'Band height');
+    const heightValue = document.createElement('span');
+    heightValue.textContent = `${Math.round(height)}%`;
+
+    const anchorSlider = document.createElement('input');
+    anchorSlider.type = 'range';
+    anchorSlider.min = '0';
+    anchorSlider.max = '100';
+    anchorSlider.step = '1';
+    anchorSlider.value = String(anchor);
+    anchorSlider.disabled = height >= 100;
+    anchorSlider.setAttribute('aria-label', 'Band anchor, top to bottom');
+    const anchorValue = document.createElement('span');
+    anchorValue.textContent = anchorLabel(anchor);
+
+    function apply(): void {
+      const h = parseFloat(heightSlider.value);
+      const a = parseFloat(anchorSlider.value);
+      heightValue.textContent = `${Math.round(h)}%`;
+      anchorValue.textContent = anchorLabel(a);
+      // A full-height frame has nothing to anchor — disabled rather than
+      // hidden, so the control does not jump around as height crosses 100.
+      anchorSlider.disabled = h >= 100;
+      frameSetter?.(frame, h >= 100 ? undefined : h, h >= 100 ? undefined : a);
+    }
+
+    heightSlider.addEventListener('input', apply);
+    anchorSlider.addEventListener('input', apply);
+
+    wrap.append(heightSlider, heightValue, anchorSlider, anchorValue);
+    frameHeightSlider = heightSlider;
+    frameHeightValueLabel = heightValue;
+    frameAnchorSlider = anchorSlider;
+    frameAnchorValueLabel = anchorValue;
+    return wrap;
+  }
+
+  /** Background-transparency toggle — see the design note on
+      ImageEdit.transparentBg. Offered on every frame: unlike height/anchor
+      this is not a plate-box concern, so an inline --ar frame (a dropped
+      cut-out photo in the Elsewhere grid, say) can use it too. */
+  function buildBackgroundRow(frame: HTMLElement, label: string): HTMLElement {
+    const current = store.get().images[label];
+    const wrap = document.createElement('label');
+    wrap.className = 'panel-bar__bg';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = current?.transparentBg === true;
+    checkbox.addEventListener('change', () => {
+      backgroundSetter?.(frame, checkbox.checked);
+    });
+    const text = document.createElement('span');
+    text.textContent = 'Transparent background';
+    wrap.append(checkbox, text);
+    bgCheckbox = checkbox;
+    return wrap;
+  }
+
   /**
    * The slider is given to the SELECTED row only, not every row: Workshop
    * alone has nine frames, and nine always-visible sliders would roughly
@@ -141,6 +258,15 @@ export function mountPanel(store: Store): void {
     zoomRow = null;
     zoomSlider = null;
     zoomValueLabel = null;
+    frameRow?.remove();
+    frameRow = null;
+    frameHeightSlider = null;
+    frameHeightValueLabel = null;
+    frameAnchorSlider = null;
+    frameAnchorValueLabel = null;
+    bgRow?.remove();
+    bgRow = null;
+    bgCheckbox = null;
   }
 
   function selectFrame(frame: HTMLElement): void {
@@ -154,10 +280,21 @@ export function mountPanel(store: Store): void {
     frame.classList.add('panel-frame-selected');
     const row = frameRows.get(frame);
     row?.classList.add('panel-bar__layer--selected');
+    const label = frame.getAttribute(MANIFEST.slotKeyAttr) ?? '';
     zoomRow = buildZoomRow(frame);
     // Right after the row it belongs to, not appended at the list's end —
-    // with nine frames the end could be scrolled well out of view.
+    // with nine frames the end could be scrolled well out of view. Each
+    // later row is inserted right after the one before it, so the whole
+    // group reads top to bottom as: layer row, zoom, frame trim, background.
     row?.insertAdjacentElement('afterend', zoomRow);
+    let after: HTMLElement = zoomRow;
+    frameRow = buildFrameRow(frame, label);
+    if (frameRow) {
+      after.insertAdjacentElement('afterend', frameRow);
+      after = frameRow;
+    }
+    bgRow = buildBackgroundRow(frame, label);
+    after.insertAdjacentElement('afterend', bgRow);
   }
 
   /**
@@ -174,6 +311,8 @@ export function mountPanel(store: Store): void {
     layerList.innerHTML = '';
     frameRows = new Map();
     zoomRow = null;
+    frameRow = null;
+    bgRow = null;
     const frames = Array.from(document.querySelectorAll<HTMLElement>(MANIFEST.slotSelector));
     for (const frame of frames) {
       const label = frame.getAttribute(MANIFEST.slotKeyAttr) ?? '(unlabeled)';
@@ -219,6 +358,24 @@ export function mountPanel(store: Store): void {
       const z = Number.isFinite(raw) ? raw : 1;
       zoomSlider.value = String(z);
       zoomValueLabel.textContent = `${z.toFixed(2)}x`;
+    }
+    // Same resync, for undo landing on a trim/background change: neither
+    // slider nor the checkbox is touched directly by an undo repaint (that
+    // only paints the frame itself — see imageEditing.ts's onUndo handler),
+    // so without this their readouts would go stale the moment Ctrl+Z fires.
+    if (selectedFrame) {
+      const label = selectedFrame.getAttribute(MANIFEST.slotKeyAttr);
+      const current = label ? store.get().images[label] : undefined;
+      if (frameHeightSlider && frameHeightValueLabel && frameAnchorSlider && frameAnchorValueLabel) {
+        const h = current?.frameHeight ?? 100;
+        const a = current?.frameAnchor ?? 50;
+        frameHeightSlider.value = String(h);
+        frameHeightValueLabel.textContent = `${Math.round(h)}%`;
+        frameAnchorSlider.value = String(a);
+        frameAnchorSlider.disabled = h >= 100;
+        frameAnchorValueLabel.textContent = anchorLabel(a);
+      }
+      if (bgCheckbox) bgCheckbox.checked = current?.transparentBg === true;
     }
   }
   refreshFn = refresh;
@@ -404,6 +561,22 @@ export function onUndo(fn: (result: UndoResult) => void): void {
     for why this indirection exists instead of an ordinary import. */
 export function registerZoomSetter(fn: (frame: HTMLElement, zoom: number) => void): void {
   zoomSetter = fn;
+}
+
+/** Registered by imageEditing.ts, the only module that knows how to turn a
+    frame-trim change into a store write plus a repaint. Same single-slot
+    reasoning as registerZoomSetter. */
+export function registerFrameSetter(
+  fn: (frame: HTMLElement, height: number | undefined, anchor: number | undefined) => void,
+): void {
+  frameSetter = fn;
+}
+
+/** Registered by imageEditing.ts, the only module that knows how to turn a
+    background-transparency toggle into a store write plus a repaint. Same
+    single-slot reasoning as registerZoomSetter. */
+export function registerBackgroundSetter(fn: (frame: HTMLElement, transparentBg: boolean) => void): void {
+  backgroundSetter = fn;
 }
 
 /** Registered by imageEditing.ts so the badge's pending count includes

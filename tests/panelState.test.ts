@@ -174,6 +174,19 @@ describe('createStore', () => {
     expect(createStore().get().images.A.x).toBe(50);
   });
 
+  it('discards a wrong-typed frameHeight/frameAnchor/transparentBg from storage rather than trusting them', () => {
+    localStorage.setItem(
+      'panel:state',
+      JSON.stringify({
+        images: { A: { x: 1, y: 2, zoom: 1, frameHeight: 'big', frameAnchor: 'top', transparentBg: 'yes' } },
+        styles: {},
+        text: {},
+      }),
+    );
+    const s = createStore();
+    expect(s.get().images.A).toEqual({ x: 1, y: 2, zoom: 1 });
+  });
+
   it('does not count __proto__ as a dirty slot (Finding 5 part 1)', () => {
     // JSON.parse can create __proto__ as an own enumerable property
     localStorage.setItem('panel:state', '{"images":{"__proto__":{}},"styles":{}}');
@@ -186,6 +199,119 @@ describe('createStore', () => {
     const s = createStore();
     // Check that __proto__ is not an own property of the images object
     expect(Object.prototype.hasOwnProperty.call(s.get().images, '__proto__')).toBe(false);
+  });
+});
+
+describe('setImage — frame trim and background survive an unrelated position edit', () => {
+  it('a later plain drag/zoom (no frameHeight key at all) does not wipe a stored trim', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 20 });
+    // Mirrors exactly what imageEditing.ts's pointerup/wheel/zoom-slider
+    // handlers pass: a fresh {x,y,zoom,panX,panY} with no frame keys at all.
+    s.setImage('A', { x: 10, y: 90, zoom: 2 });
+    expect(s.get().images.A).toEqual({ x: 10, y: 90, zoom: 2, frameHeight: 40, frameAnchor: 20 });
+  });
+
+  it('a later plain drag/zoom does not wipe a stored transparent background', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1, transparentBg: true });
+    s.setImage('A', { x: 20, y: 20, zoom: 1 });
+    expect(s.get().images.A).toEqual({ x: 20, y: 20, zoom: 1, transparentBg: true });
+  });
+
+  it('an explicit trim change does not disturb the position it was set at', () => {
+    const s = createStore();
+    s.setImage('A', { x: 42, y: 61, zoom: 1.5 });
+    // Mirrors overlay.ts's frame setter: spreads the current framing, then
+    // sets frameHeight/frameAnchor explicitly.
+    const current = s.get().images.A;
+    s.setImage('A', { ...current, frameHeight: 30, frameAnchor: 80 });
+    expect(s.get().images.A).toEqual({ x: 42, y: 61, zoom: 1.5, frameHeight: 30, frameAnchor: 80 });
+  });
+
+  it('an explicit height of 100 (slider pulled back to full) clears a previous trim', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 20 });
+    const current = s.get().images.A;
+    s.setImage('A', { ...current, frameHeight: undefined, frameAnchor: undefined });
+    expect(s.get().images.A).toEqual({ x: 50, y: 50, zoom: 1 });
+  });
+
+  it('unchecking the background toggle clears it explicitly', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1, transparentBg: true });
+    const current = s.get().images.A;
+    s.setImage('A', { ...current, transparentBg: false });
+    expect(s.get().images.A).toEqual({ x: 50, y: 50, zoom: 1 });
+  });
+
+  it('survives a reload through localStorage, trim and background included', () => {
+    const s = createStore();
+    s.setImage('A', { x: 12, y: 34, zoom: 1.5, frameHeight: 40, frameAnchor: 20, transparentBg: true });
+    expect(createStore().get().images.A).toEqual({
+      x: 12,
+      y: 34,
+      zoom: 1.5,
+      frameHeight: 40,
+      frameAnchor: 20,
+      transparentBg: true,
+    });
+  });
+});
+
+describe('undo — frame trim and background', () => {
+  it('undoes a trim back to the untrimmed value that came before it', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1 });
+    const current = s.get().images.A;
+    s.setImage('A', { ...current, frameHeight: 40, frameAnchor: 20 });
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.get().images.A).toEqual({ x: 50, y: 50, zoom: 1 });
+  });
+
+  it('undoing the very first trim on a slot removes the slot — it did not exist before', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1, frameHeight: 40 });
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.get().images.A).toBeUndefined();
+  });
+
+  it('undoing a trim change made AFTER a Save makes the earlier value pending again', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 20 });
+    s.commit();
+    expect(s.dirtyCount()).toBe(0);
+    const current = s.get().images.A;
+    s.setImage('A', { ...current, frameHeight: 70 });
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.get().images.A).toEqual({ x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 20 });
+    // A pending correction, not silently reabsorbed into `saved` — same
+    // invariant the existing "undoing an already-saved change" test checks
+    // for a plain position edit.
+    expect(s.dirtyCount()).toBe(1);
+  });
+
+  it('undo restores an exact prior snapshot rather than merging with what it replaces', () => {
+    // A regression guard for the exact bug applyImage's presence-based merge
+    // could reintroduce if undo used it: h.prev has no frameHeight key
+    // (never trimmed), but if undo naively merged onto the CURRENT value —
+    // which does have one — the trim would wrongly survive the undo.
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1 });
+    const current = s.get().images.A;
+    s.setImage('A', { ...current, frameHeight: 40 });
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.get().images.A).toEqual({ x: 50, y: 50, zoom: 1 });
+    expect(s.get().images.A.frameHeight).toBeUndefined();
+  });
+
+  it('undoes a background toggle back to the value that came before it', () => {
+    const s = createStore();
+    s.setImage('A', { x: 50, y: 50, zoom: 1 });
+    const current = s.get().images.A;
+    s.setImage('A', { ...current, transparentBg: true });
+    expect(s.undo()).toEqual({ kind: 'image', label: 'A' });
+    expect(s.get().images.A).toEqual({ x: 50, y: 50, zoom: 1 });
   });
 });
 

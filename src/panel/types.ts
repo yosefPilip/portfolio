@@ -25,6 +25,29 @@ export interface ImageEdit {
       at 0/100 regardless of zoom. */
   panX?: number;
   panY?: number;
+  /** Height of the frame's OWN box, as a percent (15-100) of the plate it
+      sits in — only meaningful for a full-bleed plate frame (a direct
+      `.plate > .frame`), which is otherwise sized to fill the plate entirely.
+      An inline content frame sized by `--ar` never gets this: nothing in the
+      panel offers the control for one, and generateCss's rule targets the
+      frame itself, not `.plate > .frame`, so accidentally setting it on one
+      would fight its aspect-ratio box. Omitted at 100 (untrimmed, the
+      default — identical to before this control existed) exactly like zoom
+      is omitted at 1. */
+  frameHeight?: number;
+  /** Where a shortened frame sits within the plate's height, 0-100: 0 pins it
+      to the top ("crop the bottom off"), 100 pins it to the bottom ("crop the
+      top off"), 50 centers it. Meaningless without frameHeight, so it is
+      never stored without one — see clampFraming. Omitted at its own default
+      (50) the same way panX/panY are omitted at 0. */
+  frameAnchor?: number;
+  /** Whether this slot's frame paints transparent instead of the deep
+      background fill (`.frame`'s `background: var(--bg-deep)` in
+      base.css) — set explicitly so a cut-out PNG does not render on a
+      near-black fill. Omitted (false, i.e. today's opaque fill) unless
+      turned on; never emitted as `false` in generated CSS, matching every
+      other omitted-at-default field here. */
+  transparentBg?: boolean;
 }
 
 /** Typographic overrides for one editable text block. */

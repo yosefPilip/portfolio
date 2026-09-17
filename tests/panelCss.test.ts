@@ -63,6 +63,41 @@ describe('clampFraming — pan', () => {
   });
 });
 
+describe('clampFraming — frame trim (height + anchor)', () => {
+  it('leaves frameHeight/frameAnchor off entirely when not asked for, byte-identical to before the control existed', () => {
+    expect(clampFraming(50, 50, 1)).toEqual({ x: 50, y: 50, zoom: 1 });
+  });
+
+  it('omits both fields when height clamps back up to 100 — "no trim" reads as untouched', () => {
+    expect(clampFraming(50, 50, 1, 0, 0, 100, 20)).toEqual({ x: 50, y: 50, zoom: 1 });
+  });
+
+  it('keeps an in-range height and a non-default anchor', () => {
+    expect(clampFraming(50, 50, 1, 0, 0, 40, 20)).toEqual({ x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 20 });
+  });
+
+  it('omits anchor when it is exactly the 50 (centered) default', () => {
+    expect(clampFraming(50, 50, 1, 0, 0, 40, 50)).toEqual({ x: 50, y: 50, zoom: 1, frameHeight: 40 });
+  });
+
+  it('defaults anchor to centered (omitted) when not supplied at all', () => {
+    expect(clampFraming(50, 50, 1, 0, 0, 40)).toEqual({ x: 50, y: 50, zoom: 1, frameHeight: 40 });
+  });
+
+  it('floors height at 15 so a band can never shrink to nothing', () => {
+    expect(clampFraming(50, 50, 1, 0, 0, 2)).toEqual({ x: 50, y: 50, zoom: 1, frameHeight: 15 });
+  });
+
+  it('clamps anchor to 0-100', () => {
+    expect(clampFraming(50, 50, 1, 0, 0, 40, -30)).toEqual({ x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 0 });
+    expect(clampFraming(50, 50, 1, 0, 0, 40, 999)).toEqual({ x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 100 });
+  });
+
+  it('sanitizes a non-finite height/anchor rather than propagating NaN', () => {
+    expect(clampFraming(50, 50, 1, 0, 0, NaN, Infinity)).toEqual({ x: 50, y: 50, zoom: 1 });
+  });
+});
+
 describe('generateCss', () => {
   it('emits only the header when there is nothing to write', () => {
     const css = generateCss(empty);
@@ -212,6 +247,80 @@ describe('generateCss', () => {
     // Without the space, \d5 would be a 2-hex-digit escape
     expect(css).toContain('\\d ');
     expect(css).toContain('[data-label="A\\d 5"]');
+  });
+
+  it('emits a frame-box rule, keyed on the slot label but targeting the frame itself, not its img', () => {
+    const css = generateCss({
+      images: { 'Hero L5 — jungle-near': { x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 0 } },
+      styles: {},
+      text: {},
+    });
+    expect(css).toContain('.frame[data-label="Hero L5 — jungle-near"] {\n  height: 40%;\n  top: 0%;\n}');
+  });
+
+  it('places the anchored band at the bottom when anchor is 100, cropping the top off', () => {
+    const css = generateCss({
+      images: { A: { x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 100 } },
+      styles: {},
+      text: {},
+    });
+    // 40% tall, pinned to the bottom of the remaining 60% slack.
+    expect(css).toContain('height: 40%;\n  top: 60%;');
+  });
+
+  it('centers the band (top = half the slack) when anchor is left at 50', () => {
+    const css = generateCss({
+      images: { A: { x: 50, y: 50, zoom: 1, frameHeight: 40 } },
+      styles: {},
+      text: {},
+    });
+    expect(css).toContain('height: 40%;\n  top: 30%;');
+  });
+
+  it('emits no frame-box rule at all for an untrimmed slot — untouched renders exactly as before', () => {
+    const css = generateCss({ images: { A: { x: 50, y: 50, zoom: 1 } }, styles: {}, text: {} });
+    expect(css).not.toContain('height:');
+    expect(css).not.toContain('top:');
+  });
+
+  it('emits transparent background only when explicitly turned on', () => {
+    const on = generateCss({ images: { A: { x: 50, y: 50, zoom: 1, transparentBg: true } }, styles: {}, text: {} });
+    expect(on).toContain('.frame[data-label="A"] {\n  background: transparent;\n}');
+    const off = generateCss({ images: { A: { x: 50, y: 50, zoom: 1 } }, styles: {}, text: {} });
+    expect(off).not.toContain('background:');
+  });
+
+  it('combines the trim and background declarations into one frame-box rule', () => {
+    const css = generateCss({
+      images: { A: { x: 50, y: 50, zoom: 1, frameHeight: 40, frameAnchor: 0, transparentBg: true } },
+      styles: {},
+      text: {},
+    });
+    expect(css).toContain('.frame[data-label="A"] {\n  height: 40%;\n  top: 0%;\n  background: transparent;\n}');
+    // Exactly one frame-box rule for A, not two.
+    expect(css.match(/\.frame\[data-label="A"\] \{/g)).toHaveLength(1);
+  });
+
+  it('never emits a colour literal even with trim and background set (guard still holds)', () => {
+    const css = generateCss({
+      images: { A: { x: 1, y: 2, zoom: 1.5, frameHeight: 33, frameAnchor: 10, transparentBg: true } },
+      styles: {},
+      text: {},
+    });
+    expect(findHardcodedHex(css)).toEqual([]);
+    expect(css).not.toMatch(/#[0-9a-f]{3,8}\b/i);
+    expect(css).not.toMatch(/\brgba?\(/);
+  });
+
+  it('re-clamps a corrupted frameHeight/frameAnchor from storage rather than propagating garbage', () => {
+    const css = generateCss({
+      images: { A: { x: 50, y: 50, zoom: 1, frameHeight: NaN, frameAnchor: Infinity } as any },
+      styles: {},
+      text: {},
+    });
+    expect(css).not.toContain('height:');
+    expect(css).not.toContain('NaN');
+    expect(css).not.toContain('Infinity');
   });
 
   it('rejects prototype properties as colour tokens (Finding 3)', () => {
