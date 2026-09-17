@@ -271,11 +271,18 @@ Five plates in `#arrive`. `--stack-h` goes 180vh → 320vh.
 
 | z | plate | `--rate` | `--zoom` | content |
 |---|---|---|---|---|
-| 1 | `--interior` | −60 | 0.6 | `shop-interior`, opaque, inside the doorway wrapper |
-| 2 | `--face` | −120 | 1.6 | `cottage-face`, multiply |
-| 3 | `--door` | −150 | 1.6 | `cottage-door`, multiply, hinged |
-| 4 | `--copy` | −250 | 0 | `<h1>Workshop</h1>`, exits early |
-| 5 | `--front` | −430 | 2.4 | `needles-near`, multiply |
+| 1 | `--interior` | −60 | 2.2 | the doorway clip box holding `shop-interior`, opaque |
+| 2 | `--face` | −120 | 2.2 | `cottage-face`, multiply |
+| 3 | `--door` | −150 | 2.2 | `cottage-door`, multiply, hinged |
+| 4 | `--copy` | −250 | — | `<h1>Workshop</h1>`, exits early |
+| 5 | `--front` | −430 | 3.0 | `needles-near`, multiply |
+
+**The first three plates are one plane and share one `--zoom`.** The doorway, the wall
+around it and the door hanging in it all belong to the facade; giving any of them its own
+depth would drift it off the opening as the dolly runs. The depth cue instead comes from
+*inside* the doorway: the interior image carries its own, much slower scale
+(`1 + --p × 0.4`), so a doorway growing 3.2× around a room growing 1.4× reads as walking
+toward a far wall.
 
 **`--zoom` is a new primitive.** It composes into the shared `.plate` transform and
 defaults to `0`, so every stack currently shipping resolves to `scale(1)` and nothing
@@ -301,17 +308,19 @@ in CSS alone if the owner dislikes it.
 22% of frame width in the facade; growing it to fill a 1440px viewport would need ~4.5×
 scale, and a 1536px source has nowhere near that much detail. So:
 
-- `--p` 0 → 0.7: the approach. Facade scales to ~2.1×, the door swings to ~95°, the
-  doorway grows to roughly 70% of frame. The interior is visible through it the whole
-  way and scales in lockstep.
+- `--p` 0 → 0.7: the approach. Facade scales to ~2.5×, the door swings to 95°, and the
+  doorway grows from ~22% of frame width to ~56%. The interior is visible through it the
+  whole way.
 - `--p` 0.7 → 1: `--face`, `--door` and `--front` fade to `opacity: 0` while `--interior`
   keeps scaling. By then the doorway already dominates the frame, so the fade reads as
   the doorframe passing the camera rather than as a dissolve.
 
 Opacity is on the allowed list, so this passes the animation guard. **This is the part of
-the spec most likely to need tuning in the browser** — the 0.7 handoff, the 2.1× cap and
-the 22% doorway are starting values, not measurements, and they get adjusted against
-`filmstrip` output once the real facade exists.
+the spec most likely to need tuning in the browser** — the 0.7 handoff, the 3.2× ceiling
+and the 22% doorway are starting values, not measurements, and they get adjusted against
+`filmstrip` output once the real facade exists. The ceiling is also what forces
+`cottage-face` to be generated at the largest size available: at 3.2× a 1536px source
+leaves only ~480px of real detail on a 1440px viewport.
 
 **Ruling: `#inside` reuses `shop-interior`; `bench-far` and `bench-near` are cancelled.**
 If the dolly lands the reader inside a room and the very next stack shows a *different*
@@ -427,9 +436,12 @@ new and one is renamed:
 | `data-label` | change |
 |---|---|
 | `Hero L6 — undergrowth-low` | new |
+| `Workshop L1 — shop-interior` | new |
 | `Workshop L2 — cottage-face` | **renamed** from `Workshop L1 — cottage-far` |
 | `Workshop L3 — cottage-door` | new |
-| `Workshop L1 — shop-interior` | new |
+| `Workshop L4 — needles-near` | **renamed** from `Workshop L3 — needles-near` |
+| `Workshop L5 — shop-interior-close` | **renamed** from `Workshop L4 — bench-far`, and repointed at the same file |
+| `Workshop L6 — bench-near` | **deleted** |
 
 `data-label` is also the key the visual editing panel stores framing under, so the
 rename drops whatever framing the owner has already set on `cottage-far`. Re-frame it
