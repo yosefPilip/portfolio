@@ -141,15 +141,55 @@ sky, which must come down into the room's `--bg-deep` range so bone type stays r
 *Room:* Projects, accent `#7f9bbd` slate. Cold, overcast, 35mm, film grain. No sun.
 
 **`ridge-near`** — Tier 2 white→multiply, 1536×1024, explore tier.
-*Keep:* the single foreground peak's silhouette, symmetrical, rising from the bottom
-edge.
-*Kill:* everything else. This is a silhouette, not a photograph of a mountain — dark
-rock and snow-shadow on a **pure white** ground, corner RGB 255. The reference's own snow
-highlights are near-white and will vanish under multiply, so the prompt must ask for the
-peak read as *dark rock with snow in shadow*, not a sunlit white peak.
-*Gate:* `checkplate.py`, corner RGB pure white, centre-band coverage ≤25%.
-*Composition:* the summit sits inside 37.5%–62.5% of width, and the title crosses it
-mid-runway, so the peak's upper third is where the occlusion happens.
+
+The owner reviewed this slot against his own reference in the page and gave four
+corrections. They govern, and two of them overturn what this section originally said:
+
+> "the front mountain piece had a big gap under it, this shouldnt be the case for the
+> final images. The front mountain should look good and clean hd fit with the back ones,
+> should extend all the way to the bottom of the hero image section, and should slide
+> over the project name upon scroll. Project title also was hard to read on the white
+> mountain background, project name should be over a darker mountain and snow should be
+> in the areas the title isnt"
+
+1. **No gap under the mountain.** The reference is a peak isolated on transparency, so
+   under `object-fit: cover` it floats with empty ground beneath it. The generated image
+   must carry the rock mass unbroken from summit to the **bottom edge of frame** — there
+   is no ground, no horizon and no empty band below it. This also settles the band-trim
+   question for this slot: `ridge-near` gets **no** `height`/`top` trim. The
+   `height: 53%; top: 47%` from 022c76d was what produced the gap and is not restored.
+2. **It must belong to the same mountain range as `ridge-far`.** Same light direction,
+   same rock colour, same snow behaviour — generated second, with `ridge-far` on screen
+   to match against.
+3. **The title band is dark rock, not snow.** Bone type at `--step-display` sits there,
+   and white snow behind it is what made the owner's reference unreadable. Snow lives on
+   the flanks, outside the type's footprint.
+4. **The mountain slides over the name** as the plate travels. Unchanged — that is what
+   `--copy` at z3 beneath `--front` at z4 already does.
+
+*Keep from the reference:* the single foreground peak's silhouette, symmetrical, rising
+from the bottom edge.
+*Kill:* everything else, plus the floating-cutout framing. This is a silhouette, not a
+photograph of a mountain.
+
+*The multiply constraint that shapes all of this:* white vanishes, dark survives. A
+sunlit white peak would erase itself almost entirely and leave the title floating over
+`ridge-far`. So the peak reads as **dark wet rock**, and its snow is **snow in shadow** —
+blue-grey mid-tone, never near-white — so the snow is still visibly snow after
+compositing. Prompt the light, never the exposure.
+
+*Gate — the 25% centre-band cap does NOT apply to this slot.* That cap exists to stop a
+near plate's *texture* crossing the wordmark, which is the right rule for Home's fronds.
+Here a solid dark mass behind the title is the design, so high coverage is correct and a
+low number would mean the mountain is missing from where it is wanted. Substitute gate:
+
+- corner RGB pure white;
+- the title band (37.5%–62.5% of width, 0.40–0.62 of height) reads **dark and
+  low-variance** — a mass, not a busy edge — with band luminance measured against bone
+  `#f0efe9` for the same contrast headroom `jungle-far` was held to;
+- no snow highlight inside that band;
+- non-white pixels present in the **bottom row** of the image, proving the mass reaches
+  the frame edge and no gap can open under it.
 
 **The haze.** CSS, no image. A `::after` on `.plate--haze`, 200% wide, carrying two
 identical copies of a soft horizontal fog gradient, translated by exactly 50% of its own
@@ -197,13 +237,30 @@ faceted silhouettes in the rock — and the light behind them comes from `cave-f
 revisit this by adding a third blend mode to the site.
 
 **`cave-far`** — Tier 1 opaque, 1536×1024, final after explore.
-*Keep from the reference:* the cavern's depth and scale; violet crystal clusters as the
-dominant light source; the underground river running through the lower frame carrying
-reflected violet off wet surfaces — the owner's "crystals plus the water."
-*Kill:* the Dreamstime watermark; the digital-fantasy-art rendering, which becomes 35mm
-photography with film grain like every other room; the bright white shaft from above,
-dropped so the crystals are the light; the overall lavender wash, which falls back to
-near-black wet rock with violet only where the crystals actually throw it.
+
+**The reference changed mid-plan, and the new one is better.** The slot originally
+pointed at `purple-crystals-…-glowin.webp`, a watermarked Dreamstime digital painting.
+The owner replaced it from the panel with `20740152436-12f8b92839-b.jpg` — a real
+photograph of a lava tube: near-black wet rock arching overhead, a flat debris floor, and
+a cluster of small coloured point lights far down the tunnel as the only light source.
+The page is the authority under §3, so the new file governs. Both files are on disk; the
+purple one is dead and gets deleted with the rest.
+
+This moves the slot *toward* the room rather than away from it. The old reference had to
+be argued down from fantasy art into photography; the new one is already photography,
+already near-black, and already lit the way the owner described — "purple little
+crystals shining like lights" is what that distant cluster reads as.
+
+*Keep from the reference:* the tunnel's receding arch and its strong one-point depth; the
+near-black wet rock with light raking across its texture; the floor falling away into
+shadow in the lower third; small saturated point lights at the far end as the **only**
+light source, throwing colour onto the rock immediately around them and nothing else.
+*Kill:* the blue-cyan-red carnival mix of the lights, which resolves to the room's violet
+`#b97fc9`; the empty foreground floor, which wastes the bottom third where the near plate
+will sit anyway; whatever resolution and compression the source carries.
+*Add, from the owner's words:* the crystals themselves — the light sources should read as
+violet mineral clusters growing from the rock, not as lamps someone placed — and wet
+surfaces carrying their reflection, which is his "crystals plus the water."
 *Room:* Music, accent `#b97fc9` orchid, `--bg-deep` `#0c090f`. Dark. Bone type sits over
 this at `--step-display`, so the centre band needs headroom — apply the same measured
 band-luminance discipline `jungle-far` got, set numerically in `grade.py`, never prompted
