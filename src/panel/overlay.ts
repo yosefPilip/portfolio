@@ -179,7 +179,13 @@ export function mountPanel(store: Store): void {
       // Visual-only: which row a dragged file is over. The actual drop is
       // handled by imageEditing.ts's document-level listener (it bubbles
       // there from this button), so this only ever toggles a class.
-      btn.addEventListener('dragover', (e) => e.preventDefault());
+      // dragover, not just dragenter: a real OS drag can enter the row between
+      // fired events, and dragover repeats for as long as the file is held
+      // over it, so the highlight cannot be missed or left stale.
+      btn.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        btn.classList.add('panel-bar__layer--dropover');
+      });
       btn.addEventListener('dragenter', () => btn.classList.add('panel-bar__layer--dropover'));
       btn.addEventListener('dragleave', () => btn.classList.remove('panel-bar__layer--dropover'));
       btn.addEventListener('drop', () => btn.classList.remove('panel-bar__layer--dropover'));

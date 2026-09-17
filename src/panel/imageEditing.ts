@@ -275,7 +275,20 @@ export function installImageEditing(store: Store): void {
     // on the row reach a frame buried under others in the stack.
     const row = target.closest?.('.panel-bar__layer') as HTMLElement | null;
     const label = row?.dataset.label;
-    const frame = label ? findSlot(label)?.frame ?? null : (target.closest?.(MANIFEST.slotSelector) as HTMLElement | null);
+    // Three ways to aim a drop, most explicit first:
+    //
+    //   1. onto a layer row — that row's frame, whatever is stacked over it;
+    //   2. with a layer selected — THAT layer, wherever on the page the file
+    //      lands, including over empty space or another layer entirely. A
+    //      selection is a deliberate statement of what you are working on, so
+    //      it beats whatever the pointer happens to be over;
+    //   3. otherwise — the topmost frame under the pointer, as before.
+    //
+    // Dropping used to skip straight to 3, which is why a buried layer looked
+    // unreachable even while it was selected.
+    const frame = label
+      ? findSlot(label)?.frame ?? null
+      : getSelectedFrame() ?? (target.closest?.(MANIFEST.slotSelector) as HTMLElement | null);
     const file = e.dataTransfer?.files?.[0];
     if (!frame || !file) return;
     previewDroppedFile(frame, file);
