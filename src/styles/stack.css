@@ -43,7 +43,7 @@
 #ridge .plate--back  { z-index: 1; --rate: -90; }
 #ridge .plate--haze  { z-index: 2; --rate: -160; pointer-events: none; }
 #ridge .plate--copy  { z-index: 3; --rate: -260; }
-#ridge .plate--front { z-index: 4; --rate: -430; }
+#ridge .plate--front { z-index: 4; --rate: -640; }
 
 /* ── the hero: six layers, Home only ──
    Names encode DEPTH, not species. The previous names did not, and that is
@@ -157,7 +157,7 @@
   #ridge .plate--back  { --rate: -54; }
   #ridge .plate--haze  { --rate: -96; }
   #ridge .plate--copy  { --rate: -150; }
-  #ridge .plate--front { --rate: -250; }
+  #ridge .plate--front { --rate: -380; }
 }
 
 @media (prefers-reduced-motion: reduce) {

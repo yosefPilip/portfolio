@@ -25,6 +25,35 @@ true alpha (avoid; halos on soft edges).
 | `life-decks` | panel | 1 opaque | placeholder | $0.00 | out of scope this sitting |
 | `life-rack` | panel | 1 opaque | placeholder | $0.00 | out of scope this sitting |
 
+## Projects — hero
+
+| Slot | Role | Tier | Status | Spend | Notes |
+|---|---|---|---|---|---|
+| `ridge-far` | back, opaque | 1 opaque | explore (graded, awaiting final) | $0.009 | 1536x1024, roll 1 accepted first time. Graded gamma 1.60 / exposure 1.00, **colour shift zeroed** (`blue=0 green=0 red=0`) — grade.py's default pulls blue out and pushes green/yellow in, which is right for the jungle set and wrong for a slate room. Raw title-band p95 was 0.441 = 2.01:1 against bone, below the 3:1 floor for display type; graded it measures 0.270 = 3.08:1. The fog bank is what sat bright behind the type. |
+| `ridge-near` | front | 2 white→multiply | explore (kept) | $0.018 | 1536x1024, 2 rolls. White point pushed 252→255 (top corners measured 254.0 raw; an off-white ground leaves a grey wash over the whole hero). 74 KB. |
+
+**Roll log:**
+
+| Roll | Cost | Outcome |
+|---|---|---|
+| `ridge-far` v1 | $0.009 | **accepted.** Layered recession, fog bank across the middle distance, serrated spruce treeline, no sun. |
+| `ridge-near` v1 | $0.009 | **rejected — composition, not quality.** Mountain filled the entire frame, so under multiply the title was occluded at scroll 0 and never had a clear moment. See the standing lesson below. |
+| `ridge-near` v2 | $0.009 | **accepted.** Summit at ~47% height with pure white above it; mass unbroken to the bottom edge across 100% of the width; central band bare dark rock, snow on the flanks only. |
+
+**Standing lesson from this sitting — `mix-blend-mode: multiply` darkens the TITLE too.**
+The front plate composites against everything beneath it in the stacking context,
+including `.plate--copy`. Bone `#f0efe9` multiplied by dark rock becomes dark rock. So a
+near plate can never carry a dark mass *behind* type that has to stay readable: the area
+the title rests on must be **pure white** (arithmetically invisible), and the dark mass
+must arrive only where occlusion is wanted. Roll 1 cost $0.009 to learn this.
+
+**Owner's four corrections to `ridge-near`, all met:** no gap under the mountain
+(bottom row measures 100% non-white, so a gap is geometrically impossible); matched to
+`ridge-far`'s cold overcast light; title band is dark rock with 0.15% snow-like pixels;
+the mountain slides over the name — which needed a rate change, not an image change:
+`#ridge .plate--front` went −430→−640 desktop and −250→−380 mobile, taking relative
+travel against the title from 170px to 380px.
+
 ## Other rooms
 
 See `docs/image-rooms-queue.md`. All placeholders, none planned yet by design.
@@ -37,7 +66,9 @@ See `docs/image-rooms-queue.md`. All placeholders, none planned yet by design.
 | `trees-back` | $0.83 | wrong biome; rescued in post by rotating hue 200→81, which is the practice this plan bans |
 | `trunks-near` | ~$0.45 | Tier 3 alpha cutout, arrived haloed at +24 RGB, needed hand un-matting |
 
-**Running total spent to date: ~$1.95.** Of that, $0.45 is this sitting and all of it is
+**Running total spent to date: ~$1.98.** ($1.95 before this sitting, plus $0.027 across three Projects explore rolls; no final bought yet.)
+
+**Superseded:** _Running total spent to date: ~$1.95._ Of that, $0.45 is this sitting and all of it is
 on the page: $0.126 across 7 explore rolls (14 images) plus one $0.32 final. Approved ceiling
 was $0.18 explore + $0.32 final = $0.50, so the sitting came in $0.05 under.
 Recovered from earlier sittings: $0.03 (`server-moss`).
