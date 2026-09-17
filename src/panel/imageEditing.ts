@@ -11,7 +11,6 @@ import {
   getSelectedFrame,
   isPanelChrome,
   registerZoomSetter,
-  registerFrameSetter,
   registerBackgroundSetter,
   registerPendingUploadCounter,
   registerPendingUploadsCollector,
@@ -175,8 +174,27 @@ export function installImageEditing(store: Store): void {
   for (const [label, edit] of Object.entries(store.get().images)) {
     const slot = findSlot(label);
     if (!slot) continue;
+    let { frameHeight, frameAnchor } = edit;
+    // Self-heal a legacy band trim on a full-bleed plate frame. The control
+    // that created these is withdrawn (see overlay.ts's buildFrameRow), but
+    // the values are stored per slot and survive both a re-drop and a reload,
+    // so without this every Save would faithfully re-emit a trim nothing can
+    // create any more — which is exactly what happened: three slots came back
+    // mid-session after being cleared, and the owner had spent two sessions
+    // mistaking the result for a bad image.
+    //
+    // Scoped to `.plate > .frame` because that is the only place a trim is
+    // destructive; an inline --ar frame never had the control and is left
+    // completely alone. Routed through setImage so it lands on the undo stack
+    // and shows in the dirty count — this is a real change to pending state,
+    // not a silent rewrite, and one Save makes it permanent.
+    if (frameHeight !== undefined && slot.frame.parentElement?.classList.contains('plate')) {
+      store.setImage(label, { ...edit, frameHeight: undefined, frameAnchor: undefined });
+      frameHeight = undefined;
+      frameAnchor = undefined;
+    }
     paint(slot.img, toLive(edit));
-    paintFrame(slot.frame, edit.frameHeight, edit.frameAnchor);
+    paintFrame(slot.frame, frameHeight, frameAnchor);
     paintBackground(slot.frame, edit.transparentBg);
   }
 
@@ -234,23 +252,6 @@ export function installImageEditing(store: Store): void {
     if (!img || !label) return;
     store.setImage(label, { ...readLive(img), zoom });
     paint(img, toLive(store.get().images[label]));
-    refreshPanel();
-  });
-
-  // Same registration pattern as registerZoomSetter, for the layer list's
-  // frame-trim sliders. Spreads the slot's CURRENT framing (defaulting to a
-  // fresh, centred, unzoomed one for a slot with no edit yet) before setting
-  // frameHeight/frameAnchor explicitly — those two keys being present, even
-  // when the value is `undefined`, is what tells state.ts's applyImage this
-  // call is authoritative about trim, as opposed to an ordinary drag/zoom
-  // edit that never mentions them at all and so must never wipe one.
-  registerFrameSetter((frame, height, anchor) => {
-    const label = frame.getAttribute(MANIFEST.slotKeyAttr);
-    if (!label) return;
-    const current = store.get().images[label] ?? { x: 50, y: 50, zoom: 1 };
-    store.setImage(label, { ...current, frameHeight: height, frameAnchor: anchor });
-    const updated = store.get().images[label];
-    paintFrame(frame, updated?.frameHeight, updated?.frameAnchor);
     refreshPanel();
   });
 
@@ -445,6 +446,23 @@ export function installImageEditing(store: Store): void {
     img.src = URL.createObjectURL(file);
     frame.classList.remove('is-missing');
     frame.dataset.panelPreview = file.name;
+    // A new image is a new subject, so any band trim the PREVIOUS one needed
+    // is meaningless for it — and silently inheriting one is exactly how a
+    // full-bleed plate kept turning back into a floating strip after a
+    // re-drop. Position and zoom survive (they are re-derived from the live
+    // DOM on the next drag anyway); the box resets to untrimmed so the whole
+    // of the new image is visible, which is the point of dropping it.
+    //
+    // The keys are set to an explicit `undefined` rather than omitted:
+    // applyImage's merge is presence-based (`'frameHeight' in edit`), so an
+    // omitted key would inherit the old trim instead of clearing it. Routed
+    // through setImage, so a reset lands on the undo stack like any edit.
+    const trimmed = store.get().images[label];
+    if (trimmed?.frameHeight !== undefined) {
+      store.setImage(label, { ...trimmed, frameHeight: undefined, frameAnchor: undefined });
+      const reset = store.get().images[label];
+      paintFrame(frame, reset?.frameHeight, reset?.frameAnchor);
+    }
     refreshPanel();
   }
 

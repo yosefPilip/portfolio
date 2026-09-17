@@ -16,24 +16,22 @@
 }
 
 .frame[data-label="Music L3 — cave-near"] {
-  height: 25%;
-  top: 37.5%;
   background: transparent;
 }
 
 .frame[data-label="Projects L1 — ridge-far"] img {
-  object-position: 50% 50%;
+  object-position: 20.58% 53.4%;
 }
 
 .frame[data-label="Projects L3 — ridge-near"] img {
-  object-position: 50% 50%;
+  object-position: 49.2% 50.44%;
+}
+
+.frame[data-label="Projects L3 — ridge-near"] {
+  background: transparent;
 }
 
 .frame[data-label="Workshop L1 — cottage-far"] img {
   object-position: 50% 50%;
 }
 
-.frame[data-label="Workshop L1 — cottage-far"] {
-  height: 95%;
-  top: 0%;
-}
