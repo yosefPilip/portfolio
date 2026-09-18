@@ -267,13 +267,22 @@
    will-change: transform, which creates a stacking context, so a blend on the
    frame would composite only against its own plate and do nothing. Same
    pattern as the working precedent at workshop.css:24. */
-/* The near fronds still multiply — thousands of thin semi-transparent edges
-   are exactly what multiply handles best. The UNDERGROWTH does not: it is a
-   solid bank of broad leaves in the immediate foreground, and multiply made
-   the forest show straight through it, which the owner called out as looking
-   see-through and wrong. It carries a real alpha matte instead, keyed off its
-   white ground, so its leaves are opaque objects. */
-.hero .plate--near { mix-blend-mode: multiply; }
+/* NOTHING in this hero multiplies any more. Both foliage plates carry real
+   alpha mattes, because multiply made solid leaves look see-through — the
+   owner, twice: "don't make it see-through", then "the side leaves are
+   transparent and see-through, you can literally see through them".
+
+   The matte is keyed off the white ground and then COLOUR-DECONTAMINATED,
+   which is the part that is easy to miss. A keyed edge pixel is a mix of the
+   leaf and the white it was shot on, C = a*L + (1-a)*255, so keying alpha
+   alone leaves every edge carrying its share of white and the composite grows
+   a bright outline around every leaf — measured at 4.4x the leaf body's
+   brightness. Solving for L removes it, and anything under 40% alpha is
+   dropped outright because at that end the division is too unstable to trust.
+
+   Both plates are then graded to the scene's own understorey, so the nearest
+   foliage sits in shadow rather than glowing: opaque was much brighter than
+   multiply had been making them. */
 
 /* .frame paints var(--bg-deep) so a missing image reads as a dark labelled
    placeholder. Under multiply an opaque dark ground would crush the whole

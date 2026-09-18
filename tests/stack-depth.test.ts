@@ -144,8 +144,13 @@ describe('stack depth ordering', () => {
     }
   });
 
-  it('composites the hero front plates with multiply, on the plate not the frame', () => {
-    expect(css).toMatch(/mix-blend-mode: multiply/);
+  it('never puts a blend mode on a .frame — it belongs on the .plate', () => {
+    // The hero's own plates no longer multiply at all: both foliage layers
+    // carry real alpha mattes, because multiply made solid broad leaves look
+    // see-through and the owner rejected it twice. Other rooms still multiply,
+    // so the rule that matters is unchanged and still worth pinning: a blend
+    // on the .frame composites only inside its own plate's stacking context
+    // (the .plate sets will-change: transform) and silently does nothing.
     expect(css).not.toMatch(/\.plate--\w+ \.frame \{[^}]*mix-blend-mode/);
   });
 

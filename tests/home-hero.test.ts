@@ -43,13 +43,17 @@ describe('Home hero', () => {
     frames.forEach((frame) => expect(frame).toContain('data-label='));
   });
 
-  it('keeps the front plate above the wordmark but composited, not opaque', () => {
-    // The front layer is meant to cross the name and show the forest through
-    // the gaps. It does that by multiply, not by an alpha channel: a cutout
-    // of fronds halos, and the previous one measured +24 RGB at the edges.
+  it('keeps the front plate above the wordmark, and its leaves opaque', () => {
+    // It used to multiply, on the theory that a frond cutout haloes. It does
+    // — the first attempt measured its edges at 4.4x the leaf body, a white
+    // outline around every leaf — but the cause is that a keyed edge pixel is
+    // a MIX of leaf and the white ground, and the fix is decontaminating and
+    // eroding the matte, not abandoning alpha. Multiply's own failure was
+    // worse and unfixable: solid broad leaves in the foreground showed the
+    // forest straight through them.
     const stack = readFileSync('src/styles/stack.css', 'utf8');
     expect(stack).toMatch(/\.hero \.plate--near \{[^}]*z-index:\s*4/);
     expect(stack).toMatch(/\.hero \.plate--near \{[^}]*--rate:\s*-350/);
-    expect(stack).toMatch(/mix-blend-mode: multiply/);
+    expect(stack).not.toMatch(/\.hero \.plate--near \{[^}]*mix-blend-mode/);
   });
 });
