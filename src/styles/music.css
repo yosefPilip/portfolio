@@ -28,19 +28,29 @@
    jog wheel, the wheel is caught by a deck, the ice falls away, and the page's
    information arrives around it.
 
-   WHY THE CUTOUT IS NOT A STICKER. It is generated FROM the ice plane, so it is
-   the same object in the same material — measured 7 RGB from the fossil in the
-   plane, where the previous cutout sat 127 away. That gap is the whole reason
-   earlier versions read as something laid on top: a brighter, harder-edged disc
-   appeared out of nowhere. Matched, it simply detaches.
+   WHY THERE IS ONLY EVER ONE FOSSIL. The plane is PLAIN ICE with nothing
+   embedded in it, and the cutout is on the page at full opacity from load. It
+   is not a second fossil that arrives — it is the fossil, sitting dead centre,
+   tonally matched to the ice it sits in (generated FROM the plane, measured 7
+   RGB against it). Every earlier version had the fossil baked into the plane
+   AND a cutout fading in over it, which is why a second one kept appearing the
+   moment you scrolled. Nothing fades in, so nothing can double.
 
-   EVERYTHING IS CENTRED ON THE VIEWPORT. The deck is centred, not the wheel —
-   an earlier version pinned the deck by its wheel and the unit sat visibly off
-   to one side. The wheel therefore has to TRAVEL into the deck as the deck
-   assembles, because the deck's wheel is not at the deck's centre: it sits at
-   46.27% / 61.45% of the deck box, which against a deck of --disc-size x 1.7848
-   works out to -0.0666 and +0.2427 of --disc-size. Those two numbers are the
-   drift, and they are measured, not nudged. */
+   EVERYTHING IS CENTRED ON THE VIEWPORT. The deck is centred, not the wheel.
+   The wheel then has to TRAVEL into the deck as it assembles, because the
+   deck's wheel seat is not at the deck's centre.
+
+   THOSE NUMBERS WERE WRONG ONCE AND THE ERROR IS INSTRUCTIVE. They were first
+   taken as the mean position of every violet pixel in the deck — but 22% of
+   those pixels are the row of performance PADS, which are also violet and sit
+   high on the unit. That dragged the computed seat 3% left and 1.9% high, and
+   the wheel visibly sat up and to the left of its socket. A least-squares
+   circle fit on only the violet pixels BELOW the pad row gives centre
+   0.4995 / 0.6253 with a 6.5px residual — the seat is essentially centred
+   horizontally, and the old -0.0666 x-drift was pure artefact. Ring diameter
+   0.4543 of the deck width, so the deck is --disc-size x 1.8162 and the drift
+   is -0.0010 and +0.2702. Never average points that might not all be on the
+   circle; fit the circle. */
 
 .page-hero .plate--void { z-index: 0; }
 .page-hero .plate--void::after {
@@ -93,7 +103,7 @@
 /* The deck: centred on the viewport, full stop. */
 .page-hero .plate--deck {
   z-index: 3;
-  --deck-w: calc(var(--disc-size) * 1.7848);
+  --deck-w: calc(var(--disc-size) * 1.8162);
   opacity: clamp(0, calc((var(--p, 0) - 0.54) / 0.18), 1);
 }
 .page-hero .plate--deck > .frame {
@@ -119,7 +129,13 @@
      simply looking at a finished deck. */
   --t: clamp(0, calc(var(--p, 0) / 0.72), 1);
   --spin: calc((1 - (1 - var(--t)) * (1 - var(--t))) * 720deg);
-  opacity: clamp(0, calc(var(--p, 0) / 0.10), 1);
+  /* NO opacity ramp. The cutout is on the page at full opacity from the moment
+     it loads — it IS the fossil you see sitting in the ice, not a second one
+     that arrives. Fading it in was the bug: the plane carried its own embedded
+     fossil and the cutout appeared over it, so there were briefly two. The
+     plane is now plain ice with nothing in it, and because a circle rotating
+     about its own centre always covers itself, the fossil can turn without
+     ever revealing anything behind it. */
 }
 .page-hero .plate--disc > .frame {
   position: absolute;
@@ -130,8 +146,8 @@
   aspect-ratio: 1;
   transform:
     translate(-50%, -50%)
-    translate(calc(-0.0666 * var(--disc-size) * var(--asm) * var(--fit)),
-              calc( 0.2427 * var(--disc-size) * var(--asm) * var(--fit)))
+    translate(calc(-0.0010 * var(--disc-size) * var(--asm) * var(--fit)),
+              calc( 0.2702 * var(--disc-size) * var(--asm) * var(--fit)))
     rotate(var(--spin))
     scale(var(--fit));
   background: transparent;
