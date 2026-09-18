@@ -15,10 +15,6 @@
   object-position: 50% 50%;
 }
 
-.frame[data-label="Music L3 — cave-near"] {
-  background: transparent;
-}
-
 .frame[data-label="Projects L1 — ridge-far"] img {
   object-position: 20.58% 53.4%;
 }

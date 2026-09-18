@@ -8,6 +8,30 @@
 .page-hero .plate--copy { text-align: center; }
 .page-hero .lede { margin-inline: auto; }
 
+/* cave-near is dark cave rock shot on a flat white ground; multiply removes
+   the white arithmetically instead of relying on an AI alpha cutout. Scoped
+   to this one slot on purpose — a sitewide .plate--front rule would silently
+   turn on white-removal for every other front plate on the site, including
+   ones with no image yet that may not be shot on white. Must target .plate
+   itself, not .frame inside it: .plate sets will-change: transform, which
+   creates a stacking context, and a blend mode on a descendant only
+   composites against other descendants of that same plate — never against
+   the plates behind it. Same reasoning as #arrive .plate--front.
+
+   A Tier 3 alpha conversion was tried here and REVERTED at the owner's call:
+   it buried the title completely, but the end of the travel became a
+   full-screen wall of grey boulders that hid cave-far's crystals entirely
+   and did not read as the same cave. The trade-off and the two source floors
+   behind it are written up in docs/image-slots.md; do not re-attempt it
+   without a flatter, darker, sharper source than roll-cave-near-04. */
+.page-hero .plate--front { mix-blend-mode: multiply; }
+
+/* Structural, so it lives here and not in layout.generated.css, which the
+   panel rewrites wholesale on every Save. Without it the frame's --bg-deep
+   fill paints over cave-far before the blend can run and the stack goes
+   flat black. (0,3,0) also out-specifies the (0,2,0) the panel emits. */
+.page-hero .plate--front > .frame { background: transparent; }
+
 /* The coverflow's off-center covers sit outside .cf-stage's own box by design
    (that's the fanned "peek" of the neighbours) and .cf-stage has no overflow
    clip of its own, so below 1024px — where the peek's absolute offset exceeds
