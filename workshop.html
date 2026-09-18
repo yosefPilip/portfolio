@@ -41,13 +41,29 @@
 
   <main>
 
-    <!-- ── EXTERIOR: you arrive ── -->
+    <!-- ── ARRIVAL: one continuous move, outside to inside ── -->
     <section class="stack page-hero" id="arrive">
       <div class="stack-view">
+        <!-- The doorway dolly lives INSIDE the back plate, not as extra plates:
+             the facade, the opening and the door are one physical plane, so
+             nesting them means they track each other for free instead of
+             needing three rates kept in sync. See workshop.css. -->
         <div class="plate plate--back">
-          <figure class="frame" data-label="Workshop L1 — cottage-far">
-            <img src="/assets/img/images-2.jpg" alt="" loading="eager" />
-          </figure>
+          <div class="face">
+            <figure class="frame" data-label="Workshop L1 — cottage-face">
+              <img src="/assets/img/cottage-face.webp" alt="" loading="eager" />
+            </figure>
+            <div class="doorway">
+              <div class="doorway__hold">
+                <figure class="frame" data-label="Workshop L5 — shop-interior">
+                  <img src="/assets/img/bench-far.webp" alt="" loading="eager" />
+                </figure>
+              </div>
+            </div>
+            <figure class="frame door" data-label="Workshop L2 — cottage-door">
+              <img src="/assets/img/cottage-door.webp" alt="" loading="eager" />
+            </figure>
+          </div>
         </div>
         <div class="plate plate--copy">
           <h1 class="display" data-edit="arrive.title">Workshop</h1>
@@ -58,24 +74,10 @@
             <img src="/assets/img/needles-near.webp" alt="" loading="eager" />
           </figure>
         </div>
-      </div>
-    </section>
-
-    <!-- ── INTERIOR: you go in ── -->
-    <section class="stack" id="inside">
-      <div class="stack-view">
-        <div class="plate plate--back">
-          <figure class="frame" data-label="Workshop L4 — bench-far">
-            <img src="/assets/img/bench-far.webp" alt="" loading="lazy" />
-          </figure>
-        </div>
-        <div class="plate plate--copy">
+        <!-- The interior headline is the LAST BEAT of the same move, not a
+             second stack. It fades up once the room has arrived. -->
+        <div class="plate plate--threshold">
           <h2 class="display" data-edit="inside.heading">Three verbs, and they&rsquo;re all the same one.</h2>
-        </div>
-        <div class="plate plate--front">
-          <figure class="frame" data-label="Workshop L6 — bench-near">
-            <img src="/assets/img/bench-near.webp" alt="" loading="lazy" />
-          </figure>
         </div>
       </div>
     </section>

@@ -10,7 +10,244 @@
 /* The exterior hero is the page's signature and keeps the full runway. The
    interior stack carries one line, so it gets less — more scroll for less
    content is backwards. Precedent: .cs .stack in case-study.css. */
-#inside { --stack-h: 150vh; }
+/* One continuous move, so one stack. The interior used to be a SECOND stack
+   showing the same room again straight after the dolly landed in it, which
+   read as "enter, then scroll to the real interior" rather than as arriving.
+   #inside is gone; its headline is now the last beat of this stack. The
+   runway grows to carry the extra beat and the page still scrolls LESS than
+   before — 260vh against the old 180 + 150. */
+.page-hero { --stack-h: 260vh; }
+
+/* ══ The doorway dolly ════════════════════════════════════════════════════
+   You walk up to the cabin, the door swings open, and you end up inside the
+   shop. Driven entirely by --p; only transform and opacity animate.
+
+   WHY IT IS NOT A ZOOM, which is the whole design. Filling the screen with an
+   opening that is F of frame width costs a 1/F zoom. This doorway measures
+   10.0% wide, so a literal dolly needs 10x — and a raster plate scaled 10x is
+   mush. Measured source pixels per screen pixel at 1440x900, plate 1526px:
+
+       source     1.5x   2.0x   3.2x   4.5x
+       1536       0.67   0.50   0.31   0.22
+       3200       1.40   1.05   0.66   0.47      (1.00 = pixel-perfect)
+
+   Every option past ~2x is soft and the generator caps at 3840px, so the
+   spec's 3.2x ceiling would have shipped blurry AND still not filled the
+   frame. The fix is the standard mask-reveal: GROW THE OPENING, HOLD THE
+   PICTURE STILL. `.doorway` scales with the facade while `.doorway__hold`
+   applies the exact inverse scale, so the interior renders at a constant
+   on-screen size — 1:1, never resampled — while the hole over it opens.
+   The only thing that ever scales is the facade, and it is sharp while it is
+   the subject and only softens once it is fading out, which is what a
+   doorframe passing the camera looks like anyway. --z is CUBIC rather than
+   quadratic for exactly that reason: it holds near 1 through the half of the
+   travel where the facade is what you are looking at (z=2.1 at --p 0.5, still
+   0.99 source px per screen px) and spends its acceleration late, under the
+   fade, where softness reads as motion instead of as a bad image.
+
+   WHY IT IS NESTED RATHER THAN FIVE PLATES. The facade, the opening and the
+   door are one physical plane. As children of one scaled box they track each
+   other exactly; as sibling plates they would need three --rate values kept
+   in sync, and any drift slides the door off its hole. It also keeps #arrive
+   at exactly three plates, which tests/workshop-page.test.ts enforces.
+
+   THE NUMBERS BELOW ARE MEASURED, NOT CHOSEN. tools/doorway.py re-derives
+   them from cottage-face.webp by growing a rectangle from its darkest seed;
+   re-run it if the facade is ever re-rolled — it has been, once: the first
+   facade opened far too close to read as a place, so it was re-shot at the
+   establishing distance and every number below changed with it. Doorway in
+   source fractions: x 0.4797-0.5340, y 0.5522-0.6933 -> centre 50.68% /
+   62.28%, 5.43% wide, which is an 18.4x fill and exactly why this is a mask. */
+
+#arrive .plate--back { --rate: -40; }
+
+/* The facade's own box, at the source's true aspect so a source fraction and
+   a box percentage are the same number. NOT object-fit: cover — cover crops
+   by viewport aspect, which would move the doorway under the door. Sized to
+   cover the plate at both extremes: 100% wide handles landscape, the svh term
+   handles portrait, where a 1.25 aspect image sized by width is far too short.
+   Position and pivot are SEPARATE, which is the part worth not undoing. The
+   box is centred normally, so at rest the cabin is framed the way the source
+   composed it — an earlier version translated by the doorway's own offset and
+   cut the roof off. transform-origin still sits on the doorway, so the moment
+   --p moves the push is straight into the opening and the opening does not
+   drift. At scale 1 the origin has no effect at all, so the two never fight. */
+#arrive .face {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, calc(1.55 * 100svh));
+  aspect-ratio: 3200 / 2560;
+  /* The facade's own scale, and ONLY the facade's. It no longer has to carry
+     the whole 18.4x fill, because .doorway now adds its own growth once the
+     facade is fading — so this can stay gentle and the facade stays sharp for
+     the whole time it is actually visible. */
+  --z: calc(1 + var(--p, 0) * var(--p, 0) * var(--p, 0) * var(--p, 0) * 7);   /* 1 -> 8 */
+  /* Ramps 0 -> 1 across --p 0.40-0.72: the extra opening growth, and the
+     hold. Declared here so both .doorway and .doorway__hold inherit them. */
+  --q: clamp(0, calc((var(--p, 0) - 0.40) / 0.32), 1);
+  --zx: calc(1 + var(--q) * var(--q) * 5.04);
+  --hold: clamp(0, calc((var(--p, 0) - 0.72) / 0.28), 1);
+  transform: translate(-50%, -50%) scale(var(--z));
+  transform-origin: 50.68% 62.28%;
+  /* NO will-change HERE, and it must stay off. will-change: transform promotes
+     this subtree to its own raster layer, which the compositor rasterises ONCE
+     at scale 1 and then scales as a bitmap. That silently defeats the whole
+     counter-scale: .doorway__hold still cancels the scale geometrically, so the
+     interior measures a constant 1526x1305 in the DOM and looks correct in every
+     number — but the pixels it is drawn from were rasterised at 1/z and blown
+     back up, so the room arrives blurry. Measured, not guessed: adding it made
+     the interior visibly soft at --p 0.65 with identical box metrics. The
+     parent .plate keeps its will-change, which is fine — that layer only ever
+     translates, so its raster stays valid. */
+}
+
+/* aspect-ratio: auto is LOAD-BEARING. base.css gives every .frame a default
+   aspect-ratio (it is how inline content frames get their shape from --ar),
+   and stack.css cancels it — but only for `.plate > .frame`, DIRECT children.
+   These frames are nested inside .face, so they never got that cancel: the
+   facade rendered 1526x1018 inside a 1526x1221 box, 203px short. Nothing
+   looked broken, because .face measured correctly and the image simply sat in
+   the top of it — but every doorway and door percentage below is measured
+   against the SOURCE, so they all landed low and the door stopped covering
+   its own opening. If the door ever drifts off the hole again, check this
+   first. */
+#arrive .face > .frame {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  background: transparent;
+}
+#arrive .face > .frame > img { width: 100%; height: 100%; object-fit: fill; }
+
+/* The facade holds until it stops being the subject, then dissolves. By the
+   time it is soft it is also nearly gone. */
+#arrive .face > .frame:first-child > img {
+  opacity: clamp(0, calc((0.65 - var(--p, 0)) / 0.25), 1);
+}
+
+/* The hole. Percentages are the measured source fractions, so it sits exactly
+   over the painted opening at every viewport and every scale. */
+/* The opening carries a SECOND scale of its own on top of the facade's.
+   Reason: the room has to fill the frame well before the travel ends, so
+   there is a stretch of scroll where you are simply inside looking at the
+   shop — the owner's note, and he was right that arriving and reading the
+   headline in the same instant is not arriving. Locking the hole to the
+   facade alone could not do that: reaching 18.4x by --p 0.72 would have
+   needed the facade at 52x, soft long before it finished fading.
+
+   Splitting them is free because the facade is at opacity 0 from --p 0.65, so
+   there is nothing on screen for the extra growth to contradict. .doorway
+   scales about its own centre, which is the same fixed point .face pivots on,
+   so the two compose without drifting. Combined, the hole reaches full frame
+   at --p 0.72 and the last 28% of the travel is the hold. */
+#arrive .doorway {
+  position: absolute;
+  left: 47.97%;
+  top: 55.22%;
+  width: 5.43%;
+  height: 14.11%;
+  overflow: hidden;
+  transform: scale(var(--zx));
+  transform-origin: 50% 50%;
+}
+
+/* The inverse scale. .doorway is centred on the same point .face scales
+   about, so scale(1/--z) here cancels the parent exactly and everything
+   inside renders at its natural size, pinned, while the hole opens around it. */
+#arrive .doorway__hold {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: scale(calc(1 / var(--z) / var(--zx)));   /* cancels BOTH parents */
+  transform-origin: 50% 50%;
+}
+
+/* The interior, sized against the VIEWPORT rather than the hole, and centred
+   on the hole's centre so that it is pinned exactly where the counter-scale
+   cancels. The hole's centre is NOT the viewport centre — the doorway sits
+   about 14% of the facade's height below it — so this is oversized to 1.45x
+   the viewport to cover that offset at every aspect. The overshoot costs ~7%
+   of scale on the interior (0.93 source px per screen px, still sharp) and is
+   free otherwise, since everything outside the hole is clipped anyway. */
+#arrive .doorway__hold > .frame {
+  position: absolute;
+  aspect-ratio: auto;
+  left: 50%;
+  top: 50%;
+  width: calc(1.06 * 100vw);
+  height: calc(1.62 * 100svh);   /* covers the doorway's offset from centre */
+  /* A gentle continued push through the hold, so the last stretch is still
+     moving forward rather than a frozen picture under a moving scrollbar.
+     7% costs almost nothing in sharpness and keeps the room alive while the
+     headline arrives. */
+  transform: translate(-50%, -50%) scale(calc(1 + var(--hold) * 0.07));
+  background: transparent;
+}
+#arrive .doorway__hold > .frame > img { width: 100%; height: 100%; object-fit: cover; }
+
+/* The door. Hinged on its left edge because that is where this slab's strap
+   hinges are; perspective makes it swing rather than squash. It rides inside
+   .face, so it stays on its hole at every scale for free. */
+/* Deliberately 4% WIDER and TALLER than the opening, and offset by half of
+   that, so the slab overlaps the frame instead of butting against it. The
+   first version matched the hole exactly and you could see daylight down both
+   sides: the generated slab carried ~6% transparent margin, so the wood was
+   narrower than its own image. The image is now cropped to the wood (it spans
+   0.000-0.999 of its box) and this overlap covers the rotation, which
+   foreshortens the slab as soon as it starts to swing. */
+#arrive .face > .door {
+  position: absolute;
+  aspect-ratio: auto;
+  left: 47.86%;
+  top: 54.94%;
+  width: 5.65%;
+  height: 14.67%;
+  transform-origin: left center;
+  transform: perspective(40vw) rotateY(calc(clamp(0, calc(var(--p, 0) / 0.34), 1) * -105deg));
+  background: transparent;
+}
+#arrive .face > .door > img { width: 100%; height: 100%; object-fit: fill; }
+/* The swing finishes in the first 40% of the travel and the slab is gone
+   shortly after. Letting it run the full runway left it hanging half-open and
+   half-transparent across the opening — a ghost over the room you are walking
+   into, which is the opposite of getting out of the way. */
+#arrive .face > .door { opacity: clamp(0, calc((0.52 - var(--p, 0)) / 0.14), 1); }
+
+/* The title has to be gone before the room arrives, or it sits over the shop. */
+#arrive .plate--copy { opacity: clamp(0, calc((0.34 - var(--p, 0)) / 0.16), 1); }
+
+/* The needles are nearest, so they scale fastest and leave first — that
+   differential is what reads as forward motion, far more than the facade's
+   own scale does. */
+#arrive .plate--front {
+  transform:
+    translate3d(0, calc(var(--p, 0) * var(--rate, 0) * 1px), 0)
+    scale(calc(1 + var(--p, 0) * 1.6));
+  opacity: clamp(0, calc((0.46 - var(--p, 0)) / 0.20), 1);
+}
+
+/* The interior headline, the last beat of the same move. It waits until the
+   room has actually arrived — the hole only covers the frame near the very
+   end, so anything earlier would sit over the doorframe rather than over the
+   shop. z-index 4 puts it above the back plate; it needs no --rate, because
+   by the time it is visible nothing behind it is moving any more. */
+#arrive .plate--threshold {
+  z-index: 4;
+  display: grid;
+  place-content: center;
+  padding-inline: var(--gutter);
+  text-align: center;
+  /* Sits above centre so the pegboard and the bench behind it stay readable —
+     centred, the headline landed straight across the pegboard. */
+  transform: translateY(-16%);
+  /* Waits until the room has been on screen for a while. The hole is full
+     frame at --p 0.72; the words start at 0.86, so there is real scroll in
+     between where you are just standing in the shop. */
+  opacity: clamp(0, calc((var(--p, 0) - 0.86) / 0.11), 1);
+}
 
 /* Task 4 proof: the front plate is a dark subject shot on a flat white
    background; multiply removes the white arithmetically instead of relying
@@ -23,6 +260,26 @@
    composites against other descendants of that same plate — never against
    the plates behind it. */
 #arrive .plate--front { mix-blend-mode: multiply; }
+
+/* Structural, and it lives here rather than in layout.generated.css because
+   the panel rewrites that file wholesale on every Save. Without it the
+   frame's own --bg-deep fill paints over cottage-far before the blend can
+   run and the whole stack goes flat black. (1,2,0) also out-specifies the
+   (0,2,0) the panel emits for this slot. */
+#arrive .plate--front > .frame { background: transparent; }
+
+/* The interior stack takes the same treatment: bench-near is near-edge bench
+   clutter shot on a flat white ground, so multiply removes the white and
+   leaves a dark foreground silhouette over the lit shop. Declared separately
+   from #arrive rather than as a shared `.plate--front` rule for the reason
+   above — the two rooms' front plates must be able to diverge, and one of
+   them will when the doorway dolly lands. */
+/* The interior's foreground clutter plate is gone. Under multiply over a
+   brightly-lit bench the brush jar and clamps rendered semi-transparent and
+   read as smeared glass rather than as objects in front of the camera. The
+   owner called it and he is right: a foreground layer that looks like a
+   rendering artefact costs more than the depth it buys. bench-near.webp is
+   deleted; roll-bench-near-01.png stays on disk. */
 
 /* ── the RE— device: one word repeating, only the suffix resolving ── */
 .act { border-top: 1px solid var(--border); }

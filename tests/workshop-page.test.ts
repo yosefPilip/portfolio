@@ -23,35 +23,53 @@ describe('workshop.html', () => {
   // single-hero shape had no assertions of its own in this file — see
   // CONTROLLER RULING 3 — so nothing above or below this block is being
   // replaced, only added to.
-  it('opens on two stacks, exterior arrival then interior, in that order', () => {
-    const arriveIndex = html.indexOf('id="arrive"');
-    const insideIndex = html.indexOf('id="inside"');
-    expect(arriveIndex).toBeGreaterThan(-1);
-    expect(insideIndex).toBeGreaterThan(-1);
-    expect(arriveIndex).toBeLessThan(insideIndex);
+  it('opens on ONE continuous stack, outside to inside', () => {
+    // This used to be two stacks. The dolly landed you inside the shop and
+    // the very next stack showed the same room again, which reads as "enter,
+    // then scroll to the real interior" instead of as arriving. #inside was
+    // merged into #arrive; its headline is now the last beat of the same move.
+    expect(html).toContain('id="arrive"');
+    expect(html).not.toContain('id="inside"');
+    expect(Array.from(html.matchAll(/<section class="stack/g))).toHaveLength(1);
   });
 
-  it('gives the exterior stack the page\'s single <h1> and the interior stack an <h2>', () => {
+  it("carries the page's single <h1> and the interior <h2> in that one stack", () => {
     const arrive = sectionById('arrive');
-    const inside = sectionById('inside');
     expect(arrive).toMatch(/<h1[\s>]/);
-    expect(inside).not.toMatch(/<h1[\s>]/);
-    expect(inside).toMatch(/<h2[\s>]/);
+    expect(Array.from(html.matchAll(/<h1[\s>]/g))).toHaveLength(1);
+    expect(arrive).toMatch(/class="plate plate--threshold"[\s\S]*?<h2[\s>]/);
   });
 
-  it('gives both stacks exactly three plates — back, copy, front — never a fourth', () => {
+  it('runs the arrival as back, copy, front, then the threshold beat', () => {
     const arrive = sectionById('arrive');
-    const inside = sectionById('inside');
-    [arrive, inside].forEach((stack) => {
-      const plates = Array.from(stack.matchAll(/class="plate plate--(back|copy|front)"/g)).map((m) => m[1]);
-      expect(plates).toEqual(['back', 'copy', 'front']);
-    });
+    const plates = Array.from(
+      arrive.matchAll(/class="plate plate--(back|copy|front|threshold)"/g),
+    ).map((m) => m[1]);
+    // Order is load-bearing: the threshold headline must come last so it sits
+    // above the room rather than behind the doorframe it arrives through.
+    expect(plates).toEqual(['back', 'copy', 'front', 'threshold']);
   });
 
-  it('references all four arrival image slots', () => {
-    ['cottage-far', 'needles-near', 'bench-far', 'bench-near'].forEach((slug) => {
+  it('references every image slot the arrival needs', () => {
+    // cottage-far was replaced by cottage-face when the doorway dolly landed:
+    // the facade needs a real opening with no door painted in it, and
+    // cottage-door is the slab that swings out of that opening. bench-near is
+    // deleted — under multiply over a lit bench its clutter rendered
+    // semi-transparent and read as a smear rather than as foreground.
+    ['cottage-face', 'cottage-door', 'needles-near', 'bench-far'].forEach((slug) => {
       expect(html).toContain(`/assets/img/${slug}.webp`);
     });
+  });
+
+  it('keeps the dolly nested inside the back plate, not as extra plates', () => {
+    // The facade, the opening and the door are one plane. If they ever become
+    // sibling plates they need three --rate values kept in sync and the door
+    // slides off its hole; the three-plate test above would also start failing
+    // for a reason that looks unrelated. Pin the structure here instead.
+    const arrive = sectionById('arrive');
+    expect(arrive).toMatch(/class="plate plate--back"[\s\S]*?class="face"/);
+    expect(arrive).toMatch(/class="face"[\s\S]*?class="doorway"[\s\S]*?class="doorway__hold"/);
+    expect(arrive).toMatch(/class="frame door"/);
   });
 
   it('runs the three RE— acts in order', () => {
