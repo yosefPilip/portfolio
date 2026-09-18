@@ -256,20 +256,40 @@ otherwise now wrong:**
    roll as `--ref` so the geometry survived and only the material changed:
    warmth went from +16 to **-110.7** R-B, and the disc still gates clean
    (aspect 0.996, centroid 0.499/0.500, matte 0.42% partial).
-2. **The plane is CLEAN and the disc is a centred sticker** — the imprint is
-   not embedded in the ice and does not lift out of it. The owner asked for
-   the plane as background with the fossil centred over it. If the lift-out is
-   ever wanted back, the plane needs a second version carrying the imprint.
+2. **The fossil is FROZEN INTO the plane after all** — §5's original call,
+   arrived at the long way. It shipped first as a separate centred sticker
+   over a clean plane, and the owner named exactly what that looked like:
+   *"it looks like it was placed onto the ice... I want it to look like one
+   with the ice, add some more cracks and texture all over the background and
+   near it, it should match the background almost."* The smooth quiet centre
+   composed for title contrast was itself what isolated the fossil.
 
-**A third change was forced by measurement, not preference.** The lede is
-small and a muted colour, and over the disc it reached only 3.47:1 against the
-4.5:1 body-text floor even after the disc's core was graded down 118 -> 70.
-The h1 was fine at 6.15:1, since display type only needs 3:1. So the title
-stays on the spiral and the lede steps below it onto the dark ice, where it
-measures **8.41:1**. It is pinned to `calc(50% + var(--disc-size)/2 + ...)`
-rather than nudged by a tuned offset — the first attempt used a multiplier
-that cleared at 1440x900 and overlapped at 390x844 and 744x1000. Verified
-24-32px of clearance at five viewports.
+   Re-rolled with TWO references — the previous plane and the ammonite cutout
+   — so one image carries both: bigger, centred, with cracks running across
+   the spiral and out the other side so the fossil and the ice are visibly one
+   surface that fractured together. Title-band contrast paid 12.96:1 -> 9.80:1
+   mean (4.02:1 at p95) for the texture, still well clear of the 3:1 display
+   floor, and centre detail roughly doubled (std 17 -> 36). Composited, the h1
+   reads **14.38:1** and the lede **8.00:1**, both better than before.
+
+   `.plate--disc` stays in the markup carrying the free-standing cutout, at
+   `opacity: 0`. It is the next beat, not dead markup: as the scroll starts it
+   fades in over the embedded fossil at the same centre and begins to turn —
+   the spiral releasing from the ice, which is what §3 always described. Its
+   layer order is settled now so the spin does not have to restructure
+   anything later.
+
+**A third change was made and then REVERTED, which is worth recording.** While
+the fossil was a bright sticker, the lede measured only 3.47:1 over it against
+the 4.5:1 body-text floor, so it was moved below the disc and pinned to
+`calc(50% + var(--disc-size)/2 + ...)`. (The first attempt at that used a
+multiplier tuned at 1440x900 which overlapped at 390x844 and 744x1000 — one
+number tuned at one viewport. Pinning it to the disc's own radius fixed it,
+24-32px clear at five viewports.) Embedding the fossil made all of it moot:
+the spiral is now dark blue ice rather than a bright cyan disc, so the lede
+sits back under the title in normal flow and measures 8.00:1. The absolute
+positioning is gone. **Noted because it will look like an obvious thing to
+re-add if the disc is ever brightened again — and then it will be needed.**
 
 **Known trade:** the plane's bright fractures are deliberately concentrated at
 the frame edges to keep the centre quiet for the title, and at 390x844 only
