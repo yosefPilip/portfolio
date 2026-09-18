@@ -17,17 +17,40 @@
    Measured at 1440x900 with real page.mouse.wheel() events — notches until
    the first .work-item is on screen, and --rate / runway as the speed:
 
-       260vh (original)   ~15 notches   ratio 0.67   too slow, owner
-       188vh               11 notches   ratio 1.41   too long, owner
-       135vh                7 notches   ratio 2.92   too fast, owner
-       150vh                9 notches   ratio 1.84   <- here
+       260vh (original)   ~15 notches   too slow, owner
+       188vh               11 notches   too long, owner
+       135vh                7 notches   too fast, owner
+       128vh               ~6 notches   cut too far, owner
+       150vh                9 notches   <- here
 
-   150vh sits between the two complaints: 18% fewer notches than the version
-   called too long, at 37% less speed than the one called too fast. Both
-   halves of that were only affordable because the source was cropped and
-   --rate came down 920 -> 830 with it. This number is taste and safe to
-   retune; --rate is the one that is solved. */
+   2026-09-17: this went back to 150vh, and the number is no longer the dial
+   that matters. The owner's complaint was never the runway's LENGTH — it was
+   that the ridge finished burying the title in the first 200px and the rest of
+   the runway dragged an already-covered mountain past the eye. --rate in
+   stack.css now sizes itself so burial completes at p ~= 0.95 for whatever
+   runway this is, which means:
+
+     - every notch moves the ridge, start to finish;
+     - the work list arrives the moment the title is gone;
+     - and the runway is free to be tuned for LENGTH alone. Lengthen it and
+       the ridge gets slower, shorten it and it gets faster, but the hero
+       always ends on the burial either way.
+
+   Owner's target was 5-6 notches of climb before the rows; 150vh gives ~4.5
+   at 1440x900 and ~5.4 at 1080 tall. Retuning this is safe. Do NOT retune it
+   by changing --rate to match — recompute --rate from D instead, per the long
+   comment on `#ridge .plate--front`. */
 #ridge { --stack-h: 150vh; }
+
+/* The hero now ENDS on the burial, so the work list has to be waiting right
+   there. A full `--section` of air after the stack put another ~280px of empty
+   scroll between the covered title and the first row — the other half of what
+   the owner was counting when he said "another three scroll wheels until you
+   get to the actual information." Top only: the bottom of the section keeps
+   the page's rhythm, this is just the hand-off out of the stack, and the
+   dissolve at the foot of .stack-view is already doing the visual separating
+   that this padding would otherwise be for. */
+#index { padding-top: calc(var(--section) * 0.35); }
 .page-hero .plate--copy { text-align: center; }
 .page-hero .display { color: var(--fg); }
 .page-hero .lede { margin-inline: auto; }

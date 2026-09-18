@@ -87,38 +87,54 @@
      cov(1)  lands above the h1's top     -> title fully buried behind the ridge
      base(1) lands well past V            -> reaches the hero's bottom, always
 
-   -830 is a FLOOR, not a taste choice. It is the smallest travel that still
-   buries the title, and the title can only be hidden by BURIAL: the
-   alternative — letting the copy plate outrun the ridge and exit the top —
-   needs |--rate| on .plate--copy above the front plate's own, which inverts
-   the depth order and fails tests/stack-depth.test.ts. So the floor is
+   --rate is set by WHERE the burial should finish, not by taste. Burial is a
+   RELATIVE fact — the ridge has to out-climb the copy plate by a fixed
+   distance D before the title is gone — so the dial is
 
-       R >= copyHeight + restClearance + ridgeSpread + copyRate
+       coverage completes at p = D / (|R_front| - |R_copy|)
 
-   measured at 1920x1080 as 215 + 37 + 365 + 190 = 807. Three of those four
-   were trimmed to get here: the rest clearance from 64px to ~37 (the crest
-   starts closer under the lede), the copy rate from -260 to -190, and the
-   whole thing re-based on the cropped source. That bought the drop from -920
-   and, with it, a gentler hero at a shorter runway.
+   and the goal is p ~= 0.95: the title disappears just as the runway ends, so
+   no scroll is spent watching an already-covered hero.
 
-   ridgeSpread — 365px between the crest and the first fully-covering row — is
-   a property of THIS ridgeline's jaggedness, not of the layout. A flatter
-   skyline would lower the floor further; a more serrated one would raise it.
+   D is a property of this ridgeline and this type, NOT of the viewport. It
+   looks like it should grow with height (--front-img-top carries the crest
+   down by 0.62V while the plate top only rises 0.12V) but the copy plate is
+   viewport-CENTRED, so it falls by the same 0.5V and the two cancel. Measured
+   with real wheel events at 25px resolution, recolouring the h1 magenta and
+   counting surviving pixels — `node tools/burial.mjs <url> '' 25`:
 
-   The owner asked for the hero to release the moment the crest reaches the
-   top of the viewport. That needs |--rate| ~672 at 1440x900, below this floor,
-   so it cannot hold while the title still vanishes. Burial won, being the
-   older requirement. The crest therefore ends 269-343px above the viewport
-   top rather than level with it, and a thin band of back plate survives in
-   the notches, reading as sky.
+       1440x900    D = 358      1440x1080   D = 333
+       1920x1200   D = 333      390x844     D = 315   (mobile copy rate 120)
+
+   So |R| = D / 0.95 + |R_copy| = 377 + 190 = 567 -> -570 desktop, and
+   332 + 120 = 452 -> -460 mobile. Verified in-browser afterwards, same tool.
+
+   2026-09-17, three rounds with the owner, all three rulings recorded so none
+   of them gets re-derived from scratch:
+     1. The ridge must still BURY the title. -240 was tried, and rejected on
+        sight for exactly that. Burial is not negotiable.
+     2. The hero must not be long. 128vh was tried and cut too far.
+     3. The actual complaint, once it was stated precisely: at -830 the burial
+        finished in 200px of scroll and then 160-230px of runway did NOTHING
+        but drag an already-covered mountain past the eye. Every notch should
+        move the ridge a little, and the copy list should arrive the moment the
+        title is gone.
+   -830 was the floor for burying the title by p=1 at a 450px runway; it is
+   the WRONG floor once burial is allowed to take the whole runway, which is
+   what ruling 3 asks for. Do not raise it back to bury faster — finishing
+   early is the bug.
+
+   The owner also asked for the hero to release the moment the crest reaches
+   the top of the viewport. That is a different event from burial and still
+   does not coincide with it; burial is the one that governs.
 
    Two documented limits, both degrading the same safe way — the plate still
-   reaches the bottom and the title still vanishes, only the bury stops being
-   total:
+   reaches the bottom and the title still vanishes, only the timing drifts:
      - above ~1930px wide, the plate outgrows the source and `cover` scales to
-       WIDTH, so S > 1 and a band of back plate survives at the end;
-     - above ~1150px tall, --front-img-top grows by 0.62V while the plate top
-       only rises by 0.12V, so the coverage line outruns a fixed --rate.
+       WIDTH, so S > 1 and D grows with it;
+     - the 0.5V cancellation above assumes the copy plate stays centred. Give
+       .plate--copy a different alignment and D becomes height-dependent
+       again, so re-measure before trusting these numbers.
    --rate must stay a plain number (stack.css multiplies it by 1px, and
    tests/stack-depth.test.ts parses it), so it cannot scale with the viewport.
 
@@ -128,7 +144,7 @@
    floating strip. Guarded by tests/plate-frame-trim.test.ts. */
 #ridge .plate--front {
   z-index: 4;
-  --rate: -830;
+  --rate: -570;
   --front-img-h: 1600px;                          /* ridge-near.webp's natural height */
   --front-img-top: calc(0.62 * 100svh + 16px);    /* places the crest under the lede */
 }
@@ -303,12 +319,12 @@
   #ridge .plate--back  { --rate: -54; }
   #ridge .plate--haze  { --rate: -96; }
   #ridge .plate--copy  { --rate: -120; }
-  /* The same solve holds at 390x844 and at the 744x1000 boundary: burying the
-     TITLE needs |--rate| >= 876, measured, so the desktop -920 serves both. Declared rather than inherited so the mobile half of
-     tests/stack-depth.test.ts sees it explicitly. --front-img-h and
-     --front-img-top are inherited unchanged; the copy block is shorter here,
-     so the crest clears it by more (106px at 390x844). */
-  #ridge .plate--front { --rate: -830; }
+  /* Mobile solves the same equation with its own two numbers: the copy block
+     is shorter here, so D is 315 rather than 358, and this scope's copy rate
+     is -120 rather than -190. 315 / 0.95 + 120 = 452. Declared rather than
+     inherited so the mobile half of tests/stack-depth.test.ts sees it
+     explicitly; --front-img-h and --front-img-top are inherited unchanged. */
+  #ridge .plate--front { --rate: -460; }
 }
 
 @media (prefers-reduced-motion: reduce) {
