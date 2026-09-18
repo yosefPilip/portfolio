@@ -21,7 +21,11 @@ describe('Home hero', () => {
   });
 
   it('builds the six hero layers', () => {
-    for (const layer of ['far', 'fog', 'mid', 'name', 'near', 'low']) {
+    // plate--mid is deliberately gone: it was a pair of black palm silhouettes
+    // flanking the frame and the owner asked for the sides decluttered.
+    // plate--shrub, the undergrowth the name sinks behind, took its place in
+    // the count.
+    for (const layer of ['far', 'fog', 'name', 'near', 'shrub', 'low']) {
       expect(html).toContain(`plate--${layer}`);
     }
   });
@@ -44,7 +48,7 @@ describe('Home hero', () => {
     // the gaps. It does that by multiply, not by an alpha channel: a cutout
     // of fronds halos, and the previous one measured +24 RGB at the edges.
     const stack = readFileSync('src/styles/stack.css', 'utf8');
-    expect(stack).toMatch(/\.hero \.plate--near \{[^}]*z-index:\s*5/);
+    expect(stack).toMatch(/\.hero \.plate--near \{[^}]*z-index:\s*4/);
     expect(stack).toMatch(/\.hero \.plate--near \{[^}]*--rate:\s*-350/);
     expect(stack).toMatch(/mix-blend-mode: multiply/);
   });
