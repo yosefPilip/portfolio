@@ -9,6 +9,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/home.css" />
+  <noscript>
+    <!-- No JS means no flip-board, so the wordmark's plain text has to come
+         back. nameFlip.css hides it by default to kill the load flash. -->
+    <style>#name-flip-root { visibility: visible; }</style>
+  </noscript>
 </head>
 <body data-room="home">
 
@@ -70,6 +75,13 @@
           </figure>
         </div>
 
+        <!-- The undergrowth. It climbs faster than the name, so the wordmark
+             sinks behind it as you scroll — an event rather than drift. -->
+        <div class="plate plate--shrub" aria-hidden="true">
+          <figure class="frame" data-label="Hero L6 — undergrowth-low">
+            <img src="/assets/img/undergrowth-low.webp" alt="" loading="eager" />
+          </figure>
+        </div>
         <div class="plate plate--low" aria-hidden="true"></div>
 
         <div class="hero-intro">

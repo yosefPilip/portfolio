@@ -59,11 +59,11 @@ describe('full-bleed plate frames', () => {
 describe('the guard actually reaches the pages it claims to', () => {
   // index.html is the page that had the worst measured misalignment AND the
   // most aria-hidden plates, so it is the one a loose pattern fails on.
-  it('sees all five of index.html plate figures, not just the one without aria-hidden', () => {
+  it('sees all six of index.html plate figures, not just the one without aria-hidden', () => {
     const html = readFileSync('index.html', 'utf8');
-    // Five: the hero's three photograph plates (plate--far, plate--mid,
-    // plate--near — plate--fog and plate--low carry no frame) plus the
-    // thesis stack's two.
-    expect(html.match(PLATE_FIGURE) ?? []).toHaveLength(5);
+    // Six: the hero's four photograph plates (plate--far, plate--mid,
+    // plate--near and plate--shrub — plate--fog and plate--low carry no frame
+    // of their own, they are CSS atmosphere) plus the thesis stack's two.
+    expect(html.match(PLATE_FIGURE) ?? []).toHaveLength(6);
   });
 });

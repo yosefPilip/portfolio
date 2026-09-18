@@ -221,10 +221,32 @@
    on top of .plate--far/--mid/--near for the whole hero and swallows every
    drag or wheel meant for them. */
 .hero .plate--fog  { z-index: 2; --rate: -120; pointer-events: none; }
+
+/* THE LIGHT ARRIVES BY THE MIST CLEARING, not by painting light onto the
+   frame. The shaft is already in the photograph; what was hiding it was the
+   fog sitting in front of it at full strength for the whole scroll. Thinning
+   that as you descend is physically what happens — mist is denser at distance
+   and burns off toward the light — and it costs nothing but opacity, which is
+   the only property besides transform this site lets us animate.
+
+   Deliberately NOT a gradient brightening over the canopy: that would be a
+   gradient used as light, which the note on the fog ::after below rules out
+   and which is the exact move that makes a hero look sprayed-on. */
+.hero .plate--fog { opacity: calc(1 - clamp(0, calc(var(--p, 0) / 0.62), 1) * 0.62); }
+
+/* The floor deepens as the canopy clears, so the frame gains contrast top to
+   bottom rather than simply getting brighter overall. */
+.hero .plate--low { opacity: calc(0.72 + clamp(0, calc(var(--p, 0) / 0.62), 1) * 0.28); }
 .hero .plate--mid  { z-index: 3; --rate: -190; }
 .hero .plate--name { z-index: 4; --rate: -250; display: grid; place-content: center; }
 .hero .plate--near { z-index: 5; --rate: -350; }
-.hero .plate--low  { z-index: 6; --rate: -440; pointer-events: none; }
+/* The undergrowth sits between the nearest photographic layer and the floor
+   scrim, and climbs faster than the name plate (-250), which is the whole
+   point: the wordmark sinks behind it instead of everything drifting together.
+   --low moves to z7 and -520 to keep the depth order strictly increasing,
+   which tests/stack-depth.test.ts enforces along with contiguous z. */
+.hero .plate--shrub { z-index: 6; --rate: -440; }
+.hero .plate--low  { z-index: 7; --rate: -520; pointer-events: none; }
 
 /* Only .plate--far is an opaque photograph. Everything above it ships opaque
    on pure white and is composited arithmetically: result = backdrop x source,
@@ -239,19 +261,22 @@
    frame would composite only against its own plate and do nothing. Same
    pattern as the working precedent at workshop.css:24. */
 .hero .plate--mid,
-.hero .plate--near { mix-blend-mode: multiply; }
+.hero .plate--near,
+.hero .plate--shrub { mix-blend-mode: multiply; }
 
 /* .frame paints var(--bg-deep) so a missing image reads as a dark labelled
    placeholder. Under multiply an opaque dark ground would crush the whole
    hero to black, so these two frames stay transparent. */
 .hero .plate--mid .frame,
-.hero .plate--near .frame { background: transparent; }
+.hero .plate--near .frame,
+.hero .plate--shrub .frame { background: transparent; }
 
 /* While a slot is still empty the labelled placeholder must stay legible, so
    the blend switches off for that plate rather than multiplying a dashed
    border into the forest. Restores itself the moment a real file lands. */
 .hero .plate--mid:has(.frame.is-missing),
-.hero .plate--near:has(.frame.is-missing) { mix-blend-mode: normal; }
+.hero .plate--near:has(.frame.is-missing),
+.hero .plate--shrub:has(.frame.is-missing) { mix-blend-mode: normal; }
 
 .hero-wordmark {
   font-family: var(--font-display);
