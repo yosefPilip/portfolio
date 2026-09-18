@@ -23,105 +23,78 @@
 .page-hero .plate--copy { text-align: center; }
 .page-hero .lede { margin-inline: auto; }
 
-/* ── The spiral ──────────────────────────────────────────────────────────
-   The fossil is FROZEN INTO the ice plane, not laid on top of it. An earlier
-   version had it as a separate centred sticker over a clean plane, and the
-   owner was right about what that looked like: "it looks like it was placed
-   onto the ice... I want it to look like one with the ice." The smooth quiet
-   centre I had composed for title contrast was exactly what isolated it.
+/* ── The spiral, the deck, and the hand-off ──────────────────────────────
+   One continuous move: a fossil frozen in blue ice lifts out, turns, becomes a
+   jog wheel, the wheel is caught by a deck, the ice falls away, and the page's
+   information arrives around it.
 
-   Now one image carries both: cracks run across the spiral and out the other
-   side, so the fossil and the ice are visibly one surface that fractured
-   together. Title-band contrast went 12.96:1 -> 9.80:1 mean (4.02:1 at p95)
-   for the added texture, still well clear of the 3:1 floor display type
-   needs, and centre detail roughly doubled (std 17 -> 36).
+   WHY THE CUTOUT IS NOT A STICKER. It is generated FROM the ice plane, so it is
+   the same object in the same material — measured 7 RGB from the fossil in the
+   plane, where the previous cutout sat 127 away. That gap is the whole reason
+   earlier versions read as something laid on top: a brighter, harder-edged disc
+   appeared out of nowhere. Matched, it simply detaches.
 
-   .plate--disc stays in the markup and is INVISIBLE at rest. It holds the
-   free-standing ammonite cutout, which is the next beat: as the scroll starts
-   it fades in over the embedded fossil at the same size and centre and begins
-   to turn — the spiral releasing from the ice. It is kept here rather than
-   added later so the layer order is settled now: the disc sits between the
-   ice and the copy, so the title reads over the spiral instead of the spiral
-   covering the title. */
-.page-hero .plate--disc {
-  z-index: 2;
-  /* No parallax on the disc. It is the subject and it SETTLES — drifting it
-     upward on a rate fought that, and at --p 1 it had climbed behind the
-     title instead of coming to rest in the middle of the frame. */
-  --rate: 0;
-  /* TWO FULL TURNS, eased out, finished by --p 0.72 — and landing on exactly
-     720deg is the requirement, not a detail. The owner's logo rides on the
-     platter, so the wheel must come to rest with it upright; any angle that
-     is not a multiple of 360 leaves the mark tilted forever. The spin also
-     has to STOP before the travel ends, so there is a stretch where you are
-     simply looking at a finished deck.
-       t   = progress through the spin, 0 at rest, 1 by --p 0.72
-       out = 1-(1-t)^2, a quadratic ease-out, so it decelerates into place */
-  --t: clamp(0, calc(var(--p, 0) / 0.72), 1);
-  --spin: calc((1 - (1 - var(--t)) * (1 - var(--t))) * 720deg);
-  /* NO scale change, and that is the point. The cutout is the same size as
-     the fossil already frozen in the plane, so when it fades up it lands
-     exactly on top of it and the swap is invisible — what you see is the
-     BACKGROUND beginning to turn, not a second disc arriving over it. An
-     earlier version had the cutout fade up at 2.45x and shrink, because the
-     embedded fossil was then frame-filling; shrinking the fossil instead made
-     the pull-back unnecessary and the illusion much stronger. */
-  opacity: clamp(0, calc(var(--p, 0) / 0.10), 1);
-}
+   EVERYTHING IS CENTRED ON THE VIEWPORT. The deck is centred, not the wheel —
+   an earlier version pinned the deck by its wheel and the unit sat visibly off
+   to one side. The wheel therefore has to TRAVEL into the deck as the deck
+   assembles, because the deck's wheel is not at the deck's centre: it sits at
+   46.27% / 61.45% of the deck box, which against a deck of --disc-size x 1.7848
+   works out to -0.0666 and +0.2427 of --disc-size. Those two numbers are the
+   drift, and they are measured, not nudged. */
 
-/* The ice dims as the disc takes over, so the embedded fossil stops competing
-   with the free one. Without this you see the spiral twice at once. */
-/* The ice dims a little as the deck takes over, but far less than before: the
-   embedded fossil is now hidden UNDER the cutout rather than competing beside
-   it, so the plane only needs to recede, not get out of the way. */
-.page-hero .plate--back { opacity: calc(1 - clamp(0, calc(var(--p, 0) / 0.5), 1) * 0.3); }
-/* The copy hands over. It is readable over the frozen spiral at rest, which
-   is the point of the layer order — but by the end it is lying across the
-   platter, so it clears out once the transformation is underway and lets the
-   deck finish alone. */
-.page-hero .plate--copy {
-  z-index: 4;
-  opacity: clamp(0, calc((0.46 - var(--p, 0)) / 0.18), 1);
-}
-
-/* The disc is a centred SQUARE, not a full-bleed plate, so it cannot use the
-   shared `.plate > .frame` sizing. aspect-ratio is set to 1 deliberately and
-   not left to inherit: base.css defaults every .frame to 3/2, and stack.css
-   only cancels that for direct children of .plate — a nested frame silently
-   keeps the default and renders short. That exact trap cost a round on the
-   Workshop doorway; it is written down here so it does not cost another. */
-.page-hero .plate--disc > .frame {
+.page-hero .plate--void { z-index: 0; }
+.page-hero .plate--void::after {
+  content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--disc-size);
-  height: var(--disc-size);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%) rotate(var(--spin)) scale(var(--fit));
-  background: transparent;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 46%,
+      color-mix(in oklab, var(--accent-2) 26%, transparent) 0%,
+      transparent 58%),
+    var(--bg-deep);
 }
-.page-hero .plate--disc > .frame > img { width: 100%; height: 100%; object-fit: contain; }
 
-/* The match cut. Both discs are already turning at the same angle and sitting
-   on the same centre, and tools/disc.py measured their diameters as matching
-   to within 0.1%, so the swap reads as one object changing rather than two
-   pictures dissolving. The window is mid-rotation on purpose — cutting while
-   the thing is moving is what hides the seam. */
-.page-hero .disc__shell { opacity: clamp(0, calc((0.52 - var(--p, 0)) / 0.16), 1); }
-.page-hero .disc__deck  { opacity: clamp(0, calc((var(--p, 0) - 0.40) / 0.16), 1); }
-
-/* ── The deck grows around the wheel ──────────────────────────────────────
-   Sized and placed from measurements, not by eye. The deck's own violet ring
-   is 0.4622 of its width and ours is 0.825 of ours, so our wheel renders at
-   0.5603 of the deck width — i.e. the deck is --disc-size x 1.7848. Its wheel
-   centre sits at 46.27% / 61.45% of its own box, so the deck is offset by
-   exactly that much to put its wheel on the viewport centre, where the fossil
-   was. Get any of those three numbers wrong and the deck sits around the
-   wheel crooked, which is the one failure that would be obvious instantly. */
-.page-hero .plate--deck {
+/* The ice falls away once the deck has it. */
+.page-hero .plate--back {
   z-index: 1;
+  opacity: clamp(0, calc((0.78 - var(--p, 0)) / 0.22), 1);
+}
+
+/* Assembly progress drives both the fit and the wheel's drift, so they cannot
+   drift apart. --fit eases the finished unit back so it clears the viewport. */
+.page-hero {
+  --asm: clamp(0, calc((var(--p, 0) - 0.52) / 0.26), 1);
+  --fit: calc(1 - var(--asm) * 0.28);
+}
+
+/* The name, large and at the top, BEHIND the deck. It was previously at 9%
+   opacity in the dead centre, where the owner could not see it at all. */
+.page-hero .plate--word { z-index: 2; opacity: clamp(0, calc((var(--p, 0) - 0.60) / 0.20), 1); }
+.page-hero .word {
+  position: absolute;
+  left: 50%;
+  /* 18%, not 10%. The plate is inset -12% top and bottom, so a percentage here
+     is measured from ABOVE the viewport — 10% put the word's cap-height under
+     the site header. 18% of the plate lands it just clear of it. */
+  top: 18%;
+  margin: 0;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: min(15vw, 210px);
+  line-height: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;     /* uppercase >=32px needs >=0.06em positive */
+  color: var(--fg);
+  opacity: 0.4;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The deck: centred on the viewport, full stop. */
+.page-hero .plate--deck {
+  z-index: 3;
   --deck-w: calc(var(--disc-size) * 1.7848);
-  opacity: clamp(0, calc((var(--p, 0) - 0.56) / 0.18), 1);
+  opacity: clamp(0, calc((var(--p, 0) - 0.54) / 0.18), 1);
 }
 .page-hero .plate--deck > .frame {
   position: absolute;
@@ -130,61 +103,107 @@
   width: var(--deck-w);
   height: calc(var(--deck-w) / 0.8421);
   aspect-ratio: auto;
-  transform-origin: 46.27% 61.45%;   /* the wheel centre, so the fit pivots there */
-  transform: translate(-46.27%, -61.45%) scale(var(--fit));
+  transform: translate(-50%, -50%) scale(var(--fit));
   background: transparent;
 }
 .page-hero .plate--deck > .frame > img { width: 100%; height: 100%; object-fit: fill; }
 
-/* ── The information, once the deck has arrived ───────────────────────────
-   This is the spec list and the links lifted out of the sections below, so a
-   promoter gets the name, the sound and where to hear it before scrolling at
-   all. RECURSION sits behind everything as a large graphic word; the list
-   sits under the deck where it cannot fight the wheel for attention. */
-.page-hero .plate--panel {
-  z-index: 3;
-  opacity: clamp(0, calc((var(--p, 0) - 0.76) / 0.16), 1);
+/* The wheel. Starts exactly where the fossil was — the viewport centre — and
+   drifts into the deck's wheel seat as the deck assembles. */
+.page-hero .plate--disc {
+  z-index: 4;
+  --rate: 0;
+  /* TWO FULL TURNS, eased out, finished by --p 0.72. Landing on a multiple of
+     360 is a requirement, not a detail: the logo rides on the platter and has
+     to come to rest upright. Stopping early leaves a stretch where you are
+     simply looking at a finished deck. */
+  --t: clamp(0, calc(var(--p, 0) / 0.72), 1);
+  --spin: calc((1 - (1 - var(--t)) * (1 - var(--t))) * 720deg);
+  opacity: clamp(0, calc(var(--p, 0) / 0.10), 1);
 }
-.page-hero .panel__word {
+.page-hero .plate--disc > .frame {
   position: absolute;
-  left: 50%;
   top: 50%;
-  margin: 0;
-  transform: translate(-50%, -50%);
-  font-family: var(--font-display);
-  font-size: min(21vw, 260px);
-  line-height: 1;
-  /* The word is typed in caps in the markup, but the tracking guard reads the
-     CSS, not the content — without this declaration it sees a 260px rule with
-     positive tracking and asks for negative. Declaring it is also just true. */
-  text-transform: uppercase;
-  letter-spacing: 0.08em;     /* uppercase >=32px needs >=0.06em positive */
-  color: var(--fg);
-  opacity: 0.09;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.page-hero .panel__spec {
-  position: absolute;
   left: 50%;
-  top: calc(50% + var(--disc-size) * var(--fit) * 1.02);
-  transform: translateX(-50%);
-  width: min(92vw, 640px);
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 6px 22px;
-  margin: 0;
-  text-align: left;
+  width: var(--disc-size);
+  height: var(--disc-size);
+  aspect-ratio: 1;
+  transform:
+    translate(-50%, -50%)
+    translate(calc(-0.0666 * var(--disc-size) * var(--asm) * var(--fit)),
+              calc( 0.2427 * var(--disc-size) * var(--asm) * var(--fit)))
+    rotate(var(--spin))
+    scale(var(--fit));
+  background: transparent;
 }
-.page-hero .panel__spec dt {
-  font-size: var(--step-meta, 0.78rem);
-  letter-spacing: 0.14em;
+.page-hero .plate--disc > .frame > img { width: 100%; height: 100%; object-fit: contain; }
+
+/* The match cuts: fossil -> wheel, both turning on one angle and one centre. */
+.page-hero .disc__shell { opacity: clamp(0, calc((0.50 - var(--p, 0)) / 0.16), 1); }
+.page-hero .disc__deck  { opacity: clamp(0, calc((var(--p, 0) - 0.38) / 0.16), 1); }
+
+/* The copy hands over before the deck arrives. */
+.page-hero .plate--copy {
+  z-index: 5;
+  opacity: clamp(0, calc((0.40 - var(--p, 0)) / 0.16), 1);
+}
+
+/* The information, flanking the deck. It sits at the SIDES rather than below,
+   where it was previously running off the bottom of the viewport. */
+.page-hero .plate--panel {
+  z-index: 5;
+  opacity: clamp(0, calc((var(--p, 0) - 0.78) / 0.16), 1);
+}
+.page-hero .panel__col {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  width: min(26vw, 290px);
+}
+.page-hero .panel__col--left  { left: 5vw;  text-align: right; }
+.page-hero .panel__col--right { right: 5vw; text-align: left; }
+.page-hero .panel__col dt {
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
-  white-space: nowrap;
+  margin-top: 18px;
 }
-.page-hero .panel__spec dd { margin: 0; color: var(--fg); }
+.page-hero .panel__col dt:first-child { margin-top: 0; }
+.page-hero .panel__col dd { margin: 0; color: var(--fg); }
 
+/* Below ~1000px the deck fills the width and there is no room beside it, so
+   the columns drop under it and sit side by side instead. */
+@media (max-width: 1000px) {
+  .page-hero .panel__col {
+    top: auto;
+    /* The plate is inset -12% top AND bottom, so its bottom edge sits BELOW
+       the viewport: a bare `bottom: 4vh` put the columns off the screen. The
+       12% buys that back before the gap is applied. */
+    bottom: calc(12% + 4vh);
+    transform: none;
+    width: 42vw;
+  }
+
+  /* The assembled deck has to leave room for the columns underneath it here,
+     where they cannot sit beside it, so it eases back further than on desktop. */
+  .page-hero { --fit: calc(1 - var(--asm) * 0.44); }
+  .page-hero .panel__col--left  { left: 5vw; text-align: left; }
+  .page-hero .panel__col--right { right: 5vw; text-align: right; }
+  /* text-transform and letter-spacing are restated, not inherited: the
+     tracking guard reads each RULE, and a rule that sets a >=32px font-size
+     without them looks like normal-case display type needing negative
+     tracking. Same trap as the main .word rule. */
+  .page-hero .word {
+    top: 22%;   /* the plate's -12% inset eats more of a % at phone heights */
+    font-size: min(17vw, 150px);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+}
 
 /* The coverflow's off-center covers sit outside .cf-stage's own box by design
    (that's the fanned "peek" of the neighbours) and .cf-stage has no overflow

@@ -415,6 +415,49 @@ instead of moving it and `tests/dataEdit.test.ts` caught the repeated ids.
 
 ---
 
+## 9c. The rebuild that made it read
+
+Four faults, all named by the owner, all real:
+
+**1. "We're still using the sticker of the fossil."** The cutout was the old
+bright cyan disc while the fossil in the plane was dark and subtle, so a
+brighter, harder-edged thing appeared out of nowhere. Re-rolled FROM the plane
+itself: the cutout now measures **7 RGB** from the fossil in the ice, against
+**127** before. Matched, it stops looking applied and simply detaches.
+
+**2. "The CDJ is off-center, and the jog wheel is slightly off-center."** The
+deck had been pinned by its WHEEL, which put the wheel on the viewport centre
+and the deck body visibly to one side. The deck is now centred, full stop — and
+because the deck's wheel seat is not at the deck's centre (46.27% / 61.45% of
+its box), the wheel has to TRAVEL into it as the deck assembles: -0.0666 and
++0.2427 of `--disc-size`. Measured, not nudged. Deck centre now lands on the
+viewport centre to the pixel at 1280x800, 1440x900 and 1920x1080.
+
+**3. "The name Recursion is very opaque, you can't even see it."** It was 9%
+opacity in the dead centre, behind the deck, where it was invisible. It is now
+large at the TOP of the frame at 40%, behind the deck. `top: 18%` rather than
+10%: the plate is inset -12%, so a percentage is measured from above the
+viewport and 10% put the cap-height under the site header.
+
+**4. "On the sides you can have information about me, because right now it's
+below and it's covered."** The list moved from under the deck to two columns
+flanking it. Below 1000px there is no room beside the deck, so they drop under
+it and the deck eases back further (0.44 rather than 0.28) to leave room —
+and `bottom` there is `calc(12% + 4vh)`, because the plate's -12% inset puts
+its bottom edge below the viewport and a bare `4vh` pushed them off-screen.
+
+**The ice falls away.** `.plate--void` sits behind everything with a violet
+radial over `--bg-deep`, and the ice plane fades out across --p 0.56-0.78, so
+the deck ends on the dark violet ground the owner asked for rather than on a
+photograph it has nothing to do with.
+
+**Tracking guard, twice.** It reads each RULE, not the rendered text — so a
+media-query override that restates `font-size` above 32px without restating
+`text-transform: uppercase` reads as normal-case display type and demands
+negative tracking. Both `.word` rules declare it.
+
+---
+
 ## 10. Open — the owner's to settle
 
 **The copy.** The hero currently reads *"A name that bridges software and
