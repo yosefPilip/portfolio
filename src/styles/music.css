@@ -64,9 +64,21 @@
     var(--bg-deep);
 }
 
-/* The ice falls away once the deck has it. */
+/* The ice falls away once the deck has it.
+
+   --rate: 0 IS LOAD-BEARING and not a taste call. The shared rule makes a
+   plate's frame `100% - --rate` tall, so the inherited -90 left the frame 90px
+   taller than its plate — which put the PLANE'S CENTRE 45px below the viewport
+   centre, and made its cover scale (1.24svh + 90)/1216 while --disc-size uses
+   1.24svh/1216. Different centre and different scale, so the fossil could
+   never register against the ice behind it and the cracks carried onto it
+   could never line up. At 0 the frame is exactly the plate, the plane's centre
+   IS the viewport centre, and the cover scale is exactly what --disc-size was
+   derived from. The ice is a held backdrop that dissolves; it loses nothing by
+   not parallaxing. */
 .page-hero .plate--back {
   z-index: 1;
+  --rate: 0;
   opacity: clamp(0, calc((0.78 - var(--p, 0)) / 0.22), 1);
 }
 
