@@ -30,6 +30,17 @@ describe('music.html', () => {
     expect(disc).toBeLessThan(copy);
   });
 
+  it('puts the mixes before the bio — a promoter hears the work first', () => {
+    // Deliberate order, and worth pinning: the hero hands straight to the
+    // coverflow, and the writing sits below the work it frames.
+    const mixes = html.indexOf('id="mixes"');
+    const about = html.indexOf('id="about-music"');
+    const connect = html.indexOf('id="connect"');
+    expect(mixes).toBeGreaterThan(-1);
+    expect(mixes).toBeLessThan(about);
+    expect(about).toBeLessThan(connect);
+  });
+
   it('carries the real links', () => {
     expect(html).toContain('soundcloud.com/recursion-mp3');
     expect(html).toContain('instagram.com/recursion.mp3');

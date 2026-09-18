@@ -127,8 +127,16 @@
      360 is a requirement, not a detail: the logo rides on the platter and has
      to come to rest upright. Stopping early leaves a stretch where you are
      simply looking at a finished deck. */
-  --t: clamp(0, calc(var(--p, 0) / 0.72), 1);
-  --spin: calc((1 - (1 - var(--t)) * (1 - var(--t))) * 720deg);
+  /* TWO FULL TURNS, finished by --p 0.70, and landing on a multiple of 360 is
+     a requirement rather than a detail: the logo rides on the platter and has
+     to come to rest upright.
+
+     It waits until --p 0.12 and uses a SMOOTHSTEP rather than an ease-out, so
+     the first moments are almost still. An ease-out starts at its fastest —
+     it was already 186deg round by --p 0.10 — which meant the fossil began
+     spinning before anyone had a chance to look at it. */
+  --t: clamp(0, calc((var(--p, 0) - 0.12) / 0.58), 1);
+  --spin: calc(var(--t) * var(--t) * (3 - 2 * var(--t)) * 720deg);
   /* NO opacity ramp. The cutout is on the page at full opacity from the moment
      it loads — it IS the fossil you see sitting in the ice, not a second one
      that arrives. Fading it in was the bug: the plane carried its own embedded
@@ -158,10 +166,14 @@
 .page-hero .disc__shell { opacity: clamp(0, calc((0.50 - var(--p, 0)) / 0.16), 1); }
 .page-hero .disc__deck  { opacity: clamp(0, calc((var(--p, 0) - 0.38) / 0.16), 1); }
 
-/* The copy hands over before the deck arrives. */
+/* The title fades OUT ON THE SPOT rather than drifting upward, and it goes
+   fast — the point is to get out of the way quickly so you see the fossil
+   itself, sitting in the ice, before anything starts turning. --rate: 0 is
+   what stops it travelling; the base .plate--copy carries -260. */
 .page-hero .plate--copy {
   z-index: 5;
-  opacity: clamp(0, calc((0.40 - var(--p, 0)) / 0.16), 1);
+  --rate: 0;
+  opacity: clamp(0, calc((0.10 - var(--p, 0)) / 0.08), 1);
 }
 
 /* The information, flanking the deck. It sits at the SIDES rather than below,
