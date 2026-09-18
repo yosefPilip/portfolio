@@ -4,33 +4,66 @@
 @import './coverflow.css';
 @import './layout.generated.css';
 
-.page-hero { --stack-h: 180vh; }
+.page-hero { --stack-h: 180vh; --disc-size: min(52vmin, 620px); }
 .page-hero .plate--copy { text-align: center; }
 .page-hero .lede { margin-inline: auto; }
 
-/* cave-near is dark cave rock shot on a flat white ground; multiply removes
-   the white arithmetically instead of relying on an AI alpha cutout. Scoped
-   to this one slot on purpose — a sitewide .plate--front rule would silently
-   turn on white-removal for every other front plate on the site, including
-   ones with no image yet that may not be shot on white. Must target .plate
-   itself, not .frame inside it: .plate sets will-change: transform, which
-   creates a stacking context, and a blend mode on a descendant only
-   composites against other descendants of that same plate — never against
-   the plates behind it. Same reasoning as #arrive .plate--front.
+/* ── The spiral ──────────────────────────────────────────────────────────
+   The hero is a held plane of ice with the ammonite centred on it and the
+   title over the top. Three layers, and the ORDER is the point: the disc sits
+   between the ice and the copy, so bone type reads over the spiral rather
+   than the spiral covering it. That needs the copy above the disc, which the
+   base z-order does not give us — .plate--copy is z2 and anything added would
+   land on z3, over the title. So both are declared here explicitly. */
+.page-hero .plate--disc { z-index: 2; --rate: -170; }
+.page-hero .plate--copy { z-index: 3; }
 
-   A Tier 3 alpha conversion was tried here and REVERTED at the owner's call:
-   it buried the title completely, but the end of the travel became a
-   full-screen wall of grey boulders that hid cave-far's crystals entirely
-   and did not read as the same cave. The trade-off and the two source floors
-   behind it are written up in docs/image-slots.md; do not re-attempt it
-   without a flatter, darker, sharper source than roll-cave-near-04. */
-.page-hero .plate--front { mix-blend-mode: multiply; }
+/* The disc is a centred SQUARE, not a full-bleed plate, so it cannot use the
+   shared `.plate > .frame` sizing. aspect-ratio is set to 1 deliberately and
+   not left to inherit: base.css defaults every .frame to 3/2, and stack.css
+   only cancels that for direct children of .plate — a nested frame silently
+   keeps the default and renders short. That exact trap cost a round on the
+   Workshop doorway; it is written down here so it does not cost another. */
+.page-hero .plate--disc > .frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--disc-size);
+  height: var(--disc-size);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background: transparent;
+}
+.page-hero .plate--disc > .frame > img { width: 100%; height: 100%; object-fit: contain; }
 
-/* Structural, so it lives here and not in layout.generated.css, which the
-   panel rewrites wholesale on every Save. Without it the frame's --bg-deep
-   fill paints over cave-far before the blend can run and the stack goes
-   flat black. (0,3,0) also out-specifies the (0,2,0) the panel emits. */
-.page-hero .plate--front > .frame { background: transparent; }
+/* The title sits ON the spiral and the lede sits BELOW it, which is a
+   legibility decision, not a taste one. Measured over the disc at 1440x900:
+   the h1 reads 6.15:1 against its backdrop, comfortably past the 3:1 floor
+   display type needs — but the lede is small AND a muted colour, and it only
+   reached 3.47:1 against the 4.5:1 body-text floor even after the disc's core
+   was graded down. Darkening the disc far enough to fix it would have killed
+   the thing the page is about. So the one line steps off the disc onto the
+   dark ice instead, which costs nothing and fixes it outright.
+
+   It is PINNED to the disc's own radius rather than nudged by a tuned
+   offset. The first version used a multiple of --disc-size that cleared at
+   1440x900 and overlapped at 390x844 and 744x1000 — one number tuned at one
+   viewport, which is the bug this formulation cannot have. The plate's 50% is
+   the viewport centre (the plate is inset -12% top and bottom), the disc is
+   centred on it, so disc-bottom is exactly 50% + half the diameter. */
+/* NOTE: .plate--copy is NOT given position: relative here. It is already
+   position: absolute from .plate, which makes it a containing block already —
+   and re-declaring it relative pulls the whole plate out of its inset and
+   sends the copy to the top of the section. Measured: the lede jumped from
+   below the disc to y=117. */
+.page-hero .lede {
+  position: absolute;
+  top: calc(50% + var(--disc-size) / 2 + clamp(18px, 3vh, 34px));
+  left: 50%;
+  width: min(92%, 52ch);
+  transform: translateX(-50%);
+  margin: 0;
+}
 
 /* The coverflow's off-center covers sit outside .cf-stage's own box by design
    (that's the fanned "peek" of the neighbours) and .cf-stage has no overflow

@@ -14,10 +14,20 @@ describe('music.html', () => {
     expect(html).toContain('id="coverflow-root"');
   });
 
-  it('uses a three-layer cave hero, not the six-layer one', () => {
+  it('uses the three-layer spiral hero, not the six-layer one', () => {
+    // The cave hero was replaced by the ice plane and the ammonite. The
+    // order is load-bearing and not decorative: the disc must sit BETWEEN
+    // the ice and the copy, or the spiral covers the title instead of the
+    // title reading over the spiral.
     expect(html).toContain('plate--back');
-    expect(html).toContain('plate--front');
+    expect(html).toContain('plate--disc');
+    expect(html).toContain('plate--copy');
     expect(html).not.toContain('plate--trunks');
+    const back = html.indexOf('plate--back');
+    const disc = html.indexOf('plate--disc');
+    const copy = html.indexOf('plate--copy');
+    expect(back).toBeLessThan(disc);
+    expect(disc).toBeLessThan(copy);
   });
 
   it('carries the real links', () => {

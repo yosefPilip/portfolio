@@ -40,7 +40,7 @@ moment instead of three.
 
 ## 2. The idea
 
-An ammonite — a fossil spiral — frozen in glacial ice. It lifts out of the wall,
+An ammonite — a fossil spiral — frozen in a wall of blue ice. It lifts out,
 centres, turns, and **becomes a jog wheel**.
 
 Why this and not a prettier cave: the ammonite is a logarithmic spiral, chambered,
@@ -61,16 +61,16 @@ rather than a themed backdrop.
 The scene is HELD. Only the sticker turns. The copy never rotates.
 
 ```
-notch 0-2    glacial chamber, cold and still, violet-blue translucence.
-             An ammonite sits frozen in the ice wall, off centre.
+notch 0-2    a face-on wall of deep blue transparent ice, cold and still.
+             An ammonite imprint sits frozen inside it, off centre.
              <h1>Recursion</h1> over it.
 
-notch 2-7    the shell releases from the wall, drifts to centre, and
-             begins to turn. The chamber dims and desaturates behind it
+notch 2-7    the imprint releases from the ice, drifts to centre, and
+             begins to turn. The ice dims and desaturates behind it
              so the spiral is unambiguously the subject.
 
 notch 7-9    mid-rotation cross-fade. The whorl becomes a brushed
-             platter; the chamber walls become radial grain; a violet
+             platter; the fossil's ribs become the dimpled rim; a violet
              ring lights the rim. Both layers are turning at the same
              rate through the swap, so it reads as one object changing
              rather than two pictures dissolving.
@@ -123,18 +123,36 @@ spin is **capped at 30deg total** and the cross-fade carries the change instead.
 
 ## 5. Images — three slots
 
-| slot | tier | what |
-|---|---|---|
-| `ammonite` | 3 real alpha | the shell alone on transparent ground, square-on, centred |
-| `ice-chamber` | 1 opaque | the held scene, with the shell frozen in the wall |
-| `jog-wheel` | 3 real alpha | the platter alone, square-on, centred |
+| slot | tier | size | what | reference |
+|---|---|---|---|---|
+| `ammonite` | 3 real alpha | 1024x1024 | the fossil imprint alone on transparent ground, square-on, centred | `Fossil.jpg` |
+| `ice-plane` | 1 opaque | 1536x1216 | the held scene: a face-on wall of blue ice with the imprint frozen in it | `ICE.jpg` + the `ammonite` roll |
+| `jog-wheel` | 3 real alpha | 1024x1024 | the platter alone, square-on, centred | `ref-jogwheel.png` |
+
+**The owner supplied all three references, and they changed the scene for the
+better.** `ICE.jpg` is a flat plane of cracked blue ice seen FACE-ON, not a cave
+interior — and that is the stronger stage. A held flat plane does not compete
+with the spinning disc for attention, the way a deep chamber would; the imprint
+sits flat so the shell lifts straight out toward camera rather than out of a wall
+at an angle; and it avoids the glowing-ice-cave stock trope entirely. **The scene
+is therefore a wall of deep blue transparent ice, lit from behind, not a
+chamber.** This supersedes "glacial chamber" everywhere above.
+
+`ref-jogwheel.png` is a square platter-only crop taken from the owner's
+`CDj.webp` (a Pioneer CDJ-3000, whole unit) so the model is shown the wheel and
+not the deck. Keep from it: the dimpled outer ring, the chrome bezel, the flat
+dark platter, the small centred hub. Drop: every piece of branding and lettering,
+and the multicolour centre display, which becomes the violet ring instead.
+
+`Fossil.jpg` and `ICE.jpg` both carry stock watermarks. They are references only,
+are never referenced by a built page, and are **not deleted** — Ruling 10.
 
 **Generation order is load-bearing.** The owner chose *embedded in the ice, then
 lifts out*, which means the shell exists twice — loose, and frozen in the wall —
 and there is **no seed**. So:
 
-1. Generate `ammonite` **first**, loose on transparent ground.
-2. Generate `ice-chamber` with `--ref` on that file, so the fossil in the wall is
+1. Generate `ammonite` **first**, as an imprint on transparent ground.
+2. Generate `ice-plane` with `--ref` on that file, so the fossil in the ice is
    the same fossil. This is the `cottage-face` lesson: `--ref` on
    `cottage-far.webp` is what made the facade read as the same building.
 3. Generate `jog-wheel` last, matched to the shell's diameter and whorl direction.
@@ -147,17 +165,23 @@ constraint that improves the image, not a compromise.
 
 *Gates.* `ammonite` and `jog-wheel` go through `tools/whitepoint.py --alpha` and
 must reach the matte quality `ridge-near` shipped at (partial alpha well under
-1%). `ice-chamber` carries the title band and is measured against bone for
+1%). `ice-plane` carries the title band and is measured against bone for
 contrast the way every opaque plate is. Both discs are additionally gated on
 **circularity and concentricity** — the bounding box must be square to within 2%
 and the centroid within 1% of the box centre, or the cut will wobble as it turns.
 A new `tools/disc.py` does that measurement, in the same family as
 `tools/doorway.py`: numbers re-derivable from the file, never eyeballed.
 
-*Palette.* Violet-blue ice throughout, never white. Projects already owns snow —
-an exterior, distant, slate-grey ridgeline — and this room must not read as the
-same material. If the ice ever reads white it is wrong. Saturated violet also
-keeps it clear of the glowing-ice-cave stock trope.
+*Palette.* Deep blue transparent ice with white fracture planes, per the owner's
+reference — never white overall, and never a pale glacier. Projects already owns
+snow (exterior, distant, slate-grey), and this room must not read as the same
+material; saturated blue at close range is what separates them.
+
+**The orchid lives in the LIGHT, not in the ice.** The ice keeps its natural blue
+in the photograph; violet arrives as the glow behind the fossil, the platter's
+ring, and the UI accent. That is the site's standing rule — colour in the images,
+accent in the chrome — and it is also simply what lit ice looks like. Do not
+prompt the ice itself violet.
 
 ---
 
@@ -214,7 +238,49 @@ beat of this move gets looked at in the page before it is called done.
 
 ---
 
-## 9. Open — the owner's to settle
+## 9. Built so far, and where it diverged from the above
+
+The first beat is on the page: the ice plane as the background, the ammonite
+centred on it, the title over it. Three layers — `plate--back`, `plate--disc`,
+`plate--copy` — with the disc deliberately BETWEEN the ice and the copy so the
+title reads over the spiral rather than the spiral covering the title. The
+rotation and the match cut are not built yet.
+
+**Two owner-directed divergences from §3 and §5, recorded because the spec is
+otherwise now wrong:**
+
+1. **The fossil is ICE, not stone.** The first roll came back as pale
+   limestone, per the reference. The owner: *"it should be part of the ice,
+   the ammonite shape should be imprinted into the blue ice... the limestone
+   seems a little out of place in that scene."* Re-rolled with the limestone
+   roll as `--ref` so the geometry survived and only the material changed:
+   warmth went from +16 to **-110.7** R-B, and the disc still gates clean
+   (aspect 0.996, centroid 0.499/0.500, matte 0.42% partial).
+2. **The plane is CLEAN and the disc is a centred sticker** — the imprint is
+   not embedded in the ice and does not lift out of it. The owner asked for
+   the plane as background with the fossil centred over it. If the lift-out is
+   ever wanted back, the plane needs a second version carrying the imprint.
+
+**A third change was forced by measurement, not preference.** The lede is
+small and a muted colour, and over the disc it reached only 3.47:1 against the
+4.5:1 body-text floor even after the disc's core was graded down 118 -> 70.
+The h1 was fine at 6.15:1, since display type only needs 3:1. So the title
+stays on the spiral and the lede steps below it onto the dark ice, where it
+measures **8.41:1**. It is pinned to `calc(50% + var(--disc-size)/2 + ...)`
+rather than nudged by a tuned offset — the first attempt used a multiplier
+that cleared at 1440x900 and overlapped at 390x844 and 744x1000. Verified
+24-32px of clearance at five viewports.
+
+**Known trade:** the plane's bright fractures are deliberately concentrated at
+the frame edges to keep the centre quiet for the title, and at 390x844 only
+the centre ~31% of the source survives the cover crop — so the mobile
+background is plainer than the desktop one. Judged acceptable: the spiral is
+the subject and the copy is legible. Pulling fractures inward would busy the
+title band on desktop, which is the worse trade.
+
+---
+
+## 10. Open — the owner's to settle
 
 **The copy.** The hero currently reads *"A name that bridges software and
 sound."*, written before the page had a spiral in it. It is unchanged in this
@@ -223,5 +289,5 @@ the shell becomes the deck carries a line of its own, or no words at all, is
 also his call. He writes his own copy; nothing here drafts a replacement.
 
 **Spend.** Three explore rolls, roughly **$0.05**, plus possibly one final for
-`ice-chamber`. Per CLAUDE.md §7 a costed slot list goes to the owner and waits
+`ice-plane`. Per CLAUDE.md §7 a costed slot list goes to the owner and waits
 for a yes before anything is generated, and then one image at a time.
