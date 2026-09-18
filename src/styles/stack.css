@@ -239,21 +239,20 @@
    sight: the bottom just went muddy. The fog thinning above is the whole of
    the light change; darkening the other end to "balance" it is the kind of
    symmetry that reads as grading rather than as light. */
-/* plate--mid is GONE. It was a pair of big black palm silhouettes flanking the
+/* (see the note above: both side-foliage plates removed.) plate--mid was It was a pair of big black palm silhouettes flanking the
    frame, and the owner wanted the sides decluttered: "the side still has big
    black silhouettes of palm trees, I need all that gone." Removing it rather
    than re-rolling it also buys back a layer of clutter for nothing. The z
    indexes below close the gap, because stack-depth.test.ts requires them
    contiguous as well as ordered. */
 .hero .plate--name { z-index: 3; --rate: -250; display: grid; place-content: center; }
-.hero .plate--near { z-index: 4; --rate: -350; }
 /* The undergrowth sits between the nearest photographic layer and the floor
    scrim, and climbs faster than the name plate (-250), which is the whole
    point: the wordmark sinks behind it instead of everything drifting together.
    --low moves to z7 and -520 to keep the depth order strictly increasing,
    which tests/stack-depth.test.ts enforces along with contiguous z. */
-.hero .plate--shrub { z-index: 5; --rate: -440; }
-.hero .plate--low  { z-index: 6; --rate: -520; pointer-events: none; }
+.hero .plate--shrub { z-index: 4; --rate: -440; }
+.hero .plate--low  { z-index: 5; --rate: -520; pointer-events: none; }
 
 /* Only .plate--far is an opaque photograph. Everything above it ships opaque
    on pure white and is composited arithmetically: result = backdrop x source,
@@ -285,15 +284,9 @@
    multiply had been making them. */
 
 /* .frame paints var(--bg-deep) so a missing image reads as a dark labelled
-   placeholder. Under multiply an opaque dark ground would crush the whole
-   hero to black, so these two frames stay transparent. */
-.hero .plate--near .frame,
+   placeholder. The undergrowth is an alpha cutout, so an opaque dark ground
+   behind it would show as a rectangle around the leaves. */
 .hero .plate--shrub .frame { background: transparent; }
-
-/* While a slot is still empty the labelled placeholder must stay legible, so
-   the blend switches off for that plate rather than multiplying a dashed
-   border into the forest. Restores itself the moment a real file lands. */
-.hero .plate--near:has(.frame.is-missing) { mix-blend-mode: normal; }
 
 .hero-wordmark {
   font-family: var(--font-display);
@@ -355,7 +348,6 @@
   .hero .plate--far  { --rate: -36; }
   .hero .plate--fog  { --rate: -70; }
   .hero .plate--name { --rate: -150; place-content: center start; padding-inline: var(--gutter); }
-  .hero .plate--near { --rate: -215; }
   .hero .plate--shrub { --rate: -270; }
   .hero .plate--low  { --rate: -320; }
   #ridge .plate--back  { --rate: -54; }
