@@ -300,6 +300,35 @@ title band on desktop, which is the worse trade.
 
 ---
 
+**The spin and the match cut are built.** Both discs carry one `--spin`, sit on
+one centre, and `tools/disc.py` measured their diameters as matching to within
+**0.1%**, so the cut needed no correction at all. 300deg rather than a full
+turn: 360 lands back where it started and reads as nothing having happened.
+
+**The pull-back does double duty.** The embedded fossil renders about 1111px
+across at 1440x900 — wider than the viewport is tall — and the owner flagged it:
+*"I feel like the fossil a little too big especially for transition."* Rather
+than shrink it, the free disc fades up at 2.45x and settles to 1.0 across the
+release, so the frozen pattern in the wall resolves into something hand-sized.
+The size he objected to is what the move now spends.
+
+Two corrections made in the browser, neither visible in a still:
+
+- **The disc carries no `--rate`.** It had -170, which drifted it upward while
+  the copy drifted faster, and at --p 1 it had climbed behind the title instead
+  of coming to rest. It is the subject and it settles, so it does not parallax.
+- **The copy hands over.** It is readable over the frozen spiral at rest, which
+  is what the layer order is for — but by the end it lay across the platter. It
+  now clears by --p 0.46 and lets the deck finish alone.
+
+**`--stack-h` is 220vh and time-to-content measures 14 notches**, against the
+~11 this spec targeted and the 18 the Workshop dolly costs. The extra runway is
+what stops the transformation feeling rushed. Still 4 notches under Workshop and
+the page now carries a full transformation rather than a static hero; if 14 is
+judged too long, trimming to ~190vh returns roughly 12.
+
+---
+
 ## 10. Open — the owner's to settle
 
 **The copy.** The hero currently reads *"A name that bridges software and
