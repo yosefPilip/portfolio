@@ -360,6 +360,61 @@ surface touched thousands of times). Violet blended onto orchid at distance
 
 ---
 
+## 9b. The payoff — the deck, and the information
+
+The owner, on the version that stopped at a spinning wheel: *"there's still no
+transition, that's just a cool animation. I need it to somehow transition into
+the rest of the page."* He was right — the move ended nowhere. Workshop works
+because it delivers you somewhere and the headline is waiting.
+
+So the wheel now assembles into a full deck, and the page's essential
+information arrives with it:
+
+```
+--p 0.00-0.10   dark blue ice, the fossil dead centre, part of the ice
+--p 0.10-0.52   the fossil lifts free and turns, becoming a jog wheel
+--p 0.40-0.72   the wheel resolves; the spin eases to a stop
+--p 0.54-0.80   the deck body grows AROUND the still-turning wheel, and the
+                whole assembly eases back so the finished unit fits the frame
+--p 0.76-0.92   RECURSION behind, and ALIAS / SOUND / ALSO / FIND ME below
+```
+
+**The deck grows around the wheel rather than replacing it.** One less morph to
+get wrong, and the thing that was the fossil never stops being the thing you are
+watching.
+
+**The spin lands on exactly 720deg, and that is a requirement rather than a
+detail.** The owner's logo rides on the platter, so the wheel has to come to
+rest with the mark upright; any angle that is not a multiple of 360 leaves it
+tilted forever. It is eased out (`1-(1-t)^2`) and finishes at --p 0.72, so there
+is a stretch where you are simply looking at a finished deck.
+
+**Three numbers place the deck, all measured.** Its violet ring is 0.4622 of its
+width and the wheel's is 0.825 of its own, so the wheel renders at 0.5603 of the
+deck width — the deck is `--disc-size x 1.7848`. Its wheel centre sits at
+46.27% / 61.45% of its box, which is both the offset and the transform-origin,
+so the pull-back pivots on the wheel instead of sliding the deck off it.
+Verified to fit the viewport at 1280x800, 1440x900, 1920x1080 and 390x844.
+
+**The logo is the owner's own mark**, keyed off its black ground and composited
+onto the platter face at 46% of the wheel's diameter — sized like a record
+label, because in the hub its circling RECURSION text would be illegible. Tinted
+to the wheel's own icy highlight rather than pure white.
+
+**The deck is built from this room rather than dropped into it.** The previous
+wheel was charcoal and magenta on blue ice and read as two different worlds. Both
+the wheel and the deck are now blue-black (mean RGB 25/34/54 against the plane's
+6/39/76), lit as though lying on lit ice, violet restrained to a ring and a few
+pads. Clay proximity: **0.000%** of the deck within 60 of `#cf6b3e`.
+
+**The information moved rather than being copied.** The `Alias / Sound / Also`
+list and the links are lifted OUT of the sections below into the hero, so a
+promoter gets the name, the sound and where to hear it before scrolling at all.
+The prose stays below the work it frames. A first attempt duplicated the list
+instead of moving it and `tests/dataEdit.test.ts` caught the repeated ids.
+
+---
+
 ## 10. Open — the owner's to settle
 
 **The copy.** The hero currently reads *"A name that bridges software and

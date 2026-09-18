@@ -13,6 +13,13 @@
    1.24svh/1216). Folded out, that is exactly the max() below, and it tracks
    within a pixel at 1280x800, 1440x900, 1920x1080, 390x844 and 744x1000. */
 .page-hero { --stack-h: 220vh; --disc-size: max(24.02vw, 35.49svh); }
+
+/* Once the deck has assembled it is 2.12 x --disc-size tall, which overflows
+   the viewport and pushes the info list off the bottom. So the whole assembly
+   eases back as the body arrives — you step away to take in the finished unit.
+   BOTH the wheel and the deck use this, and both pivot about the wheel centre,
+   or the deck would slide off the wheel as it shrank. */
+.page-hero { --fit: calc(1 - clamp(0, calc((var(--p, 0) - 0.54) / 0.26), 1) * 0.30); }
 .page-hero .plate--copy { text-align: center; }
 .page-hero .lede { margin-inline: auto; }
 
@@ -42,10 +49,16 @@
      upward on a rate fought that, and at --p 1 it had climbed behind the
      title instead of coming to rest in the middle of the frame. */
   --rate: 0;
-  /* One angle for BOTH discs, so the cross-fade cannot slip. 300deg rather
-     than a whole turn: a full 360 lands back where it started and reads as
-     nothing having happened. */
-  --spin: calc(var(--p, 0) * 300deg);
+  /* TWO FULL TURNS, eased out, finished by --p 0.72 — and landing on exactly
+     720deg is the requirement, not a detail. The owner's logo rides on the
+     platter, so the wheel must come to rest with it upright; any angle that
+     is not a multiple of 360 leaves the mark tilted forever. The spin also
+     has to STOP before the travel ends, so there is a stretch where you are
+     simply looking at a finished deck.
+       t   = progress through the spin, 0 at rest, 1 by --p 0.72
+       out = 1-(1-t)^2, a quadratic ease-out, so it decelerates into place */
+  --t: clamp(0, calc(var(--p, 0) / 0.72), 1);
+  --spin: calc((1 - (1 - var(--t)) * (1 - var(--t))) * 720deg);
   /* NO scale change, and that is the point. The cutout is the same size as
      the fossil already frozen in the plane, so when it fades up it lands
      exactly on top of it and the swap is invisible — what you see is the
@@ -67,7 +80,7 @@
    platter, so it clears out once the transformation is underway and lets the
    deck finish alone. */
 .page-hero .plate--copy {
-  z-index: 3;
+  z-index: 4;
   opacity: clamp(0, calc((0.46 - var(--p, 0)) / 0.18), 1);
 }
 
@@ -84,7 +97,7 @@
   width: var(--disc-size);
   height: var(--disc-size);
   aspect-ratio: 1;
-  transform: translate(-50%, -50%) rotate(var(--spin));
+  transform: translate(-50%, -50%) rotate(var(--spin)) scale(var(--fit));
   background: transparent;
 }
 .page-hero .plate--disc > .frame > img { width: 100%; height: 100%; object-fit: contain; }
@@ -94,8 +107,84 @@
    to within 0.1%, so the swap reads as one object changing rather than two
    pictures dissolving. The window is mid-rotation on purpose — cutting while
    the thing is moving is what hides the seam. */
-.page-hero .disc__shell { opacity: clamp(0, calc((0.68 - var(--p, 0)) / 0.16), 1); }
-.page-hero .disc__deck  { opacity: clamp(0, calc((var(--p, 0) - 0.52) / 0.16), 1); }
+.page-hero .disc__shell { opacity: clamp(0, calc((0.52 - var(--p, 0)) / 0.16), 1); }
+.page-hero .disc__deck  { opacity: clamp(0, calc((var(--p, 0) - 0.40) / 0.16), 1); }
+
+/* ── The deck grows around the wheel ──────────────────────────────────────
+   Sized and placed from measurements, not by eye. The deck's own violet ring
+   is 0.4622 of its width and ours is 0.825 of ours, so our wheel renders at
+   0.5603 of the deck width — i.e. the deck is --disc-size x 1.7848. Its wheel
+   centre sits at 46.27% / 61.45% of its own box, so the deck is offset by
+   exactly that much to put its wheel on the viewport centre, where the fossil
+   was. Get any of those three numbers wrong and the deck sits around the
+   wheel crooked, which is the one failure that would be obvious instantly. */
+.page-hero .plate--deck {
+  z-index: 1;
+  --deck-w: calc(var(--disc-size) * 1.7848);
+  opacity: clamp(0, calc((var(--p, 0) - 0.56) / 0.18), 1);
+}
+.page-hero .plate--deck > .frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--deck-w);
+  height: calc(var(--deck-w) / 0.8421);
+  aspect-ratio: auto;
+  transform-origin: 46.27% 61.45%;   /* the wheel centre, so the fit pivots there */
+  transform: translate(-46.27%, -61.45%) scale(var(--fit));
+  background: transparent;
+}
+.page-hero .plate--deck > .frame > img { width: 100%; height: 100%; object-fit: fill; }
+
+/* ── The information, once the deck has arrived ───────────────────────────
+   This is the spec list and the links lifted out of the sections below, so a
+   promoter gets the name, the sound and where to hear it before scrolling at
+   all. RECURSION sits behind everything as a large graphic word; the list
+   sits under the deck where it cannot fight the wheel for attention. */
+.page-hero .plate--panel {
+  z-index: 3;
+  opacity: clamp(0, calc((var(--p, 0) - 0.76) / 0.16), 1);
+}
+.page-hero .panel__word {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: min(21vw, 260px);
+  line-height: 1;
+  /* The word is typed in caps in the markup, but the tracking guard reads the
+     CSS, not the content — without this declaration it sees a 260px rule with
+     positive tracking and asks for negative. Declaring it is also just true. */
+  text-transform: uppercase;
+  letter-spacing: 0.08em;     /* uppercase >=32px needs >=0.06em positive */
+  color: var(--fg);
+  opacity: 0.09;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.page-hero .panel__spec {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--disc-size) * var(--fit) * 1.02);
+  transform: translateX(-50%);
+  width: min(92vw, 640px);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 22px;
+  margin: 0;
+  text-align: left;
+}
+.page-hero .panel__spec dt {
+  font-size: var(--step-meta, 0.78rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.page-hero .panel__spec dd { margin: 0; color: var(--fg); }
+
 
 /* The coverflow's off-center covers sit outside .cf-stage's own box by design
    (that's the fanned "peek" of the neighbours) and .cf-stage has no overflow
