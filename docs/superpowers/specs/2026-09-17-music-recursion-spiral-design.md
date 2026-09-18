@@ -305,7 +305,7 @@ one centre, and `tools/disc.py` measured their diameters as matching to within
 **0.1%**, so the cut needed no correction at all. 300deg rather than a full
 turn: 360 lands back where it started and reads as nothing having happened.
 
-**The pull-back does double duty.** The embedded fossil renders about 1111px
+**SUPERSEDED — the pull-back is gone; see below.** The pull-back did double duty. The embedded fossil renders about 1111px
 across at 1440x900 — wider than the viewport is tall — and the owner flagged it:
 *"I feel like the fossil a little too big especially for transition."* Rather
 than shrink it, the free disc fades up at 2.45x and settles to 1.0 across the
@@ -326,6 +326,37 @@ Two corrections made in the browser, neither visible in a still:
 what stops the transformation feeling rushed. Still 4 notches under Workshop and
 the page now carries a full transformation rather than a static hero; if 14 is
 judged too long, trimming to ~190vh returns roughly 12.
+
+---
+
+**The BACKGROUND turns into the deck, which is not the same thing as a disc
+appearing over it.** The owner: *"I want the actual background to change into
+the CDJ scroll wheel. Right now you put on the other sticker. So make the
+background smaller, but also make it fit with the background."*
+
+Shrinking the embedded fossil made the pull-back unnecessary and the illusion
+far stronger. The fossil in the plane is now a modest medallion rather than a
+frame-filling pattern, and the cutout lands on it **exactly**, so the fade-up is
+invisible and what you watch is the ice itself beginning to turn.
+
+`--disc-size` is therefore MEASURED, not chosen. An angular-roughness sweep puts
+the embedded fossil at **348px across in a 1536x1216 source** (28.6% of its
+height); the plane is cover-fit, so its on-screen diameter is
+`348 x max(1.06vw/1536, 1.24svh/1216)`, which folds to `max(24.02vw, 35.49svh)`.
+Verified in-browser: **0px delta at 1280x800, 1920x1080, 390x844 and 744x1000.**
+
+The plane also dims far less now (0.3 rather than 0.55) — the embedded fossil is
+hidden UNDER the cutout instead of competing beside it, so the ice only has to
+recede, not get out of the way.
+
+**The wheel was re-rolled: the first one was cartoony and read as a side view.**
+Its dimples were shaded like spheres and the hub was beveled, which together
+implied a camera off the axis. The second roll is prompted as a photograph
+rather than a render — orthographic from directly overhead, no side wall or
+outer casing visible anywhere, shallow dimples with only faint even shading,
+and real wear (micro-scratches, uneven anodising, dust, the dulling of a
+surface touched thousands of times). Violet blended onto orchid at distance
+**22**. Gates: aspect 1.003, centroid 0.500/0.500.
 
 ---
 

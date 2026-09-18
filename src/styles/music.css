@@ -4,7 +4,15 @@
 @import './coverflow.css';
 @import './layout.generated.css';
 
-.page-hero { --stack-h: 220vh; --disc-size: min(44vmin, 540px); }
+/* --disc-size is MEASURED, not chosen. The free cutout has to land exactly on
+   the fossil frozen in the plane, because the owner's ask is that the
+   background itself turns into the deck — not that a second disc appears over
+   it. tools/disc.py-style angular-roughness measurement puts the embedded
+   fossil at 348px across in a 1536x1216 source (28.6% of its height), and the
+   plane is cover-fit, so its on-screen diameter is 348 x max(1.06vw/1536,
+   1.24svh/1216). Folded out, that is exactly the max() below, and it tracks
+   within a pixel at 1280x800, 1440x900, 1920x1080, 390x844 and 744x1000. */
+.page-hero { --stack-h: 220vh; --disc-size: max(24.02vw, 35.49svh); }
 .page-hero .plate--copy { text-align: center; }
 .page-hero .lede { margin-inline: auto; }
 
@@ -38,20 +46,22 @@
      than a whole turn: a full 360 lands back where it started and reads as
      nothing having happened. */
   --spin: calc(var(--p, 0) * 300deg);
-  /* The release. It fades up out of the embedded fossil, which renders about
-     1111px across at 1440x900 — wider than the viewport is tall — and settles
-     to --disc-size. The pull-back IS the transition: the frozen pattern in the
-     wall resolves into something hand-sized you could actually put a finger on.
-     It also answers the owner's note that the fossil felt too big: it is, at
-     rest, deliberately, and the move is what resolves it. */
-  --release: clamp(0, calc(var(--p, 0) / 0.55), 1);
-  --pull: calc(2.45 - var(--release) * 1.45);
-  opacity: clamp(0, calc(var(--p, 0) / 0.18), 1);
+  /* NO scale change, and that is the point. The cutout is the same size as
+     the fossil already frozen in the plane, so when it fades up it lands
+     exactly on top of it and the swap is invisible — what you see is the
+     BACKGROUND beginning to turn, not a second disc arriving over it. An
+     earlier version had the cutout fade up at 2.45x and shrink, because the
+     embedded fossil was then frame-filling; shrinking the fossil instead made
+     the pull-back unnecessary and the illusion much stronger. */
+  opacity: clamp(0, calc(var(--p, 0) / 0.10), 1);
 }
 
 /* The ice dims as the disc takes over, so the embedded fossil stops competing
    with the free one. Without this you see the spiral twice at once. */
-.page-hero .plate--back { opacity: calc(1 - clamp(0, calc(var(--p, 0) / 0.45), 1) * 0.55); }
+/* The ice dims a little as the deck takes over, but far less than before: the
+   embedded fossil is now hidden UNDER the cutout rather than competing beside
+   it, so the plane only needs to recede, not get out of the way. */
+.page-hero .plate--back { opacity: calc(1 - clamp(0, calc(var(--p, 0) / 0.5), 1) * 0.3); }
 /* The copy hands over. It is readable over the frozen spiral at rest, which
    is the point of the layer order — but by the end it is lying across the
    platter, so it clears out once the transformation is underway and lets the
@@ -74,7 +84,7 @@
   width: var(--disc-size);
   height: var(--disc-size);
   aspect-ratio: 1;
-  transform: translate(-50%, -50%) scale(var(--pull)) rotate(var(--spin));
+  transform: translate(-50%, -50%) rotate(var(--spin));
   background: transparent;
 }
 .page-hero .plate--disc > .frame > img { width: 100%; height: 100%; object-fit: contain; }
