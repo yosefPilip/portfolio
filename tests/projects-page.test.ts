@@ -135,3 +135,30 @@ describe('projects.html', () => {
     expect(html).toMatch(/<div class="cs-overlay"[^>]*\sdata-lenis-prevent[\s>]/);
   });
 });
+
+describe('the ridge hero on a phone', () => {
+  const css = readFileSync('src/styles/projects.css', 'utf8');
+
+  it('centres the back plate below the mobile breakpoint', () => {
+    /* The panel framed ridge-far at `object-position: 20.58% 53.4%`. Across a
+       wide viewport that is fine; on a phone a 3:2 source in a tall plate
+       keeps only the middle sliver of its width, so that pan landed the crop
+       on open snowfield and the bone title sat on near-white. Reported from
+       the live site.
+
+       This lives in projects.css rather than layout.generated.css because the
+       generated file is rewritten wholesale from the panel's localStorage on
+       every Save, so a fix made there lasts until the next one. */
+    const blocks = css.match(/@media \(max-width: 744px\)[\s\S]*?\n\}/g) ?? [];
+    const block = blocks.join(' ');
+    expect(block, 'a max-width: 744px block in projects.css').toContain('ridge-far');
+    expect(block).toMatch(/object-position:\s*50%/);
+  });
+
+  it('leaves the desktop framing to the panel', () => {
+    // The override must stay inside the media query: the wide-viewport value
+    // is the owner's own framing decision and is not ours to overwrite.
+    const outsideMedia = css.replace(/@media[\s\S]*?\n\}/g, '');
+    expect(outsideMedia).not.toContain('ridge-far');
+  });
+});

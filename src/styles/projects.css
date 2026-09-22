@@ -282,3 +282,22 @@ body.is-overlay-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   #ridge .plate--haze::after { animation: none; }
 }
+
+/* ── the ridge's back plate, on a phone ──
+   The panel framed this plate at `object-position: 20.58% 53.4%`, which is
+   fine across a wide viewport. On a phone it is not: a 3:2 source in a tall
+   plate keeps only the middle sliver of its width, so a pan that far left
+   lands the crop on an open snowfield and the bone title sits on near-white
+   with nothing behind it.
+
+   Centred here rather than in layout.generated.css on purpose. That file is
+   regenerated wholesale from the panel's localStorage on every Save, so a
+   hand-edit there survives exactly until the next one. This rule lives in a
+   real stylesheet, carries an extra id so it outranks the generated one, and
+   sits after it in the cascade because @import lands above a file's own
+   rules. The desktop framing is left exactly as the panel set it. */
+@media (max-width: 744px) {
+  #ridge .plate--back .frame[data-label="Projects L1 — ridge-far"] img {
+    object-position: 50% 53.4%;
+  }
+}
