@@ -28,3 +28,6 @@ dist-ssr
 
 # Throwaway output (e.g. filmstrip captures)
 scratchpad/
+
+# Playwright MCP session output (snapshots, console logs)
+.playwright-mcp/

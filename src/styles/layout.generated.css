@@ -8,11 +8,26 @@
 }
 
 .frame[data-label="Hero L5 — jungle-near"] img {
-  object-position: 51.59% 52.29%;
+  object-position: 66.1% 53.06%;
+  --img-zoom: 1.31;
+  --img-pan-x: 4.05%;
+  --img-pan-y: 0.23%;
+}
+
+.frame[data-label="Hero L5 — jungle-near"] {
+  background: transparent;
+}
+
+.frame[data-label="Hero L6 — undergrowth-low"] img {
+  object-position: 50% 50%;
 }
 
 .frame[data-label="Music L3 — cave-near"] img {
-  object-position: 50% 50%;
+  object-position: 61.42% 44.42%;
+}
+
+.frame[data-label="Music L3 — cave-near"] {
+  background: transparent;
 }
 
 .frame[data-label="Projects L1 — ridge-far"] img {
@@ -30,4 +45,3 @@
 .frame[data-label="Workshop L1 — cottage-far"] img {
   object-position: 50% 50%;
 }
-

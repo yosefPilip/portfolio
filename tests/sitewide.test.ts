@@ -51,6 +51,12 @@ describe('internal links', () => {
       const hrefs = Array.from(html.matchAll(/href="(\/[^"#?]*)/g)).map((m) => m[1]);
       for (const href of hrefs) {
         if (href.startsWith('/assets') || href.startsWith('/src')) continue;
+        /* Static files served from public/ at the site root — the favicons,
+           the social card, robots, the sitemap. They are <link href> targets,
+           not navigable pages, so they are not in the known-pages set. Matched
+           on "has a non-HTML extension" rather than by name, so adding another
+           icon size does not mean editing this test. */
+        if (/\.[a-z0-9]+$/i.test(href) && !href.endsWith('.html')) continue;
         expect(known.has(href), `${page} links to ${href}`).toBe(true);
       }
     }

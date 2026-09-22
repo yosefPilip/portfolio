@@ -5,10 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cache It — Yosef Pilip</title>
   <meta name="description" content="A geocaching-style hunt for street art. Find the piece in the real world, tap your phone against it, keep it." />
+
+  <!-- Icons. One mark, the site's own bone-on-charcoal Y, drawn in Georgia —
+       already the fallback face in --font-display. -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <!-- Social preview. The whole point of this site is being one link you send
+       to a recruiter, a promoter or a friend, so the unfurl is not optional.
+       og:image MUST be absolute; a relative path silently yields no card. -->
+  <link rel="canonical" href="https://yosefpilip.com/projects/cache-it" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Yosef Pilip" />
+  <meta property="og:title" content="Cache It — Yosef Pilip" />
+  <meta property="og:description" content="A geocaching-style hunt for street art. Find the piece in the real world, tap your phone against it, keep it." />
+  <meta property="og:url" content="https://yosefpilip.com/projects/cache-it" />
+  <meta property="og:image" content="https://yosefpilip.com/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Yosef Pilip, over a sunlit jungle canopy" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#171b19" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/case-study.css" />
+  <noscript>
+    <!-- No JS means no flip-board, so the wordmark's plain text has to come
+         back. nameFlip.css hides it by default to kill the load flash. -->
+    <style>#name-flip-root { visibility: visible; }</style>
+  </noscript>
 </head>
 <body data-room="projects">
 
@@ -21,7 +50,7 @@
        header stays behind with the .grain div and goes inert with it. -->
   <header class="site-header">
     <div class="container site-header__inner">
-      <a class="wordmark" href="/">Yosef Pilip</a>
+      <a class="wordmark" href="/"><span id="name-flip-root">Yosef Pilip</span></a>
       <nav class="nav-desktop" aria-label="Primary">
         <a href="/">Home</a>
         <a href="/projects.html" aria-current="page">Projects</a>
@@ -69,10 +98,10 @@
         <h1 class="display" data-edit="page.title">Cache It</h1>
         <p class="lede" data-edit="page.lede">Hidden art around a city. Find it, tap it, keep it.</p>
         <dl class="spec">
-          <dt data-edit="page.term1">Role</dt><dd data-edit="page.detail1">Founder &amp; CEO &mdash; designed and built it solo</dd>
+          <dt data-edit="page.term1">Role</dt><dd data-edit="page.detail1">Founder &amp; CEO, designed and built it solo</dd>
           <dt data-edit="page.term2">Dates</dt><dd data-edit="page.detail2">Aug 2026 &ndash; Present</dd>
           <dt data-edit="page.term3">Stack</dt><dd data-edit="page.detail3">React, Vite, FastAPI, NFC</dd>
-          <dt data-edit="page.term4">Incubator</dt><dd data-edit="page.detail4">Zip Launchpad, SDSU &mdash; starting Fall 2026</dd>
+          <dt data-edit="page.term4">Incubator</dt><dd data-edit="page.detail4">Zip Launchpad, SDSU, starting Fall 2026</dd>
           <dt data-edit="page.term5">Live</dt><dd><a class="link" href="https://cache-it-one.vercel.app" target="_blank" rel="noopener">cache-it-one.vercel.app &#8599;</a></dd>
         </dl>
       </header>
@@ -84,7 +113,7 @@
       <section id="idea" class="cs-section split-7-5">
         <div>
           <h2 data-edit="idea.heading">The idea</h2>
-          <p data-edit="idea.body1">An artist hides a piece somewhere in a city. You go and find it &mdash; actually go, on foot, to the wall it&rsquo;s on. Then you hold your phone against it and it lands in your collection.</p>
+          <p data-edit="idea.body1">An artist hides a piece somewhere in a city. You go and find it. Actually go, on foot, to the wall it&rsquo;s on. Then you hold your phone against it and it lands in your collection.</p>
           <p data-edit="idea.body2">That&rsquo;s the whole product, and almost every decision falls out of it. The find has to happen in the real world, or none of it means anything.</p>
         </div>
         <div class="panel panel--tint">
@@ -121,7 +150,7 @@
           <h2 data-edit="map.heading">The map</h2>
         </div>
         <div>
-          <p data-edit="map.body1">The discovery map tracks your area in real time off geolocation, so hunting feels like hunting &mdash; you move, the map moves, and pieces near you surface as you get close.</p>
+          <p data-edit="map.body1">The discovery map tracks your area in real time off geolocation, so hunting feels like hunting. You move, the map moves, and pieces near you surface as you get close.</p>
           <p data-edit="map.body2">It deliberately does not just drop a pin on every artwork. A map that tells you exactly where everything is isn&rsquo;t a hunt, it&rsquo;s a shopping list.</p>
         </div>
       </section>
@@ -130,7 +159,7 @@
         <div>
           <h2 data-edit="collaborators.heading">Letting other artists in</h2>
           <p data-edit="collaborators.body1">Early on, every piece in the app had to come from me, which meant the collection could only grow as fast as I could work. That&rsquo;s a bad ceiling for something whose whole appeal is that there&rsquo;s more out there.</p>
-          <p data-edit="collaborators.body2">So there&rsquo;s a collaborator role. An outside artist can place their own work independently &mdash; their pieces, their placements, no involvement from me. It decouples the collection growing from me shipping code, which is the difference between a demo and a thing that can actually spread through a city.</p>
+          <p data-edit="collaborators.body2">So there&rsquo;s a collaborator role. An outside artist can place their own work independently. Their pieces, their placements, no involvement from me. It decouples the collection growing from me shipping code, which is the difference between a demo and a thing that can actually spread through a city.</p>
         </div>
       </section>
 
@@ -139,8 +168,8 @@
           <h2 data-edit="authentic.heading">Keeping finds honest</h2>
         </div>
         <div>
-          <p data-edit="authentic.body">The obvious version of this is a QR code taped to the wall. It&rsquo;s also the broken version: a QR code is just a picture, and a picture can be screenshotted and sent to a group chat. Then nobody has to go anywhere.</p>
-          <p>So collection runs on <strong data-edit="authentic.emphasis1">NFC</strong> instead &mdash; you physically tap the phone against the piece. That put me inside a real constraint set, because iOS and Web NFC disagree about a lot and neither gives you everything you&rsquo;d want.</p>
+          <p data-edit="authentic.body">The obvious version of this is a QR code taped to the wall. It&rsquo;s also the broken version. A QR code is just a picture, and a picture can be screenshotted and sent to a group chat. Then nobody has to go anywhere.</p>
+          <p>So collection runs on <strong data-edit="authentic.emphasis1">NFC</strong> instead. You physically tap the phone against the piece. That put me inside a real constraint set, because iOS and Web NFC disagree about a lot and neither gives you everything you&rsquo;d want.</p>
           <p>I architected around those limits with an upgrade path to <strong data-edit="authentic.emphasis2">NTAG 424 DNA</strong> chips, which sign each tap rather than just handing over a static payload. That&rsquo;s the difference between &ldquo;this tag exists somewhere&rdquo; and &ldquo;this person tapped this tag.&rdquo;</p>
         </div>
       </section>
@@ -149,7 +178,7 @@
         <div class="panel panel--tint">
           <h2 data-edit="open.heading">Still open</h2>
           <p data-edit="open.body1">How do you keep a hunt honest once people start sharing the answers? Locations spread by word of mouth, and a solved map is a dead map.</p>
-          <p data-edit="open.body2">My current thinking is that finds expire and art rotates, so the city re-randomises instead of being solved once. That&rsquo;s a bet, not a result &mdash; it isn&rsquo;t built yet, and I&rsquo;m not certain it&rsquo;s right.</p>
+          <p data-edit="open.body2">My current thinking is that finds expire and art rotates, so the city re-randomises instead of being solved once. That&rsquo;s a bet, not a result. It isn&rsquo;t built yet, and I&rsquo;m not certain it&rsquo;s right.</p>
         </div>
       </section>
 
