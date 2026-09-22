@@ -2,9 +2,11 @@ import { createRoot } from 'react-dom/client';
 import { Coverflow } from '../components/Coverflow';
 import { initChrome } from '../shared/chrome';
 import { initMotion } from '../shared/motion';
+import { initNameFlip } from '../shared/nameFlip';
 
 initChrome();
 initMotion();
+initNameFlip();
 
 const coverflowRoot = document.getElementById('coverflow-root');
 if (coverflowRoot) {

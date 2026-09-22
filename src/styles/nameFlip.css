@@ -1,6 +1,18 @@
 @import './tokens.css';
 
+/* The plain "Yosef Pilip" inside #name-flip-root is the no-JS state, and it
+   used to paint for a frame or two on every page load before React replaced
+   it. So the host is hidden and the mounted board un-hides ITSELF: unlike
+   `display`, `visibility` can be overridden on a descendant, so this needs no
+   :has() and no JS style write, and nothing but the board ever paints.
+
+   Each page's <head> carries a <noscript> block that reveals the text again,
+   which is the whole reason it is still in the markup — without JS the
+   wordmark must not be a blank link. */
+#name-flip-root { visibility: hidden; }
+
 .name-flip-board {
+  visibility: visible;
   display: inline-flex;
   gap: 2px;
   cursor: pointer;

@@ -2,11 +2,13 @@
 // importing as well would ship the same CSS twice.
 import { initChrome } from '../shared/chrome';
 import { initMotion } from '../shared/motion';
+import { initNameFlip } from '../shared/nameFlip';
 import { initProjectsIndex } from '../shared/projectsIndex';
 import { initCaseStudyRouting } from '../shared/caseStudy';
 
 initChrome();
 initMotion();
+initNameFlip();
 initProjectsIndex(document);
 initCaseStudyRouting(document);
 

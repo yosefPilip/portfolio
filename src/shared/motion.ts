@@ -38,6 +38,13 @@ function nativeScrollTo(target: Element): void {
   target.scrollIntoView({ behavior: 'smooth' });
 }
 
+/** The one place --p is written. Called from the rAF loop and once at init. */
+function writeProgress(stack: HTMLElement, viewportHeight: number): void {
+  const rect = stack.getBoundingClientRect();
+  const p = computeStackProgress(rect.top, rect.height, viewportHeight);
+  stack.style.setProperty('--p', p.toFixed(4));
+}
+
 /**
  * Starts the one rAF loop that drives every scroll-linked effect on the page:
  * Lenis smoothing, a --p custom property per in-view .stack, and one-shot
@@ -46,6 +53,23 @@ function nativeScrollTo(target: Element): void {
 export function initMotion(): MotionHandle {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const stacks = Array.from(document.querySelectorAll<HTMLElement>('.stack'));
+
+  /* A stack's position is JS-derived, and this module cannot run before the
+     first paint — it is a module script behind a network fetch. So a load that
+     starts anywhere but the top painted every plate at `--p: 0`, its at-rest
+     pose, and then snapped it to the real progress on the first rAF: measured
+     on /projects.html at scrollY 960, the ridge jumped 570px, 165ms in. That
+     is the hero "twitching" on every reload.
+
+     Restoration is what creates the mismatch, so restoration is what goes. The
+     page now always loads at the top, where `--p: 0` is not a guess but the
+     correct answer, and the first paint is right without waiting for JS.
+
+     Scoped deliberately: this only turns off the browser's SCROLL restore. It
+     is not a scrollTo, so a `#hash` in the URL still lands on its target, and
+     same-document history (the case-study overlay's Back) keeps the position
+     it already has rather than being re-restored under an open overlay. */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
   if (reduceMotion) {
     // Pin every stack mid-travel and show everything. Nothing hidden, nothing moving.
@@ -91,13 +115,18 @@ export function initMotion(): MotionHandle {
   function frame(time: number): void {
     lenis.raf(time);
     const viewportHeight = window.innerHeight;
-    onScreen.forEach((stack) => {
-      const rect = stack.getBoundingClientRect();
-      const p = computeStackProgress(rect.top, rect.height, viewportHeight);
-      stack.style.setProperty('--p', p.toFixed(4));
-    });
+    onScreen.forEach((stack) => writeProgress(stack, viewportHeight));
     rafId = requestAnimationFrame(frame);
   }
+
+  /* Synchronously, before the first rAF and before the culler's first
+     callback: every stack gets its true --p now. Manual restoration above
+     means this is almost always writing 0 over 0, but the two guards are
+     independent on purpose — a `#hash` load, or a browser that ignores
+     scrollRestoration, still lands here with the page scrolled, and this is
+     what keeps that paint correct. Cheap: one layout read per stack, once. */
+  stacks.forEach((stack) => writeProgress(stack, window.innerHeight));
+
   rafId = requestAnimationFrame(frame);
 
   // One-shot reveals: each element unobserves itself so scrolling back never replays it.

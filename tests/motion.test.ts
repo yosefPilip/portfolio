@@ -138,11 +138,22 @@ describe('initMotion — normal path', () => {
     revealer!.trigger([{ isIntersecting: false, target: revealB }]);
     expect(revealB.classList.contains('is-visible')).toBe(false);
 
+    // Every stack is SEEDED at init, on screen or not. requestAnimationFrame
+    // is stubbed to record its callback rather than run it and no callback has
+    // been invoked yet, so a value here proves the write was synchronous —
+    // which is the point of it: a load at a restored scroll position (or on a
+    // #hash) has to paint in the right place, not snap to it a frame later.
+    expect(stackA.style.getPropertyValue('--p')).toBe('0.0000');
+    expect(stackB.style.getPropertyValue('--p')).toBe('0.0000');
+
+    // Cleared so the assertion below is about the rAF loop alone.
+    stackA.style.removeProperty('--p');
+    stackB.style.removeProperty('--p');
+
     // The culler's tracked set isn't exposed, so assert it indirectly: bring
     // stackA and stackB on screen, take stackB back off screen, then drive
-    // one rAF tick by hand (requestAnimationFrame is stubbed to record its
-    // callback rather than invoke it) and check --p was written only for the
-    // still-on-screen stack.
+    // one rAF tick by hand and check --p was written only for the
+    // still-on-screen stack. The seed is a one-off; per-frame work stays culled.
     culler!.trigger([
       { isIntersecting: true, target: stackA },
       { isIntersecting: true, target: stackB },
@@ -154,5 +165,22 @@ describe('initMotion — normal path', () => {
 
     expect(stackA.style.getPropertyValue('--p')).toBe('0.0000');
     expect(stackB.style.getPropertyValue('--p')).toBe('');
+  });
+
+  /**
+   * The other half of the same fix. A stack's position is JS-derived and this
+   * module cannot run before the first paint, so a load that starts scrolled
+   * painted every plate at `--p: 0` and then snapped: 570px on the ridge hero,
+   * 165ms in. Turning the browser's scroll restore off means a reload starts
+   * where `--p: 0` is the correct answer, so the first paint is already right.
+   */
+  it('turns off the browser scroll restore, so a reload cannot paint a stack at the wrong progress', () => {
+    stubMatchMedia(false);
+    vi.stubGlobal('IntersectionObserver', MockIntersectionObserver as unknown as typeof IntersectionObserver);
+    vi.stubGlobal('requestAnimationFrame', vi.fn());
+
+    history.scrollRestoration = 'auto';
+    initMotion();
+    expect(history.scrollRestoration).toBe('manual');
   });
 });

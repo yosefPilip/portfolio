@@ -1,8 +1,15 @@
+@import './nameFlip.css';
+
 /* Sitewide page chrome: header, mobile menu, footer, and the two generic
    utilities that go with them. Every room imports this — Home, Projects,
    Music, Workshop — so nothing here may be Home-specific.
    Expects base.css (and therefore tokens.css) to be loaded first.
-   The JS half of this component is src/shared/chrome.ts. */
+   The JS half of this component is src/shared/chrome.ts.
+
+   nameFlip.css is imported ABOVE rather than by each page stylesheet: the
+   wordmark's flip-board is part of this header on every page, so one import
+   here keeps it from being forgotten when a room is added. It used to be a JS
+   import in Home's entry, which is why only Home had it. */
 
 /* ── header ── */
 .site-header {

@@ -4,11 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DJ &amp; Music — Yosef Pilip</title>
-  <meta name="description" content="I play as Recursion — tech house, summer and dub-leaning sets." />
+  <meta name="description" content="I mix as Recursion. Tech house, summer and dub-leaning sets." />
+
+  <!-- Icons. One mark, the site's own bone-on-charcoal Y, drawn in Georgia —
+       already the fallback face in --font-display. -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <!-- Social preview. The whole point of this site is being one link you send
+       to a recruiter, a promoter or a friend, so the unfurl is not optional.
+       og:image MUST be absolute; a relative path silently yields no card. -->
+  <link rel="canonical" href="https://yosefpilip.com/music" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Yosef Pilip" />
+  <meta property="og:title" content="DJ & Music — Yosef Pilip" />
+  <meta property="og:description" content="I mix as Recursion. Tech house, summer and dub-leaning sets." />
+  <meta property="og:url" content="https://yosefpilip.com/music" />
+  <meta property="og:image" content="https://yosefpilip.com/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Yosef Pilip, over a sunlit jungle canopy" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#171b19" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/music.css" />
+  <noscript>
+    <!-- No JS means no flip-board, so the wordmark's plain text has to come
+         back. nameFlip.css hides it by default to kill the load flash. -->
+    <style>#name-flip-root { visibility: visible; }</style>
+  </noscript>
 </head>
 <body data-room="music">
 
@@ -16,7 +45,7 @@
 
   <header class="site-header">
     <div class="container site-header__inner">
-      <a class="wordmark" href="/">Yosef Pilip</a>
+      <a class="wordmark" href="/"><span id="name-flip-root">Yosef Pilip</span></a>
       <nav class="nav-desktop" aria-label="Primary">
         <a href="/">Home</a>
         <a href="/projects.html">Projects</a>
@@ -73,14 +102,14 @@
         </div>
         <div class="plate plate--copy">
           <h1 class="display" data-edit="page.title">Recursion</h1>
-          <p class="lede">A name that bridges software and <span class="hl" data-edit="page.highlight">sound</span>.</p>
+          <p class="lede">A name that bridges nature, software and <span class="hl" data-edit="page.highlight">sound</span>.</p>
         </div>
         <!-- The information the page owes a promoter, flanking the deck once
              it has arrived: name, sound, where to hear it, before any scrolling. -->
         <div class="plate plate--panel">
           <dl class="panel__col panel__col--left">
             <dt data-edit="about-music.term1">Alias</dt><dd data-edit="about-music.detail1">Recursion</dd>
-            <dt data-edit="about-music.term2">Sound</dt><dd data-edit="about-music.detail2">Tech house &middot; summer &middot; dub</dd>
+            <dt data-edit="about-music.term2">Sound</dt><dd data-edit="about-music.detail2">Tech house · UKG · Afro ·  and More  </dd>
           </dl>
           <dl class="panel__col panel__col--right">
             <dt data-edit="about-music.term3">Also</dt><dd data-edit="about-music.detail3">Guitar, piano</dd>
@@ -92,8 +121,8 @@
 
     <section class="section" id="mixes">
       <div class="container">
-        <h2 class="reveal" data-edit="mixes.heading">Mixes</h2>
-        <p class="meta reveal" data-edit="mixes.meta">Use the arrows, swipe, or click a cover &mdash; the centred mix opens on SoundCloud.</p>
+        <h2 class="reveal" data-edit="mixes.heading">My Mixes</h2>
+        <p class="meta reveal" data-edit="mixes.meta">Use the arrows, swipe, or click a cover. The centred mix opens on SoundCloud.</p>
       </div>
       <div class="reveal"><div id="coverflow-root"></div></div>
     </section>
@@ -103,7 +132,7 @@
         <div class="reveal">
           <h2 data-edit="about-music.heading">The fastest feedback loop I have.</h2>
           <p>Writing software, you find out whether you were right in a week. Playing a room, you find out in <span class="hl" data-edit="about-music.highlight">eight bars</span>. I like both, but only one of them argues back in real time.</p>
-          <p>I play as <strong data-edit="about-music.emphasis">Recursion</strong> &mdash; mostly tech house, leaning summery and dubby. I also play guitar and piano, which is where most of this started.</p>
+          <p>I play as <strong data-edit="about-music.emphasis">Recursion</strong>, mostly tech house, leaning summery and dubby. I also play guitar and piano, which is where most of this started.</p>
         </div>
         </div>
     </section>

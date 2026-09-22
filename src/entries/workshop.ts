@@ -1,8 +1,12 @@
 import { initChrome } from '../shared/chrome';
 import { initMotion } from '../shared/motion';
+import { initNameFlip } from '../shared/nameFlip';
+import { initPhotoRail } from '../shared/photoRail';
 
 initChrome();
 initMotion();
+initNameFlip();
+initPhotoRail();
 
 // Dev-only visual editing panel. The dynamic import inside this branch is what
 // keeps it out of the production bundle — a static import would be bundled
