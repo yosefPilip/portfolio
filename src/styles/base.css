@@ -170,6 +170,19 @@ strong { font-weight: 600; }
   border-radius: var(--r);
 }
 
+/* ── screen-reader-only ──
+   Used by the Now strip's live region: the visible text mutates one character
+   at a time, which is noise, so whole sentences are announced from here
+   instead. No colours, so nothing for the token sweep to catch. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* ── one-shot reveal ── */
 .reveal { opacity: 0; transform: translate3d(0, 16px, 0); transition: opacity 0.7s ease, transform 0.7s ease; }
 .reveal.is-visible { opacity: 1; transform: none; }

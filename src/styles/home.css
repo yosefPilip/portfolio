@@ -1,25 +1,119 @@
 @import './base.css';
 @import './stack.css';
 @import './chrome.css';
-@import './work-list.css';
+/* work-list.css is gone from here: Home's row list became the Cache It
+   portal, so the only page still using .work-row is Projects. */
 @import './layout.generated.css';
 
-/* ── selected work rows ──
-   Shared grid shape, hover, and .work-row__go position live in
-   work-list.css. What's left here is genuinely Home-specific: the wider
-   top margin (Projects gets its spacing from .filters instead), the
-   narrower first column (Home's years are short — "2026", not "Being
-   built"), the border on .work-row itself (Home has no wrapper to hang it
-   on), and the go mark's font-size (20px here, 22px on Projects). */
-.work-list { margin-block: clamp(28px, 4vw, 56px); }
-.work-row { grid-template-columns: 5rem 1fr auto; border-bottom: 1px solid var(--border); }
-.work-row__go { font-size: 20px; }
-@media (max-width: 700px) {
-  /* Same value as Projects' collapse, but kept page-specific: it has to
-     target .work-row here so its specificity matches this page's own
-     base rule above, the same reason Projects keeps its own copy at
-     .work-row--button (see work-list.css's header comment). */
-  .work-row { grid-template-columns: 1fr auto; }
+/* ── the Cache It portal ──
+   A window into the product, not a portfolio row. Everything here is chosen
+   to make it read as somewhere else: Cache It's cream surface against the
+   page's charcoal, its own terracotta, its own system-UI font stack against
+   the site's Instrument Serif, and a corner radius the rest of the site does
+   not use because app cards have one and editorial layouts do not.
+
+   Sized to the owner's brief — "slightly bigger than the Cache It text box is
+   now". The row it replaced ran about 100px; this lands near 230 on desktop.
+
+   No drop shadow lifting it off the page. The spec bans shadows used as fake
+   light, and the card does not need one: a warm light surface on a dark page
+   already separates completely. */
+.portal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  align-items: stretch;
+  gap: 0;
+  margin-block: clamp(20px, 2.6vw, 34px);
+  border-radius: var(--ci-radius);
+  background: var(--ci-bg);
+  border: 1px solid var(--ci-line);
+  /* The city art bleeds to the card's edge and is clipped by the radius. */
+  overflow: hidden;
+  font-family: var(--ci-font);
+  color: var(--ci-ink);
+}
+
+.portal__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* Centred, not top-aligned: the art column sets the card's height, and a
+     top-aligned column left a block of empty cream under the case-study link. */
+  justify-content: center;
+  gap: 10px;
+  padding: clamp(20px, 2.4vw, 32px);
+}
+
+.portal__brand { display: flex; align-items: center; gap: 12px; margin: 0; }
+.portal__mark { inline-size: 44px; block-size: 44px; border-radius: 11px; display: block; }
+.portal__name {
+  font-family: var(--ci-font);
+  font-size: clamp(26px, 2.6vw, 34px);
+  font-weight: 700;
+  /* Under 32px it needs no tracking, but it can reach 34, so it carries it. */
+  letter-spacing: -0.015em;
+  line-height: 1;
+}
+
+.portal__actions { margin: 0; }
+/* The primary action, and the reason the block exists: the live app comes
+   before the write-up about it. */
+.portal__open {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--ci-terra);
+  color: var(--ci-bg);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+.portal__open:hover { background: var(--ci-red); transform: translateY(-1px); }
+.portal__open:focus-visible { outline: 2px solid var(--ci-ink); outline-offset: 3px; }
+
+.portal__hook { margin: 0; color: var(--ci-muted); font-size: 15px; line-height: 1.5; max-width: 46ch; }
+
+.portal__more { margin: 0; }
+.portal__case {
+  color: var(--ci-terra);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: color-mix(in oklab, var(--ci-terra) 40%, transparent);
+}
+.portal__case:hover { text-decoration-color: var(--ci-terra); }
+
+/* The art. Cache It's own hero illustration, bottom-anchored and bleeding off
+   the card's right edge so the card reads as a view INTO something rather
+   than a panel with a picture in it. It drifts on hover, transform only. */
+.portal__art {
+  position: relative;
+  min-block-size: 168px;
+  background: linear-gradient(200deg, var(--ci-card-2), var(--ci-bg) 72%);
+}
+.portal__city {
+  position: absolute;
+  /* Anchored bottom-right and allowed past the right edge only; overflow on
+     .portal clips it. A negative LEFT inset here would push it under the copy. */
+  inset: auto 0 -6% auto;
+  inline-size: 112%;
+  max-inline-size: none;
+  block-size: auto;
+}
+/* No hover drift on the island. It was tried and the owner rejected it: the
+   card is a door, and the art moving under the cursor made it read as a toy. */
+
+@media (max-width: 760px) {
+  /* Art on top, copy under it: at this width a side-by-side split leaves the
+     hook running at four words to a line. */
+  .portal { grid-template-columns: 1fr; }
+  /* In flow rather than absolute here, so the strip is exactly as tall as the
+     illustration and the whole island fits. Absolute + a fixed min-height
+     cropped the tops off the towers. */
+  .portal__art { min-block-size: 0; order: -1; }
+  .portal__city { position: static; display: block; inline-size: 100%; margin-block-end: -4%; }
 }
 
 /* ── experience ── */
@@ -28,11 +122,66 @@
 /* .exp__role takes its type from .title-h2 in base.css */
 .exp + .panel { margin-top: clamp(32px, 4vw, 56px); }
 
-/* ── lives: three panels, never a uniform grid elsewhere on the page ── */
-.lives { display: grid; gap: clamp(16px, 2.5vw, 28px); margin-top: clamp(24px, 3vw, 44px); }
-@media (min-width: 820px) { .lives { grid-template-columns: repeat(3, 1fr); } }
-.life h3 { margin-top: 16px; }  /* type comes from .title-h2 in base.css */
-.life p { color: var(--fg-dim); margin-top: 6px; }
+/* The four articles arrive as a sequence rather than one slab. Delay only —
+   the reveal itself is still base.css's opacity + transform. */
+.exp.reveal:nth-of-type(2) { transition-delay: 70ms; }
+.exp.reveal:nth-of-type(3) { transition-delay: 140ms; }
+.exp.reveal:nth-of-type(4) { transition-delay: 210ms; }
+
+/* The metrics are already the load-bearing words in these paragraphs; this
+   just lets them read that way. Copy is untouched — same words, same
+   data-edit keys. 1.3em of 17px is 22px, comfortably under the 32px
+   tracking rule, but it carries tracking anyway because display type at any
+   size wants it. */
+.exp strong {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.3em;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+/* Hidden by default: below the rail breakpoint it would just repeat the date
+   that .exp__head already prints in full. */
+.exp__year { display: none; margin: 0; }
+
+@media (min-width: 900px) {
+  /* The year rail. Each year sticks while its own article passes, so the
+     block reads as one column you travel down instead of four identical
+     cards. grid-row: 1 / -1 gives the sticky element the whole article's
+     height as its containing block — without it, it can only stick within
+     its own one-row track and never moves. */
+  .exp {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    column-gap: clamp(24px, 3vw, 56px);
+  }
+  .exp > :not(.exp__year) { grid-column: 2; }
+  .exp__year {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / -1;
+    position: sticky;
+    top: clamp(96px, 16vh, 150px);
+    align-self: start;
+    color: var(--fg-dim);
+  }
+}
+
+/* ── the doors to the other three rooms ──
+   Deliberately small. These sit above Experience now, and at 4/5 portrait
+   with .title-h2 headings they were taller than the section they introduce.
+   3/2 landscape at lede scale is roughly 40% of that height: present, brief,
+   and the thumbnail does the talking. */
+.lives { display: grid; gap: clamp(14px, 2vw, 24px); margin-top: clamp(20px, 2.4vw, 32px); }
+@media (min-width: 760px) { .lives { grid-template-columns: repeat(3, 1fr); } }
+.life h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--step-lede);
+  margin-top: 12px;
+}
+.life p { color: var(--fg-dim); margin-top: 4px; font-size: 14px; line-height: 1.45; }
 .life:hover h3 { color: var(--accent-2); }
 
 /* ── contact ── */

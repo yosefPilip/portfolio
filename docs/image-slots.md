@@ -19,11 +19,17 @@ true alpha (avoid; halos on soft edges).
 
 | Slot | Role | Tier | Status | Spend | Notes |
 |---|---|---|---|---|---|
-| `server-moss` | thesis back | 1 opaque | **done** | $0.03 | generated 2026-09-14, style anchor for the old spruce set |
-| `roots-overlay` | thesis front | 2 white→multiply | placeholder | $0.00 | out of scope this sitting |
-| `life-build` | panel | 1 opaque | placeholder | $0.00 | out of scope this sitting |
-| `life-decks` | panel | 1 opaque | placeholder | $0.00 | out of scope this sitting |
-| `life-rack` | panel | 1 opaque | placeholder | $0.00 | out of scope this sitting |
+| `server-moss` | ~~thesis back~~ | 1 opaque | **slot removed** | $0.03 | generated 2026-09-14, style anchor for the old spruce set. 2026-09-17: the owner deleted Home's whole `#thesis` section, so this slot no longer exists. The file stays in `assets/img/` — do not re-buy it if a slot ever wants it again. |
+| `roots-overlay` | ~~thesis front~~ | 2 white→multiply | **slot removed** | $0.00 | 2026-09-17: never generated, and its slot went with `#thesis`. Do not generate. |
+| ~~`life-build`~~ | door | — | **slot removed** | $0.00 | 2026-09-22: never generated. The three doors now serve downscaled crops of each room's own hero instead — see below. Do not buy these. |
+| ~~`life-decks`~~ | door | — | **slot removed** | $0.00 | as above |
+| ~~`life-rack`~~ | door | — | **slot removed** | $0.00 | as above |
+| `door-projects` | door | — | **final (derivative)** | $0.00 | 2026-09-22. 3:2 centre crop of `ridge-far.webp` resized to 960x640, WebP q82. No generation — Pillow only. |
+| `door-music` | door | — | **final (derivative)** | $0.00 | 2026-09-22. Same treatment on `ice-plane.webp`. |
+| `door-workshop` | door | — | **final (derivative)** | $0.00 | 2026-09-22. Same treatment on `cottage-face.webp`, crop biased 0.45 up the frame to keep the lit window centred. 871kB -> 132kB. |
+| `cacheit/app-icon` | portal | — | **final (brand asset)** | $0.00 | 2026-09-22. Copied verbatim from `Dev/personal/Cache It/Mascot-and-Logo-Design/pip/app-icon-red.svg`. Cache It’s own mark. Never regenerate or restyle it — if the product’s branding changes, re-copy from there. |
+| `cacheit/city` | portal | — | **final (brand asset)** | $0.00 | 2026-09-22. Downscale of the product’s own `public/city-hero.webp` to 1120px wide. Same rule: re-copy, never re-render. |
+| `cacheit/pip` | unused | — | available | $0.00 | 2026-09-22. Downscale of `public/pip-3d.webp`, the 3D mascot. Copied in but not currently placed. |
 
 ## Projects — hero
 

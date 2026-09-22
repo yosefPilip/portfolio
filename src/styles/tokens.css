@@ -34,7 +34,7 @@
   /* ── geometry ── */
   --r:       8px;
   --gutter:  clamp(20px, 5vw, 88px);
-  --section: clamp(72px, 11vw, 168px);
+  --section: clamp(40px, 5vw, 88px);
   --stack-h: 240vh;                      /* Home hero overrides to 260vh */
   --stack-fade: clamp(140px, 26svh, 320px);  /* how far a stack dissolves into
                                                 the page ground at its bottom edge */
@@ -51,3 +51,31 @@
 [data-room="projects"] { --bg:#16191d; --bg-deep:#0e1115; --surface:#1f232a; --surface-tint:#222831; --accent-2:#7f9bbd; }
 [data-room="music"]    { --bg:#1a171d; --bg-deep:#0c090f; --surface:#24202a; --surface-tint:#2a2130; --accent-2:#b97fc9; }
 [data-room="workshop"] { --bg:#1b1917; --bg-deep:#12100e; --surface:#241f1b; --surface-tint:#2b2621; --accent-2:#c0a06a; }
+
+/* ── Cache It's own brand, for the featured portal on Home ──
+   Deliberately NOT the site palette. The block on Home is meant to read as a
+   window into the product, and a window has to show something that is not the
+   wall around it, so it wears Cache It's warm cream-and-terracotta system
+   instead of bone-on-charcoal.
+
+   Copied verbatim from the product's own `src/styles/index.css` so the two
+   cannot drift: change them there first, then here. The font stack is copied
+   for the same reason — Cache It ships no web font on purpose, so its display
+   type is the platform UI face, and matching that is what makes the card feel
+   like the app rather than like a screenshot of it.
+
+   This is the one sanctioned exception to the fixed palette. It is scoped to
+   .portal and nothing else may reach for it. Note it contains no green: the
+   rule that UI chrome never turns green is untouched. */
+:root {
+  --ci-bg:     #fff8f4;
+  --ci-card:   #ffffff;
+  --ci-card-2: #f6ece4;
+  --ci-line:   #e6d5cf;
+  --ci-ink:    #1f1b16;
+  --ci-muted:  #54433f;
+  --ci-terra:  #914a3b;
+  --ci-red:    #e23b4e;
+  --ci-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ci-radius: 18px;
+}

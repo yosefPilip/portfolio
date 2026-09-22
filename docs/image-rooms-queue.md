@@ -18,14 +18,21 @@ settled creative direction only.
 | # | Sitting | Slots | Biome / setting | Room accent |
 |---|---|---|---|---|
 | 1 | **Home — hero** | `jungle-far`, `jungle-mid`, `jungle-near` | sunlit tropical jungle, volumetric shafts | sage `#8aa572` |
-| 2 | Home — rest | `roots-overlay`, `life-build`, `life-decks`, `life-rack` | as Home | sage |
+| ~~2~~ | ~~Home — rest~~ | ~~`life-build`, `life-decks`, `life-rack`~~ | **cancelled 2026-09-22** | — |
 | 3 | Projects | `ridge-far`, `ridge-near` | ridgeline | slate |
 | 4 | Music | `cave-far`, `cave-near` | cave | orchid `#b97fc9` |
 | 5 | Workshop — exterior | `cottage-far`, `needles-near` | northern spruce forest, cottage with one lit window | ochre `#c0a06a` |
 | 6 | Workshop — interior | `bench-far`, `bench-near` | the workbench, inside the cottage | ochre |
 | 7 | Cache It | `cacheit-street`, `cacheit-scan` | street / scan moment | slate |
 
-`server-moss.webp` is already generated and in place on Home's thesis stack. Leave it.
+Home's three "Elsewhere" doors were rebuilt on 2026-09-22 as downscaled crops of each
+room's own hero — `ridge-far`, `ice-plane`, `cottage-face` — so a door shows the page it
+opens. That is strictly better than three unrelated generated stills and it cost nothing,
+so sitting 2 is cancelled rather than deferred. Don't re-open it.
+
+`server-moss.webp` and `roots-overlay` belonged to Home's `#thesis` stack, which the owner
+deleted on 2026-09-17. Both slots are gone: don't generate `roots-overlay`, and don't re-buy
+`server-moss` — the generated file is still in `assets/img/` if a future slot wants it.
 
 `assets/img/workshop/` holds nine photographs the owner took of two real pieces of furniture
 he refurbished. **Never generate, replace, re-export or colour-grade these** — a generated

@@ -153,6 +153,8 @@ Water Polo
 - **Cache It is an Experience entry here** (Founder & CEO, Aug 2026 – Present). The Home
   page's Experience section deliberately lists only the four non-Cache-It roles, because
   Cache It gets its own full case study. That is a layout decision, not a contradiction.
+- **Thrifting figures (owner-supplied, 2026-09-22), used on Workshop:** no clothing
+  purchase over $15 since about 2023, with one exception — a $60 leather jacket.
 - Still not on this résumé, so still unknown and still `—` on the site: a **city**
   (the owner has declined to publish one), **eBay and Mercari handles** (Depop is
   `depop.com/explosef`), and a one-line description of the **DJ Music Sorter**.

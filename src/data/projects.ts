@@ -57,7 +57,7 @@ export const PROJECTS: readonly Project[] = [
   {
     slug: 'music-sorter',
     title: 'DJ Music Sorter',
-    hook: 'Sorts a DJ library by BPM, key and energy — then helps build the set.',
+    hook: 'Sorts a DJ library by BPM, key and energy, then helps build the set.',
     category: 'tools',
     year: 'Being built',
     stack: ['Electron', 'React', 'Vite', 'Python', 'FastAPI', 'librosa', 'SQLite'],

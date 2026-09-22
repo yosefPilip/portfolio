@@ -4,7 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Yosef Pilip</title>
-  <meta name="description" content="Computer science student and AI developer. I build tools that delete other people's busywork." />
+  <meta name="description" content="Computer science student, AI developer and founder of Cache It. I build things that make life a little easier, and a little more fun." />
+
+  <!-- Icons. One mark, the site's own bone-on-charcoal Y, drawn in Georgia —
+       already the fallback face in --font-display. -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <!-- Social preview. The whole point of this site is being one link you send
+       to a recruiter, a promoter or a friend, so the unfurl is not optional.
+       og:image MUST be absolute; a relative path silently yields no card. -->
+  <link rel="canonical" href="https://yosefpilip.com" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Yosef Pilip" />
+  <meta property="og:title" content="Yosef Pilip" />
+  <meta property="og:description" content="Computer science student, AI developer and founder of Cache It. I build things that make life a little easier, and a little more fun." />
+  <meta property="og:url" content="https://yosefpilip.com" />
+  <meta property="og:image" content="https://yosefpilip.com/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Yosef Pilip, over a sunlit jungle canopy" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#171b19" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -75,8 +99,18 @@
         <div class="plate plate--low" aria-hidden="true"></div>
 
         <div class="hero-intro">
-          <p class="eyebrow" data-edit="hero.eyebrow">CS at San Diego State · AI developer · Founder </p>
-          <p class="lede" data-edit="hero.intro">I build things that delete other people&rsquo;s busywork. Occasionally I make a room very loud.</p>
+          <p class="eyebrow" data-edit="hero.eyebrow">CS at San Diego State · AI developer · Founder</p>
+          <p class="lede" data-edit="hero.intro">I build things that make life a little easier, and a little more fun. Occasionally I make a room very loud.</p>
+        </div>
+
+        <!-- NOW: bottom-right of the hero. Right-aligned on purpose — the
+             caret stays pinned in the corner and the text streams leftward
+             out of it as it types. Lines live in src/data/now.ts; the first
+             ships here as real text so it says something without JS. -->
+        <div class="hero-now">
+          <p class="hero-now__label meta" data-edit="now.label">Now</p>
+          <p class="hero-now__line"><span class="hero-now__text" data-now>Founding…</span
+            ><span class="hero-now__caret" aria-hidden="true"></span></p>
         </div>
 
         <div class="hero-progress" aria-hidden="true"></div>
@@ -88,9 +122,9 @@
     <section class="section" id="about">
       <div class="container split-7-5">
         <div class="reveal">
-          <h2 data-edit="about.heading">Most of what I build starts with someone&rsquo;s annoying week.</h2>
-          <p data-edit="about.body1">A three-day email chain. Forty hours a month of clicking through accounts one at a time. A process nobody defends but everybody follows. I like taking those apart. </p>
-          <p data-edit="about.body2">I&rsquo;m a computer science student at San Diego State, and the work I chase has a physical edge on it &mdash; a wall, an NFC chip, a phone held up at arm&rsquo;s length. That&rsquo;s what Cache It is, and it&rsquo;s the kind of problem I want more of.</p>
+          <h2 data-edit="about.heading">Most of what I build starts with something that bugs me.</h2>
+          <p data-edit="about.body1">A three-day email chain. A process nobody defends but everybody follows. A thing that should exist and just doesn’t. I like taking those apart, and I like building whatever replaces them.</p>
+          <p data-edit="about.body2">I’m a computer science student at San Diego State, and the work I chase has a physical edge on it. Right now I’m leaning into the entrepreneurial side of that, as the founder of Cache It, a brand new way to find art hidden around a city.</p>
         </div>
         <dl class="spec reveal">
           <dt data-edit="about.term1">School</dt>
@@ -105,55 +139,83 @@
       </div>
     </section>
 
-    <!-- ── THESIS: three-layer stack ── -->
-    <section class="stack" id="thesis">
-      <div class="stack-view">
-        <div class="plate plate--back">
-          <figure class="frame" data-label="Thesis — server-moss">
-            <img src="/assets/img/server-moss.webp" alt="Moss and roots growing through an abandoned server rack" loading="lazy" />
-          </figure>
-        </div>
-        <div class="plate plate--copy">
-          <h2 class="display" data-edit="thesis.heading">Software keeps reaching for the physical world.</h2>
-          <p class="lede" data-edit="thesis.lede">When part of the problem lives outside the browser, the engineering gets harder and the design has to get honest.</p>
-        </div>
-        <div class="plate plate--front" aria-hidden="true">
-          <figure class="frame" data-label="Thesis front — roots-overlay">
-            <img src="/assets/img/roots-overlay.webp" alt="" loading="lazy" />
-          </figure>
-        </div>
+    <!-- ── FEATURED: Cache It ──
+         This was a three-row "Selected work" list, which repeated what the
+         Projects page does better. One thing earns a block on Home, and it is
+         the one with a case study behind it.
+
+         The card wears Cache It's own palette, mark and font stack rather
+         than the site's, so it reads as a window into the product instead of
+         another portfolio row. Brand tokens live in tokens.css under --ci-*.
+         The live app is the primary action; the case study is secondary. ── -->
+    <section class="section section--tight" id="work">
+      <div class="container">
+        <h2 class="reveal" data-edit="work.heading">Featured</h2>
+
+        <article class="portal reveal">
+          <div class="portal__body">
+            <p class="portal__brand">
+              <img class="portal__mark" src="/assets/img/cacheit/app-icon.svg" alt="" width="44" height="44" loading="lazy" />
+              <span class="portal__name" data-edit="work.name1">Cache It</span>
+            </p>
+
+            <p class="portal__actions">
+              <a class="portal__open" href="https://cache-it-one.vercel.app" target="_blank" rel="noopener" data-edit="work.link1">Open the app &#8599;</a>
+            </p>
+
+            <p class="portal__hook" data-edit="work.hook1">Hidden art around a city. Find it, tap it, keep it.</p>
+
+            <p class="portal__more"><a class="portal__case" href="/projects/cache-it" data-edit="work.link2">Read the case study &rarr;</a></p>
+          </div>
+
+          <!-- Cache It's own hero illustration. Not a .frame: that class is
+               for photographic slots and brings a dark ground, object-fit:
+               cover and panel framing with it, all of which fight a
+               transparent brand asset on a cream card. -->
+          <div class="portal__art" aria-hidden="true">
+            <img class="portal__city" src="/assets/img/cacheit/city.webp" alt="" loading="lazy" />
+          </div>
+        </article>
+
+        <p class="reveal"><a class="btn btn--quiet" href="/projects.html" data-edit="work.link3">See everything &rarr;</a></p>
       </div>
     </section>
 
-    <!-- ── SELECTED WORK ── -->
-    <section class="section" id="work">
+    <!-- ── THE OTHER ROOMS ──
+         Deliberately ABOVE Experience: anyone who is not a recruiter is gone
+         before the fourth job, and this is the only thing on the page that
+         points at Music and Workshop. Each thumbnail is a downscaled crop of
+         that room's own hero, so the door shows the page it opens. ── -->
+    <section class="section section--tight" id="elsewhere">
       <div class="container">
-        <h2 class="reveal" data-edit="work.heading">Selected work</h2>
-        <div class="work-list">
+        <h2 class="reveal" data-edit="elsewhere.heading">Elsewhere</h2>
+        <div class="lives">
 
-          <a class="work-row reveal" href="/projects/cache-it">
-            <span class="work-row__year meta" data-edit="work.year1">2026</span>
-            <span class="work-row__name title-h2" data-edit="work.name1">Cache It</span>
-            <span class="work-row__hook" data-edit="work.hook1">Hidden art around a city. Find it, tap it, keep it.</span>
-            <span class="work-row__go" aria-hidden="true">&rarr;</span>
+          <a class="life reveal" href="/projects.html">
+            <figure class="frame" style="--ar: 3 / 2;" data-label="Door — projects">
+              <img src="/assets/img/door-projects.webp" alt="A snowbound ridgeline standing above a fog-filled treeline" loading="lazy" />
+            </figure>
+            <h3 data-edit="elsewhere.subheading1">Projects</h3>
+            <p data-edit="elsewhere.body1">Ideas I’m passionate about, and that I get to build for real.</p>
           </a>
 
-          <a class="work-row reveal" href="/projects.html#podcast-generator">
-            <span class="work-row__year meta" data-edit="work.year2">2026</span>
-            <span class="work-row__name title-h2" data-edit="work.name2">Batch Podcast Generator</span>
-            <span class="work-row__hook" data-edit="work.hook2">100-episode runs from a prompt, without melting the API.</span>
-            <span class="work-row__go" aria-hidden="true">&rarr;</span>
+          <a class="life reveal" href="/music.html">
+            <figure class="frame" style="--ar: 3 / 2;" data-label="Door — music">
+              <img src="/assets/img/door-music.webp" alt="Cracked blue lake ice lit from beneath" loading="lazy" />
+            </figure>
+            <h3 data-edit="elsewhere.subheading2">DJ</h3>
+            <p data-edit="elsewhere.body2">I mix under the name Recursion, a name that bridges my love for software and music.</p>
           </a>
 
-          <a class="work-row reveal" href="/projects.html#cloudgeometry">
-            <span class="work-row__year meta" data-edit="work.year3">2025&ndash;</span>
-            <span class="work-row__name title-h2" data-edit="work.name3">CloudGeometry internal tools</span>
-            <span class="work-row__hook" data-edit="work.hook3">The Slack bot, the HR platform, and the thing that audits everyone&rsquo;s account.</span>
-            <span class="work-row__go" aria-hidden="true">&rarr;</span>
+          <a class="life reveal" href="/workshop.html">
+            <figure class="frame" style="--ar: 3 / 2;" data-label="Door — workshop">
+              <img src="/assets/img/door-workshop.webp" alt="A log cabin with one lit window, deep in a spruce forest" loading="lazy" />
+            </figure>
+            <h3 data-edit="elsewhere.subheading3">Workshop</h3>
+            <p data-edit="elsewhere.body3">Thrift it, fix it, sell it. This is where my creativity flourishes.</p>
           </a>
 
         </div>
-        <p class="reveal"><a class="btn btn--quiet" href="/projects.html" data-edit="work.link">See everything &rarr;</a></p>
       </div>
     </section>
 
@@ -163,15 +225,17 @@
         <h2 class="reveal" data-edit="experience.heading">Experience</h2>
 
         <article class="exp reveal">
+          <p class="exp__year meta" aria-hidden="true">2025 &ndash;</p>
           <header class="exp__head">
             <h3 class="exp__role title-h2" data-edit="experience.subheading1">AI Software Developer</h3>
             <p class="meta" data-edit="experience.meta1">CloudGeometry &middot; May 2025 &ndash; Present</p>
           </header>
           <p data-edit="experience.body1">Nobody should have to write a formal email to say they&rsquo;re sick. Now they tell Slack in whatever words they&rsquo;d actually use, and a bot I built in Python on the Gemini API works out what they meant, files it as a real record, and goes to find their manager. Three days became same-day, for about 100 people.</p>
-          <p>I also modelled a four-tier permission system and built the internal HR app on top of it, which replaced a paid third-party tool and saves <strong data-edit="experience.emphasis1">$8,000</strong> a year. And a scheduled Apps Script service audits every account for 2FA, recovery info and profile photos, then logs what it finds &mdash; <strong data-edit="experience.emphasis2">40 hours a month</strong> of manual review across ~100 accounts, gone.</p>
+          <p>I also modelled a four-tier permission system and built the internal HR app on top of it, which replaced a paid third-party tool and saves <strong data-edit="experience.emphasis1">$8,000</strong> a year. And a scheduled Apps Script service audits every account for 2FA, recovery info and profile photos, then logs what it finds. That is <strong data-edit="experience.emphasis2">40 hours a month</strong> of manual review across ~100 accounts, gone.</p>
         </article>
 
         <article class="exp reveal">
+          <p class="exp__year meta" aria-hidden="true">2025</p>
           <header class="exp__head">
             <h3 class="exp__role title-h2" data-edit="experience.subheading2">Events &amp; External Relations Manager</h3>
             <p class="meta" data-edit="experience.meta2">Alpha Epsilon Pi &middot; May 2025 &ndash; Dec 2025</p>
@@ -180,6 +244,7 @@
         </article>
 
         <article class="exp reveal">
+          <p class="exp__year meta" aria-hidden="true">2025</p>
           <header class="exp__head">
             <h3 class="exp__role title-h2" data-edit="experience.subheading3">Operations &amp; Web Development Lead</h3>
             <p class="meta" data-edit="experience.meta3">Hillel Business Initiative, SDSU &middot; Jul 2025 &ndash; Dec 2025</p>
@@ -188,6 +253,7 @@
         </article>
 
         <article class="exp reveal">
+          <p class="exp__year meta" aria-hidden="true">2021&ndash;24</p>
           <header class="exp__head">
             <h3 class="exp__role title-h2" data-edit="experience.subheading4">Head Counselor</h3>
             <p class="meta" data-edit="experience.meta4">Tzofim North America &middot; Aug 2021 &ndash; Jun 2024</p>
@@ -197,42 +263,8 @@
 
         <div class="panel panel--tint reveal">
           <h3 class="title-h2" data-edit="experience.subheading5">Education</h3>
-          <p><strong data-edit="experience.emphasis4">San Diego State University</strong> &mdash; B.S. Computer Science, Aug 2024 &ndash; Jun 2028 expected. GPA 3.8.</p>
-          <p><strong data-edit="experience.emphasis5">Homestead High School &amp; De Anza College</strong> &mdash; dual enrollment, graduated 2024. GPA 3.8. Manufacturing engineering at De Anza: CAD and SolidWorks, 3D printing across FDM, VAT and powder-bed fusion, CNC machining and manual metalwork &mdash; designing and manufacturing working parts end to end.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── ELSEWHERE ── -->
-    <section class="section" id="elsewhere">
-      <div class="container">
-        <h2 class="reveal" data-edit="elsewhere.heading">Elsewhere</h2>
-        <div class="lives">
-
-          <a class="life reveal" href="/projects.html">
-            <figure class="frame" style="--ar: 4 / 5;" data-label="Life — life-build">
-              <img src="/assets/img/life-build.webp" alt="A laptop and mechanical keyboard on a dark desk" loading="lazy" />
-            </figure>
-            <h3 class="title-h2" data-edit="elsewhere.subheading1">Build</h3>
-            <p data-edit="elsewhere.body1">Python and React, mostly. Things that remove a step somebody hated.</p>
-          </a>
-
-          <a class="life reveal" href="/music.html">
-            <figure class="frame" style="--ar: 4 / 5;" data-label="Life — life-decks">
-              <img src="/assets/img/life-decks.webp" alt="A DJ mixer in low warm light" loading="lazy" />
-            </figure>
-            <h3 class="title-h2" data-edit="elsewhere.subheading2">DJ</h3>
-            <p data-edit="elsewhere.body2">I play as Recursion &mdash; tech house, summer and dub-leaning. A room either moves or it doesn&rsquo;t, and you know inside eight bars.</p>
-          </a>
-
-          <a class="life reveal" href="/workshop.html">
-            <figure class="frame" style="--ar: 4 / 5;" data-label="Life — life-rack">
-              <img src="/assets/img/life-rack.webp" alt="A rack of secondhand clothing against a concrete wall" loading="lazy" />
-            </figure>
-            <h3 class="title-h2" data-edit="elsewhere.subheading3">Workshop</h3>
-            <p data-edit="elsewhere.body3">Thrift it, fix it, sell it. Plus CAD, 3D printing, CNC and metalwork from a manufacturing programme at De Anza.</p>
-          </a>
-
+          <p><strong data-edit="experience.emphasis4">San Diego State University</strong>, B.S. Computer Science, Aug 2024 &ndash; Jun 2028 expected. GPA 3.8.</p>
+          <p><strong data-edit="experience.emphasis5">Homestead High School and De Anza College</strong>, dual enrollment, graduated 2024. GPA 3.8. Studied manufacturing engineering at De Anza, where I learned to design a part and then actually go make it.</p>
         </div>
       </div>
     </section>
@@ -242,7 +274,7 @@
       <div class="container">
         <div class="panel panel--tint contact reveal">
           <h2 data-edit="contact.heading">Say hi.</h2>
-          <p class="lede" data-edit="contact.lede">If you&rsquo;re building something with a physical edge on it, I&rsquo;d like to hear about it.</p>
+          <p class="lede" data-edit="contact.lede">If you&rsquo;re building something you&rsquo;re excited about, I&rsquo;d like to hear about it.</p>
           <p><a class="btn btn--primary" href="mailto:yosefpilip@gmail.com" data-edit="contact.link1">yosefpilip@gmail.com</a></p>
           <p class="meta contact__links">
             <a class="link" href="https://github.com/yosefPilip" target="_blank" rel="noopener" data-edit="contact.link2">GitHub</a>
