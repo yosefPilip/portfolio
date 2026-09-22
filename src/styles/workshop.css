@@ -295,49 +295,113 @@
 .workshop__shops { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 20px; }
 
 /* ── before / after ── */
-.ba { display: grid; gap: clamp(28px, 4vw, 56px); margin-top: clamp(32px, 4vw, 64px); }
-.ba__piece { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-/* Piece 1 has a during frame, so it runs three across. */
-.ba__piece--three { grid-template-columns: repeat(3, 1fr); }
-.ba__piece figcaption { grid-column: 1 / -1; margin-top: 10px; }
-@media (max-width: 600px) { .ba__piece--three { grid-template-columns: 1fr 1fr; } }
-/* The left shot is the "before" — labelled with the category colour, not clay,
-   because it is a label and not a control. */
-.ba__shot[data-label$='before']::before {
-  content: 'Before';
-  position: absolute;
-  z-index: 2;
-  top: 8px;
-  left: 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-2);
+/* ── the pieces rail ──
+   A horizontal gallery, not a full-width grid. Same family as the Music
+   room's coverflow — one row, arrows, browse sideways — without being the
+   same component: no 3D stage, no React island, and the scrolling is the
+   browser's own. The track works untouched with a trackpad, a swipe, or the
+   keyboard, which is why the arrows are allowed to be an enhancement and
+   ship hidden.
+
+   200px items at 4/5 put each shot near 250px tall. The grid this replaced
+   ran 575px per shot and over 1200px for the section. */
+.rail { margin-top: clamp(24px, 3vw, 44px); }
+
+.rail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
 }
-.ba__shot[data-label$='during']::before {
-  content: 'During';
-  position: absolute;
-  z-index: 2;
-  top: 8px;
-  left: 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-2);
+.rail__arrows { display: flex; gap: 8px; }
+.rail__arrow {
+  inline-size: 38px;
+  block-size: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+  color: var(--fg-dim);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
 }
-.ba__shot[data-label$='after']::before {
-  content: 'After';
-  position: absolute;
-  z-index: 2;
-  top: 8px;
-  left: 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--fg);
+.rail__arrow svg { inline-size: 18px; block-size: 18px; }
+.rail__arrow:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
 }
+.rail__arrow:active:not(:disabled) { transform: scale(0.92); }
+.rail__arrow:disabled { opacity: 0.28; cursor: default; }
+
+/* The track. The native scrollbar is hidden rather than styled: a thin grey
+   bar under a row of photographs is the single thing that made this read as
+   unfinished. What replaces it as the "there is more" cue is the pair of
+   arrows plus the fade at the right edge, and the track still scrolls with a
+   trackpad, a swipe, or the keyboard exactly as before. */
+.rail__track {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(30px, 4vw, 56px);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Content that continues past the right edge fades instead of being cut,
+     so the rail looks like it carries on rather than stopping mid-photo. */
+  /* A mask reads only alpha, so the colour is irrelevant — any opaque token
+     does the job and keeps the no-literals sweep happy. */
+  mask-image: linear-gradient(to right, var(--fg) 0 92%, transparent 100%);
+}
+.rail__track::-webkit-scrollbar { display: none; }
+
+/* One piece. This is the separation that was missing: the shots of a single
+   cabinet sit tight together because they are the same object, and the two
+   pieces are pushed apart by a full gap and a hairline rule so the rail reads
+   as two stories rather than nine loose thumbnails. */
+.rail__piece {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  position: relative;
+}
+.rail__piece + .rail__piece { padding-inline-start: clamp(30px, 4vw, 56px); }
+.rail__piece + .rail__piece::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: 1px;
+  background: var(--border);
+}
+
+.rail__piece-head { margin-bottom: 12px; }
+.rail__piece-name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--step-lede);
+  margin: 0;
+}
+/* Deliberately not .meta: that is mono, uppercase and letter-spaced, which
+   suits a two-word stage label and makes a sentence hard to read. */
+.rail__piece-note {
+  margin: 4px 0 0;
+  color: var(--fg-dim);
+  font-size: 14px;
+  line-height: 1.45;
+  max-inline-size: 38ch;
+}
+
+.rail__shots { display: flex; gap: 10px; }
+.rail__item { margin: 0; inline-size: 200px; flex: 0 0 auto; }
+.rail__caption { margin-top: 8px; display: block; color: var(--fg-dim); }
+
+@media (max-width: 600px) {
+  .rail__item { inline-size: 58vw; }
+  .rail__track { gap: 28px; }
+  .rail__piece + .rail__piece { padding-inline-start: 28px; }
+}
+
 
 /* .spec and .link come from chrome.css. Not redefined here. */

@@ -98,16 +98,27 @@ describe('workshop.html', () => {
     expect(html).toContain('/projects.html#resell-assistant');
   });
 
-  it('marks every before/after shot as a photograph the owner took', () => {
-    const shots = html.match(/<figure class="frame ba__shot"[^>]*>/g) ?? [];
-    expect(shots).toHaveLength(5); // piece 1: before/during/after; piece 2: before/after
+  it('marks every shot as a photograph the owner took', () => {
+    // The grid became a rail (2026-09-22), which had room for all nine shots
+    // rather than the five the full-width layout could afford.
+    const shots = html.match(/<figure class="frame rail__shot"[^>]*>/g) ?? [];
+    expect(shots).toHaveLength(9);
     shots.forEach((f) => expect(f).toContain('data-own-photo="true"'));
   });
 
   it('points every shot at a file that actually exists', () => {
     const srcs = Array.from(html.matchAll(/src="(\/assets\/img\/workshop\/[^"]+)"/g)).map((m) => m[1]);
-    expect(srcs).toHaveLength(5);
+    expect(srcs).toHaveLength(9);
+    // These are the owner's own photographs; a broken path here is the one
+    // kind of missing image the designed placeholder must never stand in for.
     srcs.forEach((src) => expect(existsSync(`.${src}`)).toBe(true));
+  });
+
+  it('keeps the rail usable with no JS', () => {
+    // The track is a plain scroll container; the arrows are an enhancement
+    // and must ship hidden, or a no-JS visitor gets two dead buttons.
+    expect(html).toMatch(/<div class="rail__arrows" hidden>/);
+    expect(html).toContain('data-rail-track');
   });
 
   it('gives every workshop photo real alt text — they are the page evidence', () => {

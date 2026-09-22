@@ -4,11 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Workshop — Yosef Pilip</title>
-  <meta name="description" content="Thrifting, refurbishing and reselling — plus the machine shop the habit came from." />
+  <meta name="description" content="Thrifting, refurbishing and reselling, plus the machine shop the habit came from." />
+
+  <!-- Icons. One mark, the site's own bone-on-charcoal Y, drawn in Georgia —
+       already the fallback face in --font-display. -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <!-- Social preview. The whole point of this site is being one link you send
+       to a recruiter, a promoter or a friend, so the unfurl is not optional.
+       og:image MUST be absolute; a relative path silently yields no card. -->
+  <link rel="canonical" href="https://yosefpilip.com/workshop" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Yosef Pilip" />
+  <meta property="og:title" content="Workshop — Yosef Pilip" />
+  <meta property="og:description" content="Thrifting, refurbishing and reselling, plus the machine shop the habit came from." />
+  <meta property="og:url" content="https://yosefpilip.com/workshop" />
+  <meta property="og:image" content="https://yosefpilip.com/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Yosef Pilip, over a sunlit jungle canopy" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#171b19" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/workshop.css" />
+  <noscript>
+    <!-- No JS means no flip-board, so the wordmark's plain text has to come
+         back. nameFlip.css hides it by default to kill the load flash. -->
+    <style>#name-flip-root { visibility: visible; }</style>
+  </noscript>
 </head>
 <body data-room="workshop">
 
@@ -16,7 +45,7 @@
 
   <header class="site-header">
     <div class="container site-header__inner">
-      <a class="wordmark" href="/">Yosef Pilip</a>
+      <a class="wordmark" href="/"><span id="name-flip-root">Yosef Pilip</span></a>
       <nav class="nav-desktop" aria-label="Primary">
         <a href="/">Home</a>
         <a href="/projects.html">Projects</a>
@@ -77,7 +106,18 @@
         <!-- The interior headline is the LAST BEAT of the same move, not a
              second stack. It fades up once the room has arrived. -->
         <div class="plate plate--threshold">
-          <h2 class="display" data-edit="inside.heading">Three verbs, and they&rsquo;re all the same one.</h2>
+          <h2 class="display" data-edit="inside.heading">Three verbs, sharing the same thing.</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── THRIFTING: the owner's own opener, lightly edited ── -->
+    <section class="section section--tight" id="thrifting">
+      <div class="container split-5-7">
+        <h2 class="reveal" data-edit="thrifting.heading">Thrifting</h2>
+        <div class="reveal">
+          <p data-edit="thrifting.body1">I have not spent more than $15 on a piece of clothing since about 2023 (apart from a $60 leather jacket I bought because I really wanted a leather jacket). My whole closet is made up of thrifted clothes with the occasional gift or two, but the thrifted pieces take over.</p>
+          <p data-edit="thrifting.body2">Over the past couple of years, I have developed a love for finding old, unwanted things and giving them a new life and purpose.</p>
         </div>
       </div>
     </section>
@@ -87,8 +127,8 @@
       <div class="container split-7-5">
         <h2 class="act__word reveal"><span class="act__re" data-edit="rescue.act1">Re</span><span class="act__suffix" data-edit="rescue.act2">scue</span></h2>
         <div class="reveal">
-          <p data-edit="rescue.body1">Thrifting is a filtering problem with bad tooling. Everything is one-of-one, nothing is labelled properly, and the only index is your own eyes going along a rail.</p>
-          <p data-edit="rescue.body2">What I&rsquo;m looking for is the gap between what something is and what it looks like right now. A good piece under a bad finish is worth more than a mediocre piece in good shape, because the first one is a problem I can solve and the second one is just a purchase.</p>
+          <p data-edit="rescue.body1">Sifting through hundreds of pieces on rack after rack might feel tiring and take forever. Walking up and down the aisles aimlessly looking for something seems grueling, but once I find a piece I like, I get pure joy.</p>
+          <p data-edit="rescue.body2">I love finding a piece I know people would&rsquo;ve paid ten times as much for, and getting it for just a few bucks. Those few bucks can last me years. I still wear certain pants I got years ago.</p>
         </div>
       </div>
     </section>
@@ -99,37 +139,108 @@
         <div class="split-7-5">
           <h2 class="act__word reveal"><span class="act__re" data-edit="renew.act1">Re</span><span class="act__suffix" data-edit="renew.act2">new</span></h2>
           <div class="reveal">
-            <p data-edit="renew.body">Stripping, sanding, repairing, refinishing. Some of it is furniture, some of it is smaller craft work. The part I like is that the object tells you immediately whether you were right &mdash; there&rsquo;s no arguing with a surface.</p>
+            <p data-edit="renew.body">I get the same joy from refurbishing and fixing broken or messed up things. Whether it&rsquo;s removing a pen stain from a nice dress shirt I found, sanding old stains off a vintage dresser, or repainting an old mirror to fit a modern room, the work puts me in a state of peace, and I love seeing the final product. Something made from an item that was just about forgotten.</p>
+            <p data-edit="renew.body2">When I find a piece I like, I have a mission to bring it back to its perfect state. I&rsquo;ve refurbished multiple old pieces of furniture, sewn buttons and glued fabric back onto plenty of clothes, and turned trash into art.</p>
           </div>
         </div>
 
         <!-- Real photographs of real pieces, already committed to
-             assets/img/workshop/. Never generated. -->
-        <div class="ba reveal">
+             assets/img/workshop/. Never generated.
 
-          <figure class="ba__piece ba__piece--three">
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — before">
-              <img src="/assets/img/workshop/piece-1-before.webp" alt="A worn orange-brown cabinet with a badly damaged top, sitting in a garage" loading="lazy" />
-            </figure>
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — during">
-              <img src="/assets/img/workshop/piece-1-during.webp" alt="The same cabinet stripped to its carcass outdoors, with a new top being fitted" loading="lazy" />
-            </figure>
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — after">
-              <img src="/assets/img/workshop/piece-1-after.webp" alt="The finished cabinet painted white with a dark walnut top" loading="lazy" />
-            </figure>
-            <figcaption class="meta" data-edit="renew.caption1">Low cabinet &mdash; the top was past saving, so it got a new one.</figcaption>
-          </figure>
+             A horizontal rail rather than the full-width grid this was. At
+             4/5 portrait across a 1440px container each shot rendered about
+             575px tall and the section ran past 1200px, which the owner read
+             as the photos taking over the page. The rail holds them at 200px
+             wide, fits all NINE shots instead of five, and scrolls natively
+             with no JS at all — the arrows are an enhancement and ship
+             hidden until the script reveals them. -->
+        <div class="rail reveal" id="pieces">
+          <div class="rail__head">
+            <p class="meta" data-edit="renew.railnote">Two pieces, start to finish.</p>
+            <div class="rail__arrows" hidden>
+              <button class="rail__arrow" type="button" data-rail-prev aria-label="Previous photos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 6 9 12 15 18"/></svg>
+              </button>
+              <button class="rail__arrow" type="button" data-rail-next aria-label="More photos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+              </button>
+            </div>
+          </div>
 
-          <figure class="ba__piece">
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — before">
-              <img src="/assets/img/workshop/piece-2-before.webp" alt="A small orange-brown side cabinet with a water-damaged top" loading="lazy" />
-            </figure>
-            <figure class="frame ba__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — after">
-              <img src="/assets/img/workshop/piece-2-after.webp" alt="The same cabinet in white with a stained wood top and black hardware" loading="lazy" />
-            </figure>
-            <figcaption class="meta" data-edit="renew.caption2">Side cabinet &mdash; original grain kept on the top, everything else painted out.</figcaption>
-          </figure>
+          <div class="rail__track" data-rail-track tabindex="0" role="group" aria-label="Refurbished pieces">
 
+            <section class="rail__piece" aria-label="Low cabinet">
+              <header class="rail__piece-head">
+                <h3 class="rail__piece-name" data-edit="renew.piece1">Low cabinet</h3>
+                <p class="rail__piece-note" data-edit="renew.caption1">I kept the original grain on the top and painted everything else.</p>
+              </header>
+              <div class="rail__shots">
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — before">
+                    <img src="/assets/img/workshop/piece-1-before.webp" alt="A worn orange-brown cabinet with a badly damaged top, sitting in a garage" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">Before</figcaption>
+                </figure>
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — during">
+                    <img src="/assets/img/workshop/piece-1-during.webp" alt="The same cabinet stripped to its carcass outdoors, with a new top being fitted" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">During</figcaption>
+                </figure>
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — after">
+                    <img src="/assets/img/workshop/piece-1-after.webp" alt="The finished cabinet painted white with a dark walnut top" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">After</figcaption>
+                </figure>
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — angle">
+                    <img src="/assets/img/workshop/piece-1-angle.webp" alt="The finished low cabinet seen from the side" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">From the side</figcaption>
+                </figure>
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Low cabinet — top">
+                    <img src="/assets/img/workshop/piece-1-top.webp" alt="A close view of the cabinet’s new walnut top" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">The new top</figcaption>
+                </figure>
+              </div>
+            </section>
+
+            <section class="rail__piece" aria-label="Side cabinet">
+              <header class="rail__piece-head">
+                <h3 class="rail__piece-name" data-edit="renew.piece2">Side cabinet</h3>
+                <p class="rail__piece-note" data-edit="renew.caption2">I painted the inside drawers to match the top, painted the hardware too.</p>
+              </header>
+              <div class="rail__shots">
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — before">
+                    <img src="/assets/img/workshop/piece-2-before.webp" alt="A small orange-brown side cabinet with a water-damaged top" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">Before</figcaption>
+                </figure>
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — after">
+                    <img src="/assets/img/workshop/piece-2-after.webp" alt="The same cabinet in white with a stained wood top and black hardware" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">After</figcaption>
+                </figure>
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — angle">
+                    <img src="/assets/img/workshop/piece-2-angle.webp" alt="The finished side cabinet seen from the side" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">From the side</figcaption>
+                </figure>
+                <figure class="rail__item">
+                  <figure class="frame rail__shot" style="--ar: 4 / 5;" data-own-photo="true" data-label="Side cabinet — top">
+                    <img src="/assets/img/workshop/piece-2-top.webp" alt="A close view of the side cabinet’s stained top" loading="lazy" />
+                  </figure>
+                  <figcaption class="meta rail__caption">The new top</figcaption>
+                </figure>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </section>
@@ -139,7 +250,8 @@
       <div class="container split-7-5">
         <h2 class="act__word reveal"><span class="act__re" data-edit="resell.act1">Re</span><span class="act__suffix" data-edit="resell.act2">sell</span></h2>
         <div class="reveal">
-          <p data-edit="resell.body">Then it goes back out &mdash; Depop, eBay, Mercari, depending on what it is and who&rsquo;s looking. Pricing is the interesting half. Get it wrong high and it sits there telling you that you were wrong; get it wrong low and you find out instantly.</p>
+          <p data-edit="resell.body">With all that came my love for reselling. I go out on the weekend to find cool pieces, take good care of them, take good pics, and post them the same day, just for a chance that someone finds it and falls in love with it themselves. I get to bring a small selection of clothes to the rest of the country, so people can find things online they wouldn&rsquo;t have found in person.</p>
+          <p data-edit="resell.body2">Same with furniture. I refurbish a piece to fit into someone&rsquo;s home exactly how they want it, and bring function back to a piece of craftsmanship that was standing by the dumpster.</p>
           <!-- CONTROLLER CORRECTION C1: eBay and Mercari are dropped, not
                dashed — "drop for now. I can add later." A visible "—" here
                would misreport a withheld decision as an unknown value, so
@@ -156,8 +268,8 @@
       <div class="container split-5-7">
         <h2 class="reveal" data-edit="shop.heading">Where the hands came from</h2>
         <div class="reveal">
-          <p data-edit="shop.body1">I dual-enrolled in manufacturing engineering at De Anza while I was still in high school. CAD and SolidWorks, 3D printing across FDM, VAT and powder-bed fusion, CNC machining, and manual metalwork &mdash; designing parts and then actually making them, end to end.</p>
-          <p data-edit="shop.body2">That&rsquo;s the part that makes the rest of this page a habit rather than a hobby. Once you&rsquo;ve machined something to a tolerance, a wobbly chair stops looking like a chair and starts looking like a fixable joint.</p>
+          <p data-edit="shop.body1">In high school I dual-enrolled in manufacturing engineering at De Anza. I learned CAD and SolidWorks, 3D printing across FDM, VAT and powder-bed fusion, CNC machining, and manual metalwork, designing parts and then actually making them.</p>
+          <p data-edit="shop.body2">That&rsquo;s probably why fixing things comes naturally to me. Once you&rsquo;ve machined a part to a tolerance, a wobbly chair stops looking broken and starts looking like a loose joint you can fix.</p>
         </div>
       </div>
     </section>
@@ -168,8 +280,8 @@
         <div class="panel panel--tint reveal">
           <p class="eyebrow" data-edit="tool.eyebrow">Which is why I built</p>
           <h2 data-edit="tool.heading">Resell Assistant</h2>
-          <p class="lede" data-edit="tool.lede">Pricing by feel works until you&rsquo;re holding forty things at once.</p>
-          <p data-edit="tool.body">So I wrote an MCP server I can ask in plain language what something is worth &mdash; and which keeps the financial and inventory tracker in Google Sheets current on its own, instead of me updating a spreadsheet at midnight.</p>
+          <p class="lede" data-edit="tool.lede">Pricing by feel works until you&rsquo;re holding a whole weekend&rsquo;s haul at once.</p>
+          <p data-edit="tool.body">So I built an MCP server I can ask, in plain language, what something is worth. It also keeps my inventory and finances in Google Sheets up to date on its own, so I&rsquo;m not updating a spreadsheet at midnight.</p>
           <p><a class="btn btn--primary" href="/projects.html#resell-assistant" data-edit="tool.link">See the project</a></p>
         </div>
       </div>

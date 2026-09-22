@@ -4,11 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Projects — Yosef Pilip</title>
-  <meta name="description" content="Things I've built: Cache It, a batch podcast generator, an MCP resale assistant, and the internal tools behind a 100-person company." />
+  <meta name="description" content="Things I've built. Cache It, a batch podcast generator, an MCP resale assistant, and the internal tools behind a 100-person company." />
+
+  <!-- Icons. One mark, the site's own bone-on-charcoal Y, drawn in Georgia —
+       already the fallback face in --font-display. -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <!-- Social preview. The whole point of this site is being one link you send
+       to a recruiter, a promoter or a friend, so the unfurl is not optional.
+       og:image MUST be absolute; a relative path silently yields no card. -->
+  <link rel="canonical" href="https://yosefpilip.com/projects" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Yosef Pilip" />
+  <meta property="og:title" content="Projects — Yosef Pilip" />
+  <meta property="og:description" content="Things I've built. Cache It, a batch podcast generator, an MCP resale assistant, and the internal tools behind a 100-person company." />
+  <meta property="og:url" content="https://yosefpilip.com/projects" />
+  <meta property="og:image" content="https://yosefpilip.com/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Yosef Pilip, over a sunlit jungle canopy" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#171b19" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/projects.css" />
+  <noscript>
+    <!-- No JS means no flip-board, so the wordmark's plain text has to come
+         back. nameFlip.css hides it by default to kill the load flash. -->
+    <style>#name-flip-root { visibility: visible; }</style>
+  </noscript>
 </head>
 <body data-room="projects">
 
@@ -16,7 +45,7 @@
 
   <header class="site-header">
     <div class="container site-header__inner">
-      <a class="wordmark" href="/">Yosef Pilip</a>
+      <a class="wordmark" href="/"><span id="name-flip-root">Yosef Pilip</span></a>
       <nav class="nav-desktop" aria-label="Primary">
         <a href="/">Home</a>
         <a href="/projects.html" aria-current="page">Projects</a>
@@ -80,10 +109,10 @@
               <span class="work-row__year meta" data-edit="index.year1">2026</span>
               <span class="work-row__name title-h2" data-edit="index.name1">Cache It</span>
               <span class="work-row__hook" data-edit="index.hook1">Hidden art around a city. Find it, tap it, keep it.</span>
-              <span class="work-row__go" aria-hidden="true">+</span>
+              <span class="work-row__go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="work-detail">
-              <p data-edit="index.body1">A geocaching-style hunt for street art. An artist hides a piece somewhere in the city, you go and find it, and you tap your phone against it to collect it into your own portfolio. I designed and built the whole thing — React and Vite on the front, FastAPI behind it.</p>
+              <p data-edit="index.body1">A geocaching-style hunt for street art. An artist hides a piece somewhere in the city, you go and find it, and you tap your phone against it to collect it into your own portfolio. I designed and built the whole thing. React and Vite on the front, FastAPI behind it.</p>
               <p class="meta" data-edit="index.meta1">React &middot; Vite &middot; FastAPI &middot; NFC &middot; NTAG 424 DNA</p>
               <p class="work-detail__links">
                 <a class="link" href="/projects/cache-it" data-edit="index.link1">Read the case study &rarr;</a>
@@ -97,10 +126,10 @@
               <span class="work-row__year meta" data-edit="index.year2">2026</span>
               <span class="work-row__name title-h2" data-edit="index.name2">Batch Podcast Generator</span>
               <span class="work-row__hook" data-edit="index.hook2">100-episode runs from a prompt, without melting the API.</span>
-              <span class="work-row__go" aria-hidden="true">+</span>
+              <span class="work-row__go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="work-detail">
-              <p data-edit="index.body2">Give it a prompt, get back a whole batch of podcast episodes. Scripts come from the Anthropic API; the voices come from a pluggable TTS adapter layer, so swapping Fish Audio for ElevenLabs is a config change rather than a rewrite. The interesting part is the concurrency — a 100-episode run is bounded by an asyncio semaphore so it saturates without falling over. SQLite behind it, deployed on Vercel.</p>
+              <p data-edit="index.body2">Give it a prompt, get back a whole batch of podcast episodes. Scripts come from the Anthropic API; the voices come from a pluggable TTS adapter layer, so swapping Fish Audio for ElevenLabs is a config change rather than a rewrite. The interesting part is the concurrency. A 100-episode run is bounded by an asyncio semaphore so it saturates without falling over. SQLite behind it, deployed on Vercel.</p>
               <p class="meta" data-edit="index.meta2">Python &middot; Anthropic API &middot; SQLite &middot; Vercel</p>
             </div>
           </article>
@@ -110,7 +139,7 @@
               <span class="work-row__year meta" data-edit="index.year3">In development</span>
               <span class="work-row__name title-h2" data-edit="index.name3">Resell Assistant</span>
               <span class="work-row__hook" data-edit="index.hook3">Ask what a thing is worth. It answers, then updates the books.</span>
-              <span class="work-row__go" aria-hidden="true">+</span>
+              <span class="work-row__go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="work-detail">
               <p data-edit="index.body3">A custom MCP server for my own reselling. You ask it a pricing question in plain language and it answers, then keeps a live financial and inventory tracker in Google Sheets up to date without me touching it. Auth is per-user OAuth rather than one shared credential, so it can be handed to someone else without handing over my account.</p>
@@ -124,7 +153,7 @@
               <span class="work-row__year meta" data-edit="index.year4">2025&ndash;</span>
               <span class="work-row__name title-h2" data-edit="index.name4">CloudGeometry internal tools</span>
               <span class="work-row__hook" data-edit="index.hook4">The Slack bot, the HR platform, and the thing that audits everyone&rsquo;s account.</span>
-              <span class="work-row__go" aria-hidden="true">+</span>
+              <span class="work-row__go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="work-detail">
               <p><strong data-edit="index.emphasis1">The Slack bot.</strong> Nobody should have to write a formal email to say they&rsquo;re sick. Now they tell Slack in whatever words they&rsquo;d actually use, and the bot works out what they meant, files it as a real record, and routes it to their manager. Three days became same-day, for about 100 people.</p>
@@ -138,11 +167,11 @@
             <button class="work-row work-row--button" aria-expanded="false">
               <span class="work-row__year meta" data-edit="index.year5">Being built</span>
               <span class="work-row__name title-h2" data-edit="index.name5">DJ Music Sorter</span>
-              <span class="work-row__hook" data-edit="index.hook5">Sorts a DJ library by BPM, key and energy &mdash; then helps build the set.</span>
-              <span class="work-row__go" aria-hidden="true">+</span>
+              <span class="work-row__hook" data-edit="index.hook5">Sorts a DJ library by BPM, key and energy, then helps build the set.</span>
+              <span class="work-row__go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="work-detail">
-              <p data-edit="index.body4">A DJ library gets messy fast, and the mess is a sorting problem. I&rsquo;m building two pieces that work together: a gamified Sorting Deck that previews a track on hover, guesses its category from BPM and energy, and lets me confirm or correct it with a keystroke; and a drag-and-drop Set Builder that assembles a tracklist and flags jarring BPM jumps between tracks. It works on whatever is already in my folders &mdash; a scan picks up new files and queues them for sorting. Audio analysis runs on librosa for BPM, key and energy, with mutagen reading the ID3 tags.</p>
+              <p data-edit="index.body4">A DJ library gets messy fast, and the mess is a sorting problem. I&rsquo;m building two pieces that work together. A gamified Sorting Deck that previews a track on hover, guesses its category from BPM and energy, and lets me confirm or correct it with a keystroke; and a drag-and-drop Set Builder that assembles a tracklist and flags jarring BPM jumps between tracks. It works on whatever is already in my folders. A scan picks up new files and queues them for sorting. Audio analysis runs on librosa for BPM, key and energy, with mutagen reading the ID3 tags.</p>
               <p class="meta" data-edit="index.meta5">Electron &middot; React &middot; Vite &middot; Python &middot; FastAPI &middot; librosa &middot; SQLite</p>
             </div>
           </article>
@@ -152,10 +181,10 @@
               <span class="work-row__year meta" data-edit="index.year6">2026</span>
               <span class="work-row__name title-h2" data-edit="index.name6">This site</span>
               <span class="work-row__hook" data-edit="index.hook6">Four rooms, one building. Scroll-linked depth, hand-built.</span>
-              <span class="work-row__go" aria-hidden="true">+</span>
+              <span class="work-row__go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="work-detail">
-              <p data-edit="index.body5">A Vite multi-page build, no framework driving the layout. The green lives in the photography and the interface stays out of its way. Every page is a different setting, and one scroll-progress value drives the layers on all of them — so the hero&rsquo;s trunks can slide across my name instead of sitting on top of it.</p>
+              <p data-edit="index.body5">A Vite multi-page build, no framework driving the layout. The green lives in the photography and the interface stays out of its way. Every page is a different setting, and one scroll-progress value drives the layers on all of them, so the hero&rsquo;s trunks can slide across my name instead of sitting on top of it.</p>
               <p class="meta" data-edit="index.meta6">Vite &middot; TypeScript &middot; React &middot; Lenis</p>
               <p class="work-detail__links"><a class="link" href="https://github.com/yosefPilip" target="_blank" rel="noopener" data-edit="index.link4">GitHub &#8599;</a></p>
             </div>

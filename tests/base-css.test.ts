@@ -167,6 +167,18 @@ describe('display type ≥32px carries tracking (spec §4)', () => {
 describe.each(STYLESHEETS)('%s', (file) => {
   const css = readFileSync(file, 'utf8');
 
+  it('has balanced braces, so the browser does not drop the whole file', () => {
+    /* A stylesheet with one stray '}' does not fail loudly — the browser
+       discards from the error onward and the page renders unstyled, which on
+       workshop.css meant a 200px photo rail rendering at 13,000px tall while
+       every test still passed. Cheap check, and it would have caught it at
+       the moment the edit was made. */
+    const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    const open = (withoutComments.match(/\{/g) ?? []).length;
+    const close = (withoutComments.match(/\}/g) ?? []).length;
+    expect(close, `${open} '{' vs ${close} '}'`).toBe(open);
+  });
+
   it('contains no colour literals — every colour comes from a token', () => {
     expect(findHardcodedHex(css)).toEqual([]);
   });

@@ -134,6 +134,33 @@ export function installTextEditing(store: Store): void {
     });
   }
 
+  /* A [data-edit] block nested inside a link is contentEditable like any
+     other, but clicking it to put a caret in it ALSO follows the link, so the
+     page navigates away and the text can never be edited. This is not a rare
+     shape on this site: every Elsewhere door description and every Selected
+     work row name lives inside its card's <a>.
+
+     Click, not mousedown: the anchor's navigation is the default action of
+     `click`, so preventing it here stops the page change while leaving
+     mousedown's caret placement and focus untouched. Capture phase so it runs
+     before anything else can act on the click.
+
+     Deliberately narrow. It fires only while edit mode is on, and only for a
+     click that actually lands on editable text — clicking the door's image,
+     or its heading, still follows the link, because navigating the site is
+     the other half of what the panel is used for. */
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (!isActive()) return;
+      const target = e.target as Element | null;
+      const block = target?.closest?.(`[${MANIFEST.editAttr}]`);
+      if (!block || !block.closest('a[href]')) return;
+      e.preventDefault();
+    },
+    true,
+  );
+
   document.addEventListener('keydown', (e) => {
     // e.code, not e.key: matches overlay.ts's own hotkey check. Under a
     // non-QWERTY layout (e.g. Cyrillic) e.key is never 'e' even with the
