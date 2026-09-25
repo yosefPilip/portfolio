@@ -23,7 +23,7 @@ settled creative direction only.
 | 4 | Music | `cave-far`, `cave-near` | cave | orchid `#b97fc9` |
 | 5 | Workshop — exterior | `cottage-far`, `needles-near` | northern spruce forest, cottage with one lit window | ochre `#c0a06a` |
 | 6 | Workshop — interior | `bench-far`, `bench-near` | the workbench, inside the cottage | ochre |
-| 7 | Cache It | `cacheit-street`, `cacheit-scan` | street / scan moment | slate |
+| ~~7~~ | ~~Cache It~~ | ~~`cacheit-street`, `cacheit-scan`~~ | **cancelled 2026-09-24**, filled from the product's own art, see image-slots.md | — |
 
 Home's three "Elsewhere" doors were rebuilt on 2026-09-22 as downscaled crops of each
 room's own hero — `ridge-far`, `ice-plane`, `cottage-face` — so a door shows the page it

@@ -269,6 +269,23 @@ placeholder `bench-far` / `bench-near`), `cottage-door`, and the doorway dolly i
 The stock reference `images-2.jpg` is deliberately NOT deleted — per Ruling 10 references are
 swept in the final cleanup task, never in a room's own image task.
 
+## Cache It — case study
+
+All five slots are the product's OWN art, copied from `Dev/personal/Cache It` and
+resized/cropped with Pillow. No generation, $0.00. Same rule as the portal: if the
+product's art changes, re-copy from there, never re-render here. The old
+`cacheit-street` / `cacheit-scan` / `fronds-near` slots (photographic street art,
+never generated) are replaced, not deferred. Do not buy them.
+
+| Slot | Role | Tier | Status | Spend | Notes |
+|---|---|---|---|---|---|
+| `cacheit/tap` | hero 16:9 | — | **final (brand asset)** | $0.00 | 2026-09-24. `reference/pip-explores/pip-explore-4.png` rows 170-1034 -> 1536x864. #4 chosen of the four because it has the most headroom; the other three lose Pip's head or feet at 16:9. The other three are near-duplicates, do not add them elsewhere. |
+| `cacheit/city-plate` | stack back | 3 alpha | **final (brand asset)** | $0.00 | 2026-09-24. `reference/hero-source/city-hero.png` trimmed to its alpha bbox, 1600x841. Contained, not covered (case-study.css), at object-position 74% so the pull quote clears the spires. |
+| `cacheit/clouds` | stack front | 3 alpha | **final (derivative)** | $0.00 | 2026-09-24. Clouds 1,2,3,4,6 from `reference/hero-source/` composited on a 1600x2000 transparent canvas. Cloud 5 was dropped: on desktop it drifted across the Y of the pull quote. Clouds sit in the lower-middle so phones see them from the first frame. Filmstripped at 1440x900 and 390x844. |
+| `cacheit/screen-onboard` | screens row | — | **final (screenshot)** | $0.00 | 2026-09-24. `Ideas and Screenshots/Screenshot_1785272735.png` (Android) cropped to 388:839 and resized to 388x839 so all three screens share one ratio. |
+| `cacheit/screen-home` | screens row | — | **final (screenshot)** | $0.00 | 2026-09-24. `Cache it post1.PNG`, re-encoded only. |
+| `cacheit/screen-collection` | screens row | — | **final (screenshot)** | $0.00 | 2026-09-24. `Cache it post2.PNG`, re-encoded only. The login screen (`Cache it psot.PNG`) was left out as the least interesting of the four. |
+
 ## Other rooms
 
 See `docs/image-rooms-queue.md`. All placeholders, none planned yet by design.

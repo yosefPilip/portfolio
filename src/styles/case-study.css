@@ -69,3 +69,15 @@
    IS driven, because its stack exists at load — keeps its animation. */
 .cs-overlay .stack { height: auto; }
 .cs-overlay .stack-view { position: relative; height: 72svh; }
+
+/* ── Cache It's own art ──
+   Both plates are alpha cutouts from the product's hero (the floating city
+   and its clouds), so the frames drop their --bg-deep fill; an opaque front
+   frame would black out the copy beneath it. The city is landscape inside a
+   portrait plate, so it is contained, not covered, or a phone would see a
+   close-up of two buildings. It sits low so the pull quote clears its spires
+   and lifts away from them as the copy plate out-climbs the back one. */
+.cs .stack .plate > .frame { background: transparent; }
+.cs .stack .plate--back img { object-fit: contain; object-position: center 74%; }
+
+.cs-screens { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(10px, 2.4vw, 28px); }
