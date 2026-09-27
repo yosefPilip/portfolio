@@ -13,21 +13,21 @@ export const tracks: Track[] = [
   {
     id: 'summer-mix-02',
     title: 'Summer Mix 02',
-    description: 'The follow-up to Summer Mix 01.',
+    description: 'A second mix of summer house songs.',
     cover: 'https://i1.sndcdn.com/artworks-9qNGdBAkhrAkcwJ3-r2zzSg-t500x500.png',
     href: 'https://soundcloud.com/recursion-mp3/summer-mix-02-recursion',
   },
   {
     id: 'tech-house-mix-01',
     title: 'Tech House Mix',
-    description: 'Tech house, start to finish.',
+    description: 'Some of my favorite tech house songs.',
     cover: 'https://i1.sndcdn.com/artworks-JX31KwMGjDSIy4nH-wz9Hqg-t500x500.jpg',
     href: 'https://soundcloud.com/recursion-mp3/tech-house-mix-01-recursion',
   },
   {
     id: 'summer-mix-01',
     title: 'Summer Mix 01',
-    description: 'The first one in the series.',
+    description: 'A mix of summer house songs.',
     cover: 'https://i1.sndcdn.com/artworks-y6C6y79vCEIihnBM-simOdw-t500x500.png',
     href: 'https://soundcloud.com/recursion-mp3/summer-mix-01-recursion',
   },
@@ -41,7 +41,7 @@ export const tracks: Track[] = [
   {
     id: 'bathroom-mix',
     title: 'Bathroom Mix',
-    description: 'My first live set. UK garage and house.',
+    description: 'My first live set, with UKG.',
     cover: 'https://i1.sndcdn.com/artworks-2uphtHgoDZL8ZrOF-PGxXZg-t500x500.png',
     href: 'https://soundcloud.com/recursion-mp3/recursion-first-live-set-bathroom-mix-ukg-house',
   },
