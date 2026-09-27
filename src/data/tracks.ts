@@ -34,7 +34,7 @@ export const tracks: Track[] = [
   {
     id: 'victory-lap-dub',
     title: 'Victory Lap Dub',
-    description: 'A standalone mix.',
+    description: 'My own remix of Victory Lap.',
     cover: 'https://i1.sndcdn.com/artworks-yvizVfKxszpdM5SM-3uweVw-t500x500.png',
     href: 'https://soundcloud.com/recursion-mp3/victory-lap-dub-recursion-1',
   },
