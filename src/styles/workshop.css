@@ -363,7 +363,6 @@
    as two stories rather than nine loose thumbnails. */
 .rail__piece {
   flex: 0 0 auto;
-  scroll-snap-align: start;
   position: relative;
 }
 .rail__piece + .rail__piece { padding-inline-start: clamp(30px, 4vw, 56px); }
@@ -394,7 +393,11 @@
 }
 
 .rail__shots { display: flex; gap: 10px; }
-.rail__item { margin: 0; inline-size: 200px; flex: 0 0 auto; }
+/* Snap points sit on every photo, not on each piece. An arrow press moves one
+   photo, and with the only snap points at piece starts, proximity snapping
+   pulled a one-photo move straight back to the start of the first piece. On
+   desktop that made the next arrow do nothing at all. */
+.rail__item { margin: 0; inline-size: 200px; flex: 0 0 auto; scroll-snap-align: start; }
 .rail__caption { margin-top: 8px; display: block; color: var(--fg-dim); }
 
 @media (max-width: 600px) {

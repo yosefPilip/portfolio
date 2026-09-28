@@ -33,7 +33,10 @@ export function initPhotoRail(root: ParentNode = document): void {
     const page = (direction: 1 | -1): void => {
       const item = track.querySelector<HTMLElement>('.rail__item');
       if (!item) return;
-      const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
+      // The gap between two photos of one piece, not the track's own gap,
+      // which is the wider space between pieces.
+      const shots = item.parentElement ?? track;
+      const gap = Number.parseFloat(getComputedStyle(shots).columnGap) || 0;
       const step = railStep(item.getBoundingClientRect().width, gap);
       track.scrollTo({
         left: nextRailScroll(track.scrollLeft, step, maxScroll(), direction),
