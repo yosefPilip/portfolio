@@ -107,12 +107,6 @@ Water Polo
 - Built automated member-communication and event-operations workflows, eliminating the
   recurring manual work behind running each event.
 
-### Head Counselor · Tzofim North America (Israeli Scouts)
-**Aug 2021 – Jun 2024**
-
-- Led a 35-person team that set up and broke down large-scale events in half the time by
-  reorganizing roles and logistics.
-
 ---
 
 ## Personal Projects
@@ -167,7 +161,7 @@ Water Polo
   Developer (Jan 2026 – Present). Show it as ONE entry with the promotion inside it,
   never as two separate jobs.
 - **Cache It is an Experience entry here** (Founder & CEO, Aug 2026 – Present). The Home
-  page's Experience section deliberately lists only the four non-Cache-It roles, because
+  page's Experience section deliberately lists only the three non-Cache-It roles, because
   Cache It gets its own full case study. That is a layout decision, not a contradiction.
 - **Thrifting figures (owner-supplied, 2026-09-22), used on Workshop:** no clothing
   purchase over $15 since about 2023, with one exception — a $60 leather jacket.

@@ -110,7 +110,7 @@ Also a DJ. yosefpilip@gmail.com · github.com/yosefPilip · linkedin.com/in/yose
 - **Founder & CEO, Cache It**, Aug 2026 – Present. NFC art discovery app (React/Vite +
   FastAPI), SDSU Zip Launchpad Fall 2026.
 - Leadership: AEPi Events (50-person team, $13k budget, 400+ turnout), Hillel Business
-  Initiative, Tzofim North America.
+  Initiative. (Tzofim North America removed 2026-09-28, off the new CV.)
 - Projects: Batch Podcast Generator, Resell Assistant (Claude MCP), this site.
 
 **Traps that have already caused rework — get these right the first time:**
@@ -122,7 +122,7 @@ Also a DJ. yosefpilip@gmail.com · github.com/yosefPilip · linkedin.com/in/yose
 - CloudGeometry is **one continuous employer** with a promotion, IT Automation Engineer
   (May 2025 – Jan 2026) → AI Software Developer (Jan 2026 – Present). One entry, not two.
 - Cache It is an Experience entry, but Home's Experience section deliberately lists only
-  the four non-Cache-It roles — it gets its own case study. That's a layout decision,
+  the three non-Cache-It roles — it gets its own case study. That's a layout decision,
   not a contradiction.
 
 ---
