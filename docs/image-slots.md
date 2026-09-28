@@ -348,3 +348,12 @@ history".** Restore any one with `git checkout 5144d18 -- <path>`.
 
 `roll-near-09.png` is deliberately kept: it is the only uncropped original of `ridge-near.webp`
 and `tools/mist.py` takes it as input.
+
+## 2026-09-28 — Workshop hero restored after a blur report
+
+A visitor reported the Workshop room as "very blurry when you scroll in". The
+2026-09-22 launch-prep q82 pass had re-encoded the dolly plates: `bench-far` 320 KB ->
+97 KB with local detail **2.16 -> 1.66 (-23%)**, the same loss that was fixed once
+before with the q96 export, and `cottage-face` downscaled **2560x2048 -> 1920x1536**
+although the facade scales to 8x. Both restored byte-for-byte from `5bc151a^`. Spend
+$0.00. `cottage-door` and `needles-near` measured no loss and keep their q82 files.
