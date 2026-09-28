@@ -144,8 +144,9 @@ occluded at the end and that is accepted for now.
 | `cottage-face` | facade, opaque | 1 opaque | explore (kept, **roll 2**) | $0.080 | **2560x2048, re-rolled.** Roll 1 (3200x2560, $0.05) was composed with the cabin at ~70% of frame because the ABANDONED zoom design needed detail to survive 4.5x. With the mask reveal that is unnecessary, and the owner rejected it on sight: "starts off very zoomed in you can't see the scene." Roll 2 uses `--ref assets/img/cottage-far.webp` with the prompt pinned to *match the reference's framing exactly*, changing only the door -> an empty opening. Result is the establishing distance he approved, and it fixed mobile as a side effect: a smaller cabin survives the portrait crop. Opening per `tools/doorway.py`: x 0.4797-0.5340, y 0.5522-0.6933, centre 50.68%/62.28%, **5.43% of frame width** (an 18.4x fill), interior std 2.4, centre inside the mobile safe band. Roll 1 stays on disk. |
 | `cottage-door` | door slab | 3 real alpha | explore (kept) | $0.010 | 1024x2048, **cropped to 965x2048**. Matte clamped by `tools/whitepoint.py --alpha`: partial alpha 95.44% -> **0.29%**. Strap hinges left, ring handle right, so it swings about its left edge. **Graded gamma 2.036** — the first composite showed it 3.27x brighter than the timber it sits in (81.2 against the wall's 24.8) and read as pasted on; it now measures 26.7. **Then cropped to its opaque bounds:** the generated slab carried ~6% transparent margin, so the wood was narrower than its own image and daylight showed down both sides of the opening. It now spans 0.000-0.999 of its box, and the CSS gives it a further 4% overlap to cover the foreshortening as it swings. |
 
-`cottage-far.webp` is superseded as the hero but **kept on disk** — it is the `--ref` that
-gives `cottage-face` its continuity, and re-rolling the facade would need it again.
+`cottage-far.webp` was superseded as the hero and was the `--ref` that gave `cottage-face`
+its continuity. **Deleted 2026-09-27** in the unused-image sweep below; re-rolling the facade
+needs it back from git first.
 
 ### Why this is a mask reveal and not a zoom
 
@@ -333,3 +334,17 @@ without changing its scale.
 **Standing lesson from this sitting:** never ask a prompt for "brighter" or "darker". Prompt
 for the subject and the light, then set exposure numerically in `grade.py` against a measured
 target. The one prompted brightness change overshot by 2.7x and cost a roll.
+
+## Unused-image sweep — 2026-09-27
+
+The owner asked for every image the site does not use to be deleted. 55 files, 145 MB, removed
+with `git rm` (last commit that still holds them: `5144d18`). Gone: every `roll-*.png` except
+`roll-near-09.png`, the stock references (`1000-f-…`, `360-f-…`, `20740152436-…`, `images-2.jpg`,
+`purple-crystals-…`, `snow-mountain-…`, `CDj.webp`, `Fossil.jpg`, `ICE.jpg`, `ref-jogwheel.png`,
+`recursion-logo.png`), and the retired plates `cave-near`, `jungle-near`, `jungle-mid`,
+`server-moss`, `cottage-far`, `cacheit/pip`. This reverses the earlier keep-the-references and
+keep-roll-1 rulings. **Rows above that say "stays on disk" or "kept" for a roll now mean "in git
+history".** Restore any one with `git checkout 5144d18 -- <path>`.
+
+`roll-near-09.png` is deliberately kept: it is the only uncropped original of `ridge-near.webp`
+and `tools/mist.py` takes it as input.
