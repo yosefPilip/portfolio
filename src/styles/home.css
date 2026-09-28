@@ -119,6 +119,10 @@
 /* ── experience ── */
 .exp { padding-block: clamp(24px, 3vw, 40px); border-bottom: 1px solid var(--border); }
 .exp__head { margin-bottom: 14px; }
+/* The earlier title at the same employer, set as a second meta line so the
+   promotion reads as history under the role rather than a second job. */
+.exp__prev { margin-top: 4px; }
+.exp__prev span:last-child { white-space: nowrap; }
 /* .exp__role takes its type from .title-h2 in base.css */
 .exp + .panel { margin-top: clamp(32px, 4vw, 56px); }
 

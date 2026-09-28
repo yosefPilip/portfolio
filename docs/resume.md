@@ -41,8 +41,11 @@ Water Polo
 
 ## Experience
 
-### AI Software Developer · CloudGeometry (Part-time)
-**May 2025 – Present**
+### CloudGeometry (Part-time)
+**May 2025 – Present** · one employer, continuous, with a promotion
+
+#### AI Software Developer
+**Jan 2026 – Present**
 
 - **Built a natural-language HR automation.** Engineered a Slack bot (Python, Gemini
   API) that parses HR requests into structured records, persists them, and routes
@@ -51,6 +54,16 @@ Water Polo
 - **Designed a role-based data platform.** Modeled a four-tier permission system and
   built an internal HR management app on top of it, replacing a paid third-party tool
   and saving $8,000 a year.
+- **Partnered with the CEO on TIX**, the company's git-based ticketing system driven by
+  Claude Code in plain English. Shipped fixes for a Windows crash that wiped ticket
+  files (with regression tests), secret-safe publishing, and ticket archiving.
+
+#### IT Automation Engineer
+**May 2025 – Jan 2026**
+
+- **Administered company IT** (Google Workspace, Slack, Hexnode) for a globally
+  distributed company of about 100 people; worked with the CEO, CTO, and HR Director on
+  security policy.
 - **Automated security auditing.** Wrote a scheduled Google Apps Script service that
   audits every account for security gaps (2FA, recovery info, profile photo) and logs
   findings to Sheets — replacing a manual review that took 40 hours a month across ~100
@@ -81,7 +94,7 @@ Water Polo
 **May 2025 – Dec 2025**
 
 - Directed a 50-person team across construction, logistics, and creative roles to plan
-  and execute large-scale themed events on a $12,000 budget.
+  and execute large-scale themed events on a $13,000 budget.
 - Drove turnout to 400+ attendees per event through campus-organization partnerships —
   double the previous years' average.
 
@@ -149,7 +162,10 @@ Water Polo
 - **Russian is Advanced/Conversational**, never "Native".
 - **Cache It uses NFC**, with an upgrade path to NTAG 424 DNA chips — never image
   recognition.
-- **CloudGeometry is one continuous role**, May 2025 – Present. Do not split it.
+- **CloudGeometry is one continuous employer**, May 2025 – Present, with a promotion
+  (2026-09-28 CV) from IT Automation Engineer (May 2025 – Jan 2026) to AI Software
+  Developer (Jan 2026 – Present). Show it as ONE entry with the promotion inside it,
+  never as two separate jobs.
 - **Cache It is an Experience entry here** (Founder & CEO, Aug 2026 – Present). The Home
   page's Experience section deliberately lists only the four non-Cache-It roles, because
   Cache It gets its own full case study. That is a layout decision, not a contradiction.

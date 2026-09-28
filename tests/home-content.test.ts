@@ -73,7 +73,7 @@ describe('Home content', () => {
     expect(html).toContain('$8,000');
     expect(html).toContain('40 hours a month');
     expect(html).toContain('same-day');
-    expect(html).toContain('$12,000');
+    expect(html).toContain('$13,000');
   });
 
   it('has no seam stacks — the owner removed them', () => {
