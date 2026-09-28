@@ -1,7 +1,9 @@
+import { initAnalytics } from '../shared/analytics';
 import { initChrome } from '../shared/chrome';
 import { initMotion } from '../shared/motion';
 import { initNameFlip } from '../shared/nameFlip';
 
+initAnalytics();
 initChrome();
 initMotion();
 initNameFlip();

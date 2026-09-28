@@ -1,8 +1,10 @@
+import { initAnalytics } from '../shared/analytics';
 import { initChrome } from '../shared/chrome';
 import { initMotion } from '../shared/motion';
 import { initNameFlip } from '../shared/nameFlip';
 import { initPhotoRail } from '../shared/photoRail';
 
+initAnalytics();
 initChrome();
 initMotion();
 initNameFlip();

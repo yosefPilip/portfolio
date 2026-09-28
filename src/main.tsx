@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { IntroAnimation } from './components/IntroAnimation';
 import './styles/intro.css';
+import { initAnalytics } from './shared/analytics';
 import { initChrome } from './shared/chrome';
 import { initMotion } from './shared/motion';
 import { initNameFlip } from './shared/nameFlip';
@@ -16,6 +17,7 @@ if (introRoot) {
 // carries data-room="home" — so the old "only a migrated page opts in" guard
 // here was dead code as of this file no longer being shared with music.html.
 // Home always has a .stack (the hero), so both calls are unconditional.
+initAnalytics();
 initChrome();
 initMotion();
 initNameFlip();
