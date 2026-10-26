@@ -129,8 +129,12 @@
               <span class="work-row__go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
             </button>
             <div class="work-detail">
-              <p data-edit="index.body2">Give it a prompt, get back a whole batch of podcast episodes. Scripts come from the Anthropic API; the voices come from a pluggable TTS adapter layer, so swapping Fish Audio for ElevenLabs is a config change rather than a rewrite. The interesting part is the concurrency. A 100-episode run is bounded by an asyncio semaphore so it saturates without falling over. SQLite behind it, deployed on Vercel.</p>
-              <p class="meta" data-edit="index.meta2">Python &middot; Anthropic API &middot; SQLite &middot; Vercel</p>
+              <p data-edit="index.body2">Give it a list of cities or topics and get back a whole batch of localized podcast episodes. Claude writes each script, ElevenLabs voices it, and the browser stitches in your intro and outro and hands you the MP3s. There is no server. You bring your own API keys and they never leave your browser. The interesting part is the concurrency, since a 100-episode run is rate limited and retried so it saturates without falling over. Open source and free to use.</p>
+              <p class="meta" data-edit="index.meta2">React &middot; Vite &middot; Anthropic API &middot; ElevenLabs &middot; Web Audio</p>
+              <p class="work-detail__links">
+                <a class="link" href="https://yosefpilip.github.io/batch-localized-podcast-generator/" target="_blank" rel="noopener" data-edit="index.link5">Try it &#8599;</a>
+                <a class="link" href="https://github.com/yosefPilip/batch-localized-podcast-generator" target="_blank" rel="noopener" data-edit="index.link6">GitHub &#8599;</a>
+              </p>
             </div>
           </article>
 

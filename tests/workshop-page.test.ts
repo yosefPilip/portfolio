@@ -88,10 +88,12 @@ describe('workshop.html', () => {
     }
   });
 
-  it('carries the manufacturing background', () => {
-    expect(html).toContain('SolidWorks');
-    expect(html).toContain('CNC');
-    expect(html).toContain('powder-bed fusion');
+  // Owner, 2026-10-26: the hands-on story is a lifetime of building, not De Anza or CAD.
+  it('tells where the hands came from, without the old De Anza/CAD framing', () => {
+    expect(html).toContain('Cardboard box forts');
+    expect(html).toContain('wooden sheds');
+    expect(html).toContain('woodworking, refurbishing and art');
+    expect(html).not.toMatch(/De Anza|SolidWorks|CNC/);
   });
 
   it('links across to the Resell Assistant project', () => {

@@ -33,8 +33,9 @@ export const PROJECTS: readonly Project[] = [
     category: 'ai',
     // Year confirmed directly by the owner: 2026 is correct.
     year: '2026',
-    stack: ['Python', 'Anthropic API', 'SQLite', 'Vercel'],
+    stack: ['React', 'Vite', 'Anthropic API', 'ElevenLabs', 'Web Audio'],
     hasCaseStudy: false,
+    live: 'https://yosefpilip.github.io/batch-localized-podcast-generator/',
   },
   {
     slug: 'resell-assistant',

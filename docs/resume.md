@@ -112,12 +112,12 @@ Water Polo
 ## Personal Projects
 
 ### Batch Podcast Generator
-*Python · Anthropic API · SQLite*
+*React · Vite · Anthropic API · ElevenLabs · Web Audio*
 
-- Generates multi-episode podcast batches from prompts using the Anthropic API and a
-  pluggable TTS adapter layer (Fish Audio, ElevenLabs).
-- Handles bounded concurrency for 100-episode runs via an asyncio semaphore; SQLite
-  backend, deployed on Vercel.
+- Generates batches of localized podcast episodes (up to 100 per run): Claude writes the
+  scripts, ElevenLabs voices them, and the browser stitches intro/outro into MP3s.
+- Browser-only, bring-your-own-keys; bounded concurrency with retry/backoff; open source,
+  hosted on GitHub Pages (github.com/yosefPilip/batch-localized-podcast-generator).
 
 ### Portfolio Site — yosefpilip.com
 *HTML · CSS · JS*
